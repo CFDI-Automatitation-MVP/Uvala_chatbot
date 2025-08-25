@@ -4,7 +4,7 @@ import { formatCost } from "@/lib/ai/cost-calculator";
 import { chatRepository } from "@/lib/db/repository";
 
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ threadId: string }> }
 ) {
   const session = await getSession();
@@ -17,7 +17,7 @@ export async function GET(
 
   try {
     // Check if user has access to this thread
-    const thread = await chatRepository.selectThreadById(threadId);
+    const thread = await chatRepository.selectThread(threadId);
     if (!thread || thread.userId !== session.user.id) {
       return new Response("Thread not found or access denied", { status: 404 });
     }
