@@ -1,4 +1,3 @@
-import "server-only";
 import { LanguageModelUsage } from "ai";
 
 // Model pricing in USD per 1M tokens
