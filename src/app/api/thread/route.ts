@@ -1,4 +1,4 @@
-import { getSession } from "auth/server";
+import { getSession } from "@/lib/auth/supabase-auth";
 import { chatRepository } from "lib/db/repository";
 
 export async function GET() {

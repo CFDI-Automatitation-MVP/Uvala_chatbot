@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getSession } from "auth/server";
+import { getSession } from "@/lib/auth/supabase-auth";
 import { AllowedMCPServer, VercelAIMcpTool } from "app-types/mcp";
 import { userRepository } from "lib/db/repository";
 import {
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
 
     const session = await getSession();
 
-    if (!session?.user.id) {
+    if (!session?.user?.id) {
       return new Response("Unauthorized", { status: 401 });
     }
 

@@ -5,7 +5,7 @@ import { buildAgentGenerationPrompt } from "lib/ai/prompts";
 import globalLogger from "logger";
 import { ChatModel } from "app-types/chat";
 
-import { getSession } from "auth/server";
+import { getSession } from "@/lib/auth/supabase-auth";
 import { colorize } from "consola/utils";
 import { AgentGenerateSchema } from "app-types/agent";
 import { z } from "zod";

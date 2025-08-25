@@ -54,7 +54,7 @@ import { MCPIcon } from "ui/mcp-icon";
 import { useTranslations } from "next-intl";
 
 import { Switch } from "ui/switch";
-import { useShallow } from "zustand/shallow";
+import { useShallow } from "zustand/react/shallow";
 import { useMcpList } from "@/hooks/queries/use-mcp-list";
 import { useWorkflowToolList } from "@/hooks/queries/use-workflow-tool-list";
 import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
@@ -67,7 +67,7 @@ import { CountAnimation } from "ui/count-animation";
 import { Separator } from "ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import { AgentSummary } from "app-types/agent";
-import { authClient } from "auth/client";
+import { useSession } from "@/hooks/use-supabase-session";
 
 import { Alert, AlertDescription, AlertTitle } from "ui/alert";
 import { safe } from "ts-safe";
@@ -425,7 +425,7 @@ function WorkflowToolSelector({
 }) {
   const t = useTranslations();
   const workflowToolList = appStore((state) => state.workflowToolList);
-  const { data: session } = authClient.useSession();
+  const { data: session } = useSession();
   const currentUserId = session?.user?.id;
 
   // Separate user's workflows from shared workflows

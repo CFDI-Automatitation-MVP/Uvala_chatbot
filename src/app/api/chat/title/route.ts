@@ -5,7 +5,7 @@ import { CREATE_THREAD_TITLE_PROMPT } from "lib/ai/prompts";
 import globalLogger from "logger";
 import { ChatModel } from "app-types/chat";
 import { chatRepository } from "lib/db/repository";
-import { getSession } from "auth/server";
+import { getSession } from "@/lib/auth/supabase-auth";
 import { colorize } from "consola/utils";
 import { handleError } from "../shared.chat";
 

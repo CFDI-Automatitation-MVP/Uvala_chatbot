@@ -1,5 +1,5 @@
 import { archiveRepository } from "lib/db/repository";
-import { getSession } from "auth/server";
+import { getSession } from "@/lib/auth/supabase-auth";
 
 export async function DELETE(
   _request: Request,
@@ -7,7 +7,7 @@ export async function DELETE(
 ) {
   const session = await getSession();
 
-  if (!session?.user.id) {
+  if (!session?.user?.id) {
     return new Response("Unauthorized", { status: 401 });
   }
 

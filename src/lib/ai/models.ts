@@ -6,6 +6,7 @@ import { google } from "@ai-sdk/google";
 import { anthropic } from "@ai-sdk/anthropic";
 import { xai } from "@ai-sdk/xai";
 import { openrouter } from "@openrouter/ai-sdk-provider";
+import { fireworks } from "@ai-sdk/fireworks";
 import { LanguageModel } from "ai";
 import {
   createOpenAICompatibleModels,
@@ -23,9 +24,9 @@ const staticModels = {
     "gpt-4.1-mini": openai("gpt-4.1-mini"),
     "o4-mini": openai("o4-mini"),
     o3: openai("o3"),
-    "gpt-5": openai("gpt-5"),
-    "gpt-5-mini": openai("gpt-5-mini"),
-    "gpt-5-nano": openai("gpt-5-nano"),
+    "gpt-5": openai("gpt-5-2025-08-07"),
+    "gpt-5-mini": openai("gpt-5-mini-2025-08-07"),
+    "gpt-5-nano": openai("gpt-5-nano-2025-08-07"),
   },
   google: {
     "gemini-2.5-flash-lite": google("gemini-2.5-flash-lite"),
@@ -53,6 +54,9 @@ const staticModels = {
     "qwen3-14b:free": openrouter("qwen/qwen3-14b:free"),
     "qwen3-coder": openrouter("qwen/qwen3-coder"),
     "gemini-2.0-flash-exp:free": openrouter("google/gemini-2.0-flash-exp:free"),
+  },
+  fireworks: {
+    "gpt-oss-120b": fireworks("accounts/fireworks/models/gpt-oss-120b"),
   },
 };
 

@@ -1,0 +1,349 @@
+import { eq, desc, and, sql, gte, lte, sum } from "drizzle-orm";
+import { pgDb as db } from "../db.pg";
+import {
+  ApiUsageSchema,
+  UserDailyUsageSchema,
+  UserMonthlyUsageSchema,
+  ThreadUsageSchema,
+  type ApiUsageEntity,
+  type UserDailyUsageEntity,
+  type UserMonthlyUsageEntity,
+  type ThreadUsageEntity,
+} from "../schema.pg";
+import { TokenCost } from "@/lib/ai/cost-calculator";
+
+export interface UsageRepository {
+  // API Usage tracking
+  recordApiUsage(usage: {
+    userId: string;
+    threadId?: string;
+    messageId?: string;
+    modelProvider: string;
+    modelName: string;
+  } & TokenCost): Promise<ApiUsageEntity>;
+  
+  getApiUsageByUser(userId: string, limit?: number): Promise<ApiUsageEntity[]>;
+  getApiUsageByThread(threadId: string): Promise<ApiUsageEntity[]>;
+  
+  // Daily usage aggregation
+  updateDailyUsage(userId: string, date: Date, usage: TokenCost): Promise<UserDailyUsageEntity>;
+  getUserDailyUsage(userId: string, date: Date): Promise<UserDailyUsageEntity | null>;
+  getUserDailyUsageRange(userId: string, startDate: Date, endDate: Date): Promise<UserDailyUsageEntity[]>;
+  
+  // Monthly usage aggregation
+  updateMonthlyUsage(userId: string, year: number, month: number, usage: TokenCost): Promise<UserMonthlyUsageEntity>;
+  getUserMonthlyUsage(userId: string, year: number, month: number): Promise<UserMonthlyUsageEntity | null>;
+  getUserMonthlyUsageHistory(userId: string, limit?: number): Promise<UserMonthlyUsageEntity[]>;
+  
+  // Thread usage aggregation
+  updateThreadUsage(threadId: string, userId: string, usage: TokenCost): Promise<ThreadUsageEntity>;
+  getThreadUsage(threadId: string): Promise<ThreadUsageEntity | null>;
+  getUserThreadUsage(userId: string, limit?: number): Promise<ThreadUsageEntity[]>;
+  
+  // Analytics and reporting
+  getUserTotalUsage(userId: string): Promise<{
+    totalTokens: number;
+    totalCost: number;
+    apiCalls: number;
+    toolCalls: number;
+  }>;
+  
+  getSystemUsageStats(startDate?: Date, endDate?: Date): Promise<{
+    totalUsers: number;
+    totalTokens: number;
+    totalCost: number;
+    totalApiCalls: number;
+    totalToolCalls: number;
+    avgCostPerUser: number;
+    avgTokensPerUser: number;
+  }>;
+}
+
+export const pgUsageRepository: UsageRepository = {
+  async recordApiUsage(usage): Promise<ApiUsageEntity> {
+    const [result] = await db
+      .insert(ApiUsageSchema)
+      .values({
+        userId: usage.userId,
+        threadId: usage.threadId || null,
+        messageId: usage.messageId || null,
+        modelProvider: usage.modelProvider,
+        modelName: usage.modelName,
+        inputTokens: usage.inputTokens,
+        outputTokens: usage.outputTokens,
+        cachedInputTokens: usage.cachedInputTokens,
+        reasoningTokens: usage.reasoningTokens,
+        totalTokens: usage.totalTokens,
+        inputCostUsd: usage.inputCostUsd.toString(),
+        outputCostUsd: usage.outputCostUsd.toString(),
+        cachedInputCostUsd: usage.cachedInputCostUsd.toString(),
+        reasoningCostUsd: usage.reasoningCostUsd.toString(),
+        totalCostUsd: usage.totalCostUsd.toString(),
+        toolCallsCount: usage.toolCallsCount,
+        toolCallsCostUsd: usage.toolCallsCostUsd.toString(),
+      })
+      .returning();
+    
+    return result;
+  },
+
+  async getApiUsageByUser(userId: string, limit = 100): Promise<ApiUsageEntity[]> {
+    return await db
+      .select()
+      .from(ApiUsageSchema)
+      .where(eq(ApiUsageSchema.userId, userId))
+      .orderBy(desc(ApiUsageSchema.createdAt))
+      .limit(limit);
+  },
+
+  async getApiUsageByThread(threadId: string): Promise<ApiUsageEntity[]> {
+    return await db
+      .select()
+      .from(ApiUsageSchema)
+      .where(eq(ApiUsageSchema.threadId, threadId))
+      .orderBy(desc(ApiUsageSchema.createdAt));
+  },
+
+  async updateDailyUsage(userId: string, date: Date, usage: TokenCost): Promise<UserDailyUsageEntity> {
+    const usageDate = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+    
+    const [result] = await db
+      .insert(UserDailyUsageSchema)
+      .values({
+        userId,
+        usageDate,
+        totalTokens: usage.totalTokens,
+        inputTokens: usage.inputTokens,
+        outputTokens: usage.outputTokens,
+        cachedInputTokens: usage.cachedInputTokens,
+        reasoningTokens: usage.reasoningTokens,
+        totalCostUsd: usage.totalCostUsd.toString(),
+        apiCallsCount: 1,
+        toolCallsCount: usage.toolCallsCount,
+        toolCallsCostUsd: usage.toolCallsCostUsd.toString(),
+        updatedAt: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: [UserDailyUsageSchema.userId, UserDailyUsageSchema.usageDate],
+        set: {
+          totalTokens: sql`${UserDailyUsageSchema.totalTokens} + ${usage.totalTokens}`,
+          inputTokens: sql`${UserDailyUsageSchema.inputTokens} + ${usage.inputTokens}`,
+          outputTokens: sql`${UserDailyUsageSchema.outputTokens} + ${usage.outputTokens}`,
+          cachedInputTokens: sql`${UserDailyUsageSchema.cachedInputTokens} + ${usage.cachedInputTokens}`,
+          reasoningTokens: sql`${UserDailyUsageSchema.reasoningTokens} + ${usage.reasoningTokens}`,
+          totalCostUsd: sql`${UserDailyUsageSchema.totalCostUsd} + ${usage.totalCostUsd}`,
+          apiCallsCount: sql`${UserDailyUsageSchema.apiCallsCount} + 1`,
+          toolCallsCount: sql`${UserDailyUsageSchema.toolCallsCount} + ${usage.toolCallsCount}`,
+          toolCallsCostUsd: sql`${UserDailyUsageSchema.toolCallsCostUsd} + ${usage.toolCallsCostUsd}`,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    
+    return result;
+  },
+
+  async getUserDailyUsage(userId: string, date: Date): Promise<UserDailyUsageEntity | null> {
+    const usageDate = date.toISOString().split('T')[0];
+    
+    const [result] = await db
+      .select()
+      .from(UserDailyUsageSchema)
+      .where(and(
+        eq(UserDailyUsageSchema.userId, userId),
+        eq(UserDailyUsageSchema.usageDate, usageDate)
+      ));
+    
+    return result || null;
+  },
+
+  async getUserDailyUsageRange(userId: string, startDate: Date, endDate: Date): Promise<UserDailyUsageEntity[]> {
+    const startDateStr = startDate.toISOString().split('T')[0];
+    const endDateStr = endDate.toISOString().split('T')[0];
+    
+    return await db
+      .select()
+      .from(UserDailyUsageSchema)
+      .where(and(
+        eq(UserDailyUsageSchema.userId, userId),
+        gte(UserDailyUsageSchema.usageDate, startDateStr),
+        lte(UserDailyUsageSchema.usageDate, endDateStr)
+      ))
+      .orderBy(desc(UserDailyUsageSchema.usageDate));
+  },
+
+  async updateMonthlyUsage(userId: string, year: number, month: number, usage: TokenCost): Promise<UserMonthlyUsageEntity> {
+    const [result] = await db
+      .insert(UserMonthlyUsageSchema)
+      .values({
+        userId,
+        usageYear: year,
+        usageMonth: month,
+        totalTokens: usage.totalTokens,
+        inputTokens: usage.inputTokens,
+        outputTokens: usage.outputTokens,
+        cachedInputTokens: usage.cachedInputTokens,
+        reasoningTokens: usage.reasoningTokens,
+        totalCostUsd: usage.totalCostUsd.toString(),
+        apiCallsCount: 1,
+        toolCallsCount: usage.toolCallsCount,
+        toolCallsCostUsd: usage.toolCallsCostUsd.toString(),
+        updatedAt: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: [UserMonthlyUsageSchema.userId, UserMonthlyUsageSchema.usageMonth, UserMonthlyUsageSchema.usageYear],
+        set: {
+          totalTokens: sql`${UserMonthlyUsageSchema.totalTokens} + ${usage.totalTokens}`,
+          inputTokens: sql`${UserMonthlyUsageSchema.inputTokens} + ${usage.inputTokens}`,
+          outputTokens: sql`${UserMonthlyUsageSchema.outputTokens} + ${usage.outputTokens}`,
+          cachedInputTokens: sql`${UserMonthlyUsageSchema.cachedInputTokens} + ${usage.cachedInputTokens}`,
+          reasoningTokens: sql`${UserMonthlyUsageSchema.reasoningTokens} + ${usage.reasoningTokens}`,
+          totalCostUsd: sql`${UserMonthlyUsageSchema.totalCostUsd} + ${usage.totalCostUsd}`,
+          apiCallsCount: sql`${UserMonthlyUsageSchema.apiCallsCount} + 1`,
+          toolCallsCount: sql`${UserMonthlyUsageSchema.toolCallsCount} + ${usage.toolCallsCount}`,
+          toolCallsCostUsd: sql`${UserMonthlyUsageSchema.toolCallsCostUsd} + ${usage.toolCallsCostUsd}`,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    
+    return result;
+  },
+
+  async getUserMonthlyUsage(userId: string, year: number, month: number): Promise<UserMonthlyUsageEntity | null> {
+    const [result] = await db
+      .select()
+      .from(UserMonthlyUsageSchema)
+      .where(and(
+        eq(UserMonthlyUsageSchema.userId, userId),
+        eq(UserMonthlyUsageSchema.usageYear, year),
+        eq(UserMonthlyUsageSchema.usageMonth, month)
+      ));
+    
+    return result || null;
+  },
+
+  async getUserMonthlyUsageHistory(userId: string, limit = 12): Promise<UserMonthlyUsageEntity[]> {
+    return await db
+      .select()
+      .from(UserMonthlyUsageSchema)
+      .where(eq(UserMonthlyUsageSchema.userId, userId))
+      .orderBy(desc(UserMonthlyUsageSchema.usageYear), desc(UserMonthlyUsageSchema.usageMonth))
+      .limit(limit);
+  },
+
+  async updateThreadUsage(threadId: string, userId: string, usage: TokenCost): Promise<ThreadUsageEntity> {
+    const [result] = await db
+      .insert(ThreadUsageSchema)
+      .values({
+        threadId,
+        userId,
+        totalTokens: usage.totalTokens,
+        inputTokens: usage.inputTokens,
+        outputTokens: usage.outputTokens,
+        cachedInputTokens: usage.cachedInputTokens,
+        reasoningTokens: usage.reasoningTokens,
+        totalCostUsd: usage.totalCostUsd.toString(),
+        apiCallsCount: 1,
+        toolCallsCount: usage.toolCallsCount,
+        toolCallsCostUsd: usage.toolCallsCostUsd.toString(),
+        updatedAt: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: [ThreadUsageSchema.threadId],
+        set: {
+          totalTokens: sql`${ThreadUsageSchema.totalTokens} + ${usage.totalTokens}`,
+          inputTokens: sql`${ThreadUsageSchema.inputTokens} + ${usage.inputTokens}`,
+          outputTokens: sql`${ThreadUsageSchema.outputTokens} + ${usage.outputTokens}`,
+          cachedInputTokens: sql`${ThreadUsageSchema.cachedInputTokens} + ${usage.cachedInputTokens}`,
+          reasoningTokens: sql`${ThreadUsageSchema.reasoningTokens} + ${usage.reasoningTokens}`,
+          totalCostUsd: sql`${ThreadUsageSchema.totalCostUsd} + ${usage.totalCostUsd}`,
+          apiCallsCount: sql`${ThreadUsageSchema.apiCallsCount} + 1`,
+          toolCallsCount: sql`${ThreadUsageSchema.toolCallsCount} + ${usage.toolCallsCount}`,
+          toolCallsCostUsd: sql`${ThreadUsageSchema.toolCallsCostUsd} + ${usage.toolCallsCostUsd}`,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    
+    return result;
+  },
+
+  async getThreadUsage(threadId: string): Promise<ThreadUsageEntity | null> {
+    const [result] = await db
+      .select()
+      .from(ThreadUsageSchema)
+      .where(eq(ThreadUsageSchema.threadId, threadId));
+    
+    return result || null;
+  },
+
+  async getUserThreadUsage(userId: string, limit = 50): Promise<ThreadUsageEntity[]> {
+    return await db
+      .select()
+      .from(ThreadUsageSchema)
+      .where(eq(ThreadUsageSchema.userId, userId))
+      .orderBy(desc(ThreadUsageSchema.updatedAt))
+      .limit(limit);
+  },
+
+  async getUserTotalUsage(userId: string) {
+    const result = await db
+      .select({
+        totalTokens: sum(UserDailyUsageSchema.totalTokens),
+        totalCost: sum(UserDailyUsageSchema.totalCostUsd),
+        apiCalls: sum(UserDailyUsageSchema.apiCallsCount),
+        toolCalls: sum(UserDailyUsageSchema.toolCallsCount),
+      })
+      .from(UserDailyUsageSchema)
+      .where(eq(UserDailyUsageSchema.userId, userId));
+    
+    const stats = result[0];
+    return {
+      totalTokens: Number(stats.totalTokens || 0),
+      totalCost: Number(stats.totalCost || 0),
+      apiCalls: Number(stats.apiCalls || 0),
+      toolCalls: Number(stats.toolCalls || 0),
+    };
+  },
+
+  async getSystemUsageStats(startDate?: Date, endDate?: Date) {
+    let query = db
+      .select({
+        totalTokens: sum(UserDailyUsageSchema.totalTokens),
+        totalCost: sum(UserDailyUsageSchema.totalCostUsd),
+        totalApiCalls: sum(UserDailyUsageSchema.apiCallsCount),
+        totalToolCalls: sum(UserDailyUsageSchema.toolCallsCount),
+        totalUsers: sql<number>`COUNT(DISTINCT ${UserDailyUsageSchema.userId})`,
+      })
+      .from(UserDailyUsageSchema);
+    
+    if (startDate && endDate) {
+      const startDateStr = startDate.toISOString().split('T')[0];
+      const endDateStr = endDate.toISOString().split('T')[0];
+      query = query.where(and(
+        gte(UserDailyUsageSchema.usageDate, startDateStr),
+        lte(UserDailyUsageSchema.usageDate, endDateStr)
+      ));
+    }
+    
+    const result = await query;
+    const stats = result[0];
+    
+    const totalUsers = Number(stats.totalUsers || 0);
+    const totalTokens = Number(stats.totalTokens || 0);
+    const totalCost = Number(stats.totalCost || 0);
+    const totalApiCalls = Number(stats.totalApiCalls || 0);
+    const totalToolCalls = Number(stats.totalToolCalls || 0);
+    
+    return {
+      totalUsers,
+      totalTokens,
+      totalCost,
+      totalApiCalls,
+      totalToolCalls,
+      avgCostPerUser: totalUsers > 0 ? totalCost / totalUsers : 0,
+      avgTokensPerUser: totalUsers > 0 ? totalTokens / totalUsers : 0,
+    };
+  },
+};

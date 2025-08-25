@@ -1,12 +1,12 @@
 import { agentRepository } from "lib/db/repository";
-import { getSession } from "auth/server";
+import { getSessionWithRedirect } from "@/lib/auth/supabase-auth";
 import { notFound } from "next/navigation";
 import { AgentsList } from "@/components/agent/agents-list";
 
 export default async function AgentsPage() {
-  const session = await getSession();
+  const session = await getSessionWithRedirect();
 
-  if (!session?.user.id) {
+  if (!session?.user?.id) {
     notFound();
   }
 

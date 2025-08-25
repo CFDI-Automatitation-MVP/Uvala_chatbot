@@ -1,6 +1,6 @@
 import EditAgent from "@/components/agent/edit-agent";
 import { agentRepository } from "lib/db/repository";
-import { getSession } from "auth/server";
+import { getSessionWithRedirect } from "@/lib/auth/supabase-auth";
 import { notFound } from "next/navigation";
 
 export default async function AgentPage({
@@ -9,9 +9,9 @@ export default async function AgentPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const session = await getSession();
+  const session = await getSessionWithRedirect();
 
-  if (!session?.user.id) {
+  if (!session?.user?.id) {
     notFound();
   }
 

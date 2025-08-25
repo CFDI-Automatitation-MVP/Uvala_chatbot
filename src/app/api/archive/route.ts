@@ -1,12 +1,12 @@
 import { archiveRepository } from "lib/db/repository";
-import { getSession } from "auth/server";
+import { getSession } from "@/lib/auth/supabase-auth";
 import { z } from "zod";
 import { ArchiveCreateSchema } from "app-types/archive";
 
 export async function GET() {
   const session = await getSession();
 
-  if (!session?.user.id) {
+  if (!session?.user?.id) {
     return new Response("Unauthorized", { status: 401 });
   }
 
@@ -24,7 +24,7 @@ export async function GET() {
 export async function POST(request: Request) {
   const session = await getSession();
 
-  if (!session?.user.id) {
+  if (!session?.user?.id) {
     return new Response("Unauthorized", { status: 401 });
   }
 

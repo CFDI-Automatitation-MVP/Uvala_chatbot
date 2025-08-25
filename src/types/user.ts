@@ -17,6 +17,7 @@ export type User = {
 
 export type UserRepository = {
   existsByEmail: (email: string) => Promise<boolean>;
+  createUser: (user: { id: string; name: string; email: string; image?: string | null }) => Promise<User>;
   updateUser: (id: string, user: Pick<User, "name" | "image">) => Promise<User>;
   updatePreferences: (
     userId: string,

@@ -1,4 +1,4 @@
-import { getSession } from "auth/server";
+import { getSession } from "@/lib/auth/supabase-auth";
 import { bookmarkRepository } from "lib/db/repository";
 import { z } from "zod";
 

@@ -11,6 +11,25 @@ export const pgUserRepository: UserRepository = {
       .where(eq(UserSchema.email, email));
     return result.length > 0;
   },
+  createUser: async (user: { id: string; name: string; email: string; image?: string | null }): Promise<User> => {
+    const [result] = await db
+      .insert(UserSchema)
+      .values({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        image: user.image || null,
+        emailVerified: true, // Since they're coming from Google OAuth
+        preferences: {},
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return {
+      ...result,
+      preferences: result.preferences ?? undefined,
+    };
+  },
   updateUser: async (
     id: string,
     user: Pick<User, "name" | "image">,

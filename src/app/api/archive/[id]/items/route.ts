@@ -1,5 +1,5 @@
 import { archiveRepository } from "lib/db/repository";
-import { getSession } from "auth/server";
+import { getSession } from "@/lib/auth/supabase-auth";
 import { z } from "zod";
 
 const AddItemSchema = z.object({
@@ -12,7 +12,7 @@ export async function GET(
 ) {
   const session = await getSession();
 
-  if (!session?.user.id) {
+  if (!session?.user?.id) {
     return new Response("Unauthorized", { status: 401 });
   }
 
@@ -44,7 +44,7 @@ export async function POST(
 ) {
   const session = await getSession();
 
-  if (!session?.user.id) {
+  if (!session?.user?.id) {
     return new Response("Unauthorized", { status: 401 });
   }
 

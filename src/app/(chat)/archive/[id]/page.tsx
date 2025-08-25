@@ -1,5 +1,5 @@
 import { archiveRepository, chatRepository } from "lib/db/repository";
-import { getSession } from "auth/server";
+import { getSessionWithRedirect } from "@/lib/auth/supabase-auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent, CardHeader } from "ui/card";
@@ -41,7 +41,7 @@ interface ArchiveWithThreads {
 async function getArchiveWithThreads(
   archiveId: string,
 ): Promise<ArchiveWithThreads | null> {
-  const session = await getSession();
+  const session = await getSessionWithRedirect();
   if (!session?.user?.id) return null;
 
   const [archive, archiveItems] = await Promise.all([
@@ -73,7 +73,7 @@ export default async function ArchivePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const session = await getSession();
+  const session = await getSessionWithRedirect();
 
   if (!session?.user?.id) {
     redirect("/sign-in");

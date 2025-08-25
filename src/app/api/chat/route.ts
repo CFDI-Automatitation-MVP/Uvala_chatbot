@@ -39,9 +39,10 @@ import {
   rememberAgentAction,
   rememberMcpServerCustomizationsAction,
 } from "./actions";
-import { getSession } from "auth/server";
+import { getSession } from "@/lib/auth/supabase-auth";
 import { colorize } from "consola/utils";
 import { generateUUID } from "lib/utils";
+import { trackUsage } from "lib/ai/usage-tracker";
 
 const logger = globalLogger.withDefaults({
   message: colorize("blackBright", `Chat API: `),
@@ -53,7 +54,7 @@ export async function POST(request: Request) {
 
     const session = await getSession();
 
-    if (!session?.user.id) {
+    if (!session?.user?.id) {
       return new Response("Unauthorized", { status: 401 });
     }
     const {
@@ -268,6 +269,23 @@ export async function POST(request: Request) {
             id: responseMessage.id,
             parts: responseMessage.parts.map(convertToSavePart),
             metadata,
+          });
+        }
+
+        // Track usage and costs
+        if (metadata.usage && metadata.chatModel && session?.user?.id) {
+          // Count tool calls from response message
+          const toolCallsCount = responseMessage.parts.filter(part => 
+            part.type === 'tool-call'
+          ).length;
+          
+          await trackUsage({
+            usage: metadata.usage,
+            userId: session.user.id,
+            threadId: thread?.id,
+            messageId: responseMessage.id,
+            chatModel: metadata.chatModel,
+            toolCallsCount,
           });
         }
 

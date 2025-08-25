@@ -1,5 +1,5 @@
 import { archiveRepository } from "lib/db/repository";
-import { getSession } from "auth/server";
+import { getSession } from "@/lib/auth/supabase-auth";
 import { z } from "zod";
 import { ArchiveUpdateSchema } from "app-types/archive";
 
@@ -9,7 +9,7 @@ export async function GET(
 ) {
   const session = await getSession();
 
-  if (!session?.user.id) {
+  if (!session?.user?.id) {
     return new Response("Unauthorized", { status: 401 });
   }
 
@@ -46,7 +46,7 @@ export async function PUT(
 ) {
   const session = await getSession();
 
-  if (!session?.user.id) {
+  if (!session?.user?.id) {
     return new Response("Unauthorized", { status: 401 });
   }
 
@@ -92,7 +92,7 @@ export async function DELETE(
 ) {
   const session = await getSession();
 
-  if (!session?.user.id) {
+  if (!session?.user?.id) {
     return new Response("Unauthorized", { status: 401 });
   }
 

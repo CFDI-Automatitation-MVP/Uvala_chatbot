@@ -1,6 +1,7 @@
 "use client";
 
 import { getToolName, ToolUIPart, UIMessage } from "ai";
+import { calculateTokenCost, formatCost } from "@/lib/ai/cost-calculator";
 import {
   Check,
   Copy,
@@ -489,7 +490,7 @@ export const AssistMessagePart = memo(function AssistMessagePart({
                     <>
                       <div className="flex flex-col gap-2">
                         <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                          Token Usage
+                          Usage & Cost
                           <span className="text-xs text-muted-foreground font-normal">
                             {
                               message.parts.filter(
@@ -511,6 +512,17 @@ export const AssistMessagePart = memo(function AssistMessagePart({
                               </span>
                               <span className="text-xs font-mono font-medium">
                                 {metadata.usage.inputTokens.toLocaleString()}
+                                {metadata.chatModel && (
+                                  <span className="text-green-600 ml-2">
+                                    ({formatCost(calculateTokenCost({
+                                      inputTokens: metadata.usage.inputTokens,
+                                      outputTokens: 0,
+                                      cachedInputTokens: metadata.usage.cachedInputTokens || 0,
+                                      reasoningTokens: metadata.usage.reasoningTokens || 0,
+                                      totalTokens: metadata.usage.inputTokens,
+                                    }, `${metadata.chatModel.provider}/${metadata.chatModel.model}`).inputCostUsd)})
+                                  </span>
+                                )}
                               </span>
                             </div>
                           )}
@@ -521,6 +533,17 @@ export const AssistMessagePart = memo(function AssistMessagePart({
                               </span>
                               <span className="text-xs font-mono font-medium">
                                 {metadata.usage.outputTokens.toLocaleString()}
+                                {metadata.chatModel && (
+                                  <span className="text-green-600 ml-2">
+                                    ({formatCost(calculateTokenCost({
+                                      inputTokens: 0,
+                                      outputTokens: metadata.usage.outputTokens,
+                                      cachedInputTokens: 0,
+                                      reasoningTokens: 0,
+                                      totalTokens: metadata.usage.outputTokens,
+                                    }, `${metadata.chatModel.provider}/${metadata.chatModel.model}`).outputCostUsd)})
+                                  </span>
+                                )}
                               </span>
                             </div>
                           )}
@@ -531,6 +554,14 @@ export const AssistMessagePart = memo(function AssistMessagePart({
                               </span>
                               <span className="text-xs font-mono font-bold text-primary">
                                 {metadata.usage.totalTokens.toLocaleString()}
+                                {metadata.chatModel && (
+                                  <span className="text-green-600 ml-2">
+                                    ({formatCost(calculateTokenCost(
+                                      metadata.usage, 
+                                      `${metadata.chatModel.provider}/${metadata.chatModel.model}`
+                                    ).totalCostUsd)})
+                                  </span>
+                                )}
                               </span>
                             </div>
                           )}

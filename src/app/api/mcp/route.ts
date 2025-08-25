@@ -1,4 +1,4 @@
-import { getSession } from "auth/server";
+import { getSession } from "@/lib/auth/supabase-auth";
 import { McpServerSchema } from "lib/db/pg/schema.pg";
 import { NextResponse } from "next/server";
 import { saveMcpClientAction } from "./actions";

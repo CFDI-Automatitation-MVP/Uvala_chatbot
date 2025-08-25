@@ -12,6 +12,9 @@ import {
   unique,
   varchar,
   index,
+  integer,
+  decimal,
+  date,
 } from "drizzle-orm/pg-core";
 import { isNotNull } from "drizzle-orm";
 import { DBWorkflow, DBEdge, DBNode } from "app-types/workflow";
@@ -317,3 +320,107 @@ export type McpServerCustomizationEntity =
 export type ArchiveEntity = typeof ArchiveSchema.$inferSelect;
 export type ArchiveItemEntity = typeof ArchiveItemSchema.$inferSelect;
 export type BookmarkEntity = typeof BookmarkSchema.$inferSelect;
+
+// Token Usage Tracking Schemas
+export const ApiUsageSchema = pgTable("api_usage", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => UserSchema.id, { onDelete: "cascade" }),
+  threadId: uuid("thread_id").references(() => ChatThreadSchema.id, { onDelete: "set null" }),
+  messageId: text("message_id").references(() => ChatMessageSchema.id, { onDelete: "set null" }),
+  modelProvider: varchar("model_provider", { length: 50 }).notNull(),
+  modelName: varchar("model_name", { length: 100 }).notNull(),
+  inputTokens: integer("input_tokens").notNull().default(0),
+  outputTokens: integer("output_tokens").notNull().default(0),
+  cachedInputTokens: integer("cached_input_tokens").notNull().default(0),
+  reasoningTokens: integer("reasoning_tokens").notNull().default(0),
+  totalTokens: integer("total_tokens").notNull().default(0),
+  inputCostUsd: decimal("input_cost_usd", { precision: 10, scale: 8 }).notNull().default("0"),
+  outputCostUsd: decimal("output_cost_usd", { precision: 10, scale: 8 }).notNull().default("0"),
+  cachedInputCostUsd: decimal("cached_input_cost_usd", { precision: 10, scale: 8 }).notNull().default("0"),
+  reasoningCostUsd: decimal("reasoning_cost_usd", { precision: 10, scale: 8 }).notNull().default("0"),
+  totalCostUsd: decimal("total_cost_usd", { precision: 10, scale: 8 }).notNull().default("0"),
+  toolCallsCount: integer("tool_calls_count").notNull().default(0),
+  toolCallsCostUsd: decimal("tool_calls_cost_usd", { precision: 10, scale: 8 }).notNull().default("0"),
+  createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+}, (table) => [
+  index("api_usage_user_id_idx").on(table.userId),
+  index("api_usage_created_at_idx").on(table.createdAt),
+  index("api_usage_thread_id_idx").on(table.threadId),
+]);
+
+export const UserDailyUsageSchema = pgTable("user_daily_usage", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => UserSchema.id, { onDelete: "cascade" }),
+  usageDate: date("usage_date").notNull(),
+  totalTokens: integer("total_tokens").notNull().default(0),
+  inputTokens: integer("input_tokens").notNull().default(0),
+  outputTokens: integer("output_tokens").notNull().default(0),
+  cachedInputTokens: integer("cached_input_tokens").notNull().default(0),
+  reasoningTokens: integer("reasoning_tokens").notNull().default(0),
+  totalCostUsd: decimal("total_cost_usd", { precision: 10, scale: 8 }).notNull().default("0"),
+  apiCallsCount: integer("api_calls_count").notNull().default(0),
+  toolCallsCount: integer("tool_calls_count").notNull().default(0),
+  toolCallsCostUsd: decimal("tool_calls_cost_usd", { precision: 10, scale: 8 }).notNull().default("0"),
+  createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+}, (table) => [
+  unique().on(table.userId, table.usageDate),
+  index("user_daily_usage_user_date_idx").on(table.userId, table.usageDate),
+]);
+
+export const UserMonthlyUsageSchema = pgTable("user_monthly_usage", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => UserSchema.id, { onDelete: "cascade" }),
+  usageMonth: integer("usage_month").notNull(),
+  usageYear: integer("usage_year").notNull(),
+  totalTokens: integer("total_tokens").notNull().default(0),
+  inputTokens: integer("input_tokens").notNull().default(0),
+  outputTokens: integer("output_tokens").notNull().default(0),
+  cachedInputTokens: integer("cached_input_tokens").notNull().default(0),
+  reasoningTokens: integer("reasoning_tokens").notNull().default(0),
+  totalCostUsd: decimal("total_cost_usd", { precision: 10, scale: 8 }).notNull().default("0"),
+  apiCallsCount: integer("api_calls_count").notNull().default(0),
+  toolCallsCount: integer("tool_calls_count").notNull().default(0),
+  toolCallsCostUsd: decimal("tool_calls_cost_usd", { precision: 10, scale: 8 }).notNull().default("0"),
+  createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+}, (table) => [
+  unique().on(table.userId, table.usageMonth, table.usageYear),
+  index("user_monthly_usage_user_period_idx").on(table.userId, table.usageYear, table.usageMonth),
+]);
+
+export const ThreadUsageSchema = pgTable("thread_usage", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  threadId: uuid("thread_id")
+    .notNull()
+    .references(() => ChatThreadSchema.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => UserSchema.id, { onDelete: "cascade" }),
+  totalTokens: integer("total_tokens").notNull().default(0),
+  inputTokens: integer("input_tokens").notNull().default(0),
+  outputTokens: integer("output_tokens").notNull().default(0),
+  cachedInputTokens: integer("cached_input_tokens").notNull().default(0),
+  reasoningTokens: integer("reasoning_tokens").notNull().default(0),
+  totalCostUsd: decimal("total_cost_usd", { precision: 10, scale: 8 }).notNull().default("0"),
+  apiCallsCount: integer("api_calls_count").notNull().default(0),
+  toolCallsCount: integer("tool_calls_count").notNull().default(0),
+  toolCallsCostUsd: decimal("tool_calls_cost_usd", { precision: 10, scale: 8 }).notNull().default("0"),
+  createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+}, (table) => [
+  unique().on(table.threadId),
+  index("thread_usage_user_id_idx").on(table.userId),
+]);
+
+// Export types for the new schemas
+export type ApiUsageEntity = typeof ApiUsageSchema.$inferSelect;
+export type UserDailyUsageEntity = typeof UserDailyUsageSchema.$inferSelect;
+export type UserMonthlyUsageEntity = typeof UserMonthlyUsageSchema.$inferSelect;
+export type ThreadUsageEntity = typeof ThreadUsageSchema.$inferSelect;

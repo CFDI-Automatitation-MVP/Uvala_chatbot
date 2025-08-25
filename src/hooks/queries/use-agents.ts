@@ -4,7 +4,7 @@ import useSWR, { SWRConfiguration, useSWRConfig } from "swr";
 import { handleErrorWithToast } from "ui/shared-toast";
 import { fetcher } from "lib/utils";
 import { AgentSummary } from "app-types/agent";
-import { authClient } from "auth/client";
+import { useSession } from "@/hooks/use-supabase-session";
 
 interface UseAgentsOptions extends SWRConfiguration {
   filters?: ("all" | "mine" | "shared" | "bookmarked")[];
@@ -38,7 +38,7 @@ export function useAgents(options: UseAgentsOptions = {}) {
     ...swrOptions,
   });
 
-  const { data: session } = authClient.useSession();
+  const { data: session } = useSession();
   const currentUserId = session?.user?.id;
 
   // Client-side filtering for additional views

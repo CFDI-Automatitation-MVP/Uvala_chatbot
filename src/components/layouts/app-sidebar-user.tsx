@@ -30,7 +30,7 @@ import { useTheme } from "next-themes";
 import { appStore } from "@/app/store";
 import { BASE_THEMES, COOKIE_KEY_LOCALE, SUPPORTED_LOCALES } from "lib/const";
 import { capitalizeFirstLetter, cn } from "lib/utils";
-import { authClient } from "auth/client";
+import { supabase } from "@/lib/supabase/client";
 import { useTranslations } from "next-intl";
 import useSWR from "swr";
 import { getLocaleAction } from "@/i18n/get-locale";
@@ -38,36 +38,32 @@ import { useCallback } from "react";
 import { GithubIcon } from "ui/github-icon";
 import { DiscordIcon } from "ui/discord-icon";
 import { useThemeStyle } from "@/hooks/use-theme-style";
-import { Session, User } from "better-auth";
+type SessionUser = {
+  id: string;
+  email?: string;
+  name?: string;
+  image?: string;
+};
 
 export function AppSidebarUser({
   session,
-}: { session?: { session: Session; user: User } }) {
+}: { session?: { user: SessionUser } }) {
   const appStoreMutate = appStore((state) => state.mutate);
   const t = useTranslations("Layout");
 
   const user = session?.user;
 
-  const logout = () => {
-    authClient.signOut().finally(() => {
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
       window.location.href = "/sign-in";
-    });
+    } catch (error) {
+      console.error("Error signing out:", error);
+      window.location.href = "/sign-in";
+    }
   };
 
-  useSWR(
-    "/session-update",
-    () =>
-      authClient.getSession().then(() => {
-        console.log(`session-update: ${new Date().toISOString()}`);
-      }),
-    {
-      refreshIntervalOnFocus: false,
-      focusThrottleInterval: 1000 * 60 * 5,
-      revalidateOnFocus: false,
-      refreshWhenHidden: true,
-      refreshInterval: 1000 * 60 * 5,
-    },
-  );
+  // Session is managed by Supabase automatically
 
   return (
     <SidebarMenu>

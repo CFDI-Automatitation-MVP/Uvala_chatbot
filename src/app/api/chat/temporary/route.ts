@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getSession } from "auth/server";
+import { getSession } from "@/lib/auth/supabase-auth";
 import {
   UIMessage,
   convertToModelMessages,
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
 
     const session = await getSession();
 
-    if (!session?.user.id) {
+    if (!session?.user?.id) {
       return redirect("/sign-in");
     }
 

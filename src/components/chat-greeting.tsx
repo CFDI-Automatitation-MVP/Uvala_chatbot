@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { authClient } from "auth/client";
+import { useSession } from "@/hooks/use-supabase-session";
 import { useMemo } from "react";
 import { FlipWords } from "ui/flip-words";
 import { useTranslations } from "next-intl";
@@ -14,7 +14,7 @@ function getGreetingByTime() {
 }
 
 export const ChatGreeting = () => {
-  const { data: session } = authClient.useSession();
+  const { data: session } = useSession();
 
   const t = useTranslations("Chat.Greeting");
 

@@ -1,5 +1,5 @@
 import { McpToolCustomizationZodSchema } from "app-types/mcp";
-import { getSession } from "auth/server";
+import { getSession } from "@/lib/auth/supabase-auth";
 import { serverCache } from "lib/cache";
 import { CacheKeys } from "lib/cache/cache-keys";
 import { mcpMcpToolCustomizationRepository } from "lib/db/repository";

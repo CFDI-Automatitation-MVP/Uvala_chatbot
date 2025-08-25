@@ -1,4 +1,4 @@
-import { getSession } from "auth/server";
+import { getSession } from "@/lib/auth/supabase-auth";
 import { workflowRepository } from "lib/db/repository";
 
 export async function GET(
@@ -7,7 +7,9 @@ export async function GET(
 ) {
   const { id } = await params;
   const session = await getSession();
-  const hasAccess = await workflowRepository.checkAccess(id, session.user.id);
+  if (!session?.user?.id) {
+    return new Response("Unauthorized", { status: 401 });
+  }  const hasAccess = await workflowRepository.checkAccess(id, session.user.id);
   if (!hasAccess) {
     return new Response("Unauthorized", { status: 401 });
   }
@@ -22,7 +24,9 @@ export async function POST(
   const { nodes, edges, deleteNodes, deleteEdges } = await request.json();
   const { id } = await params;
   const session = await getSession();
-
+  if (!session?.user?.id) {
+    return new Response("Unauthorized", { status: 401 });
+  }
   const hasAccess = await workflowRepository.checkAccess(
     id,
     session.user.id,
