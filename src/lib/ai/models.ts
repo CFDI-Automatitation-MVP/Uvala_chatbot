@@ -56,9 +56,7 @@ const staticModels = {
     "gemini-2.0-flash-exp:free": openrouter("google/gemini-2.0-flash-exp:free"),
   },
   fireworks: {
-    "gpt-oss-120b": fireworks("accounts/fireworks/models/gpt-oss-120b", {
-      apiKey: process.env.FIREWORKS_API_KEY,
-    }),
+    "gpt-oss-120b": fireworks("accounts/fireworks/models/gpt-oss-120b"),
   },
 };
 
