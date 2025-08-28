@@ -39,7 +39,7 @@ export default function SignIn() {
       <Card className="w-full md:max-w-md bg-background border-none mx-auto shadow-none animate-in fade-in duration-1000">
         <CardHeader className="my-4">
           <CardTitle className="text-2xl text-center my-1">
-            Welcome to Better Chatbot
+            Welcome to uvala
           </CardTitle>
           <CardDescription className="text-center text-muted-foreground">
             Sign in with your Google account to continue

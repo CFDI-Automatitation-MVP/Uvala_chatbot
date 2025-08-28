@@ -49,11 +49,7 @@ type Props = {
   selectedChatModel?: string;
 };
 
-const LightRays = dynamic(() => import("ui/light-rays"), {
-  ssr: false,
-});
-
-const Particles = dynamic(() => import("ui/particles"), {
+const OrbBackground = dynamic(() => import("@/components/orb-background").then(mod => ({ default: mod.OrbBackground })), {
   ssr: false,
 });
 
@@ -93,7 +89,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     threadId,
   });
 
-  const [showParticles, setShowParticles] = useState(isFirstTime);
+  const [showParticles, setShowParticles] = useState(true);
 
   const onFinish = useCallback(() => {
     const messages = latestRef.current.messages;
@@ -230,41 +226,11 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     return false;
   }, [isLoading, messages.at(-1)]);
 
-  const particle = useMemo(() => {
-    return (
-      <AnimatePresence>
-        {showParticles && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 5 }}
-          >
-            <div className="absolute top-0 left-0 w-full h-full z-10">
-              <LightRays />
-            </div>
-            <div className="absolute top-0 left-0 w-full h-full z-10">
-              <Particles particleCount={400} particleBaseSize={10} />
-            </div>
-
-            <div className="absolute top-0 left-0 w-full h-full z-10">
-              <div className="w-full h-full bg-gradient-to-t from-background to-50% to-transparent z-20" />
-            </div>
-            <div className="absolute top-0 left-0 w-full h-full z-10">
-              <div className="w-full h-full bg-gradient-to-l from-background to-20% to-transparent z-20" />
-            </div>
-            <div className="absolute top-0 left-0 w-full h-full z-10">
-              <div className="w-full h-full bg-gradient-to-r from-background to-20% to-transparent z-20" />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    );
-  }, [showParticles]);
 
   const handleFocus = useCallback(() => {
-    setShowParticles(false);
-    debounce(() => setShowParticles(true), 60000);
+    // Keep background visible - Orb component is optimized for performance
+    // setShowParticles(false);
+    // debounce(() => setShowParticles(true), 60000);
   }, []);
 
   const handleScroll = useCallback(() => {
@@ -346,7 +312,9 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
 
   return (
     <>
-      {particle}
+      {/* Show Orb only when starting new chat (no messages) */}
+      {emptyMessage && <OrbBackground />}
+      
       <div
         className={cn(
           emptyMessage && "justify-center pb-24",

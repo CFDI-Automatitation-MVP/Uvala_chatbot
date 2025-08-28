@@ -24,7 +24,7 @@ export default async function ChatLayout({
         <AppSidebar session={session} />
         <main className="relative bg-background  w-full flex flex-col h-screen">
           <AppHeader />
-          <div className="flex-1 overflow-y-auto">{children}</div>
+          <div className="flex-1 overflow-y-auto relative z-30">{children}</div>
         </main>
       </SWRConfigProvider>
     </SidebarProvider>
