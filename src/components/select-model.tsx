@@ -9,9 +9,7 @@ import { Button } from "ui/button";
 
 import {
   Command,
-  CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
   CommandSeparator,
@@ -63,21 +61,16 @@ export const SelectModel = (props: PropsWithChildren<SelectModelProps>) => {
         )}
       </PopoverTrigger>
       <PopoverContent
-        className="p-0 w-[280px]"
+        className="p-0 w-[240px]"
         align={props.align || "end"}
         data-testid="model-selector-popover"
       >
         <Command
-          className="rounded-lg relative shadow-md h-80"
+          className="rounded-lg relative shadow-md h-auto"
           value={JSON.stringify(model)}
           onClick={(e) => e.stopPropagation()}
         >
-          <CommandInput
-            placeholder="search model..."
-            data-testid="model-search-input"
-          />
           <CommandList className="p-2">
-            <CommandEmpty>No results found.</CommandEmpty>
             {providers?.map((provider, i) => (
               <Fragment key={provider.provider}>
                 <CommandGroup
