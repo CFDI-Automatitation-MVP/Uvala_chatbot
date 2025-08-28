@@ -15,6 +15,7 @@ export async function middleware(request: NextRequest) {
   // Allow public routes
   if (pathname.startsWith("/sign-in") || 
       pathname.startsWith("/sign-up") || 
+      pathname.startsWith("/auth/callback") ||
       pathname.startsWith("/_next") ||
       pathname.startsWith("/favicon.ico")) {
     return NextResponse.next();
@@ -51,8 +52,9 @@ export async function middleware(request: NextRequest) {
   const { data: { user }, error } = await supabase.auth.getUser()
 
   // If no user and accessing protected route, redirect to sign-in
-  if (!user && !error) {
-    return NextResponse.redirect(new URL("/sign-in", request.url));
+  if ((!user || error) && !pathname.startsWith("/sign-in")) {
+    const redirectUrl = new URL("/sign-in", request.url);
+    return NextResponse.redirect(redirectUrl);
   }
 
   return response;
@@ -60,6 +62,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|api|sign-in|sign-up).*)",
+    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|api|sign-in|sign-up|auth).*)",
   ],
 };

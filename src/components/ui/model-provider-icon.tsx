@@ -3,6 +3,7 @@ import { ClaudeIcon } from "./claude-icon";
 import { GeminiIcon } from "./gemini-icon";
 import { GrokIcon } from "./grok-icon";
 import { OpenAIIcon } from "./openai-icon";
+import { EverestIcon } from "./everest-icon";
 
 export function ModelProviderIcon({
   provider,
@@ -16,6 +17,8 @@ export function ModelProviderIcon({
     <ClaudeIcon className={className} />
   ) : provider === "google" ? (
     <GeminiIcon className={className} />
+  ) : provider === "Advanced Reasoning" ? (
+    <EverestIcon className={className} />
   ) : (
     <BlendIcon className={className} />
   );

@@ -1,7 +1,7 @@
 import "server-only";
 import { LanguageModelUsage } from "ai";
 import { ChatModel } from "app-types/chat";
-import { calculateTokenCost, getModelDisplayName } from "./cost-calculator";
+import { calculateTokenCost } from "./cost-calculator";
 import { usageRepository } from "../db/repository";
 import logger from "logger";
 

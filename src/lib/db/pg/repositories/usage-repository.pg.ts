@@ -308,7 +308,7 @@ export const pgUsageRepository: UsageRepository = {
   },
 
   async getSystemUsageStats(startDate?: Date, endDate?: Date) {
-    let query = db
+    const baseQuery = db
       .select({
         totalTokens: sum(UserDailyUsageSchema.totalTokens),
         totalCost: sum(UserDailyUsageSchema.totalCostUsd),
@@ -318,16 +318,12 @@ export const pgUsageRepository: UsageRepository = {
       })
       .from(UserDailyUsageSchema);
     
-    if (startDate && endDate) {
-      const startDateStr = startDate.toISOString().split('T')[0];
-      const endDateStr = endDate.toISOString().split('T')[0];
-      query = query.where(and(
-        gte(UserDailyUsageSchema.usageDate, startDateStr),
-        lte(UserDailyUsageSchema.usageDate, endDateStr)
-      ));
-    }
-    
-    const result = await query;
+    const result = startDate && endDate 
+      ? await baseQuery.where(and(
+          gte(UserDailyUsageSchema.usageDate, startDate.toISOString().split('T')[0]),
+          lte(UserDailyUsageSchema.usageDate, endDate.toISOString().split('T')[0])
+        ))
+      : await baseQuery;
     const stats = result[0];
     
     const totalUsers = Number(stats.totalUsers || 0);
