@@ -9,6 +9,7 @@ import { httpFetchTool } from "./http/fetch";
 import { jsExecutionTool } from "./code/js-run-tool";
 import { pythonExecutionTool } from "./code/python-run-tool";
 import { generateImageTool } from "./image/generate-image";
+import { generateMusicTool } from "./music/generate-music";
 
 export const APP_DEFAULT_TOOL_KIT: Record<
   AppDefaultToolkit,
@@ -33,5 +34,8 @@ export const APP_DEFAULT_TOOL_KIT: Record<
   },
   [AppDefaultToolkit.ImageGeneration]: {
     [DefaultToolName.GenerateImage]: generateImageTool,
+  },
+  [AppDefaultToolkit.MusicGeneration]: {
+    [DefaultToolName.GenerateMusic]: generateMusicTool,
   },
 };

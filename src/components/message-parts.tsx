@@ -760,6 +760,15 @@ const ImageGeneration = dynamic(
   },
 );
 
+const MusicGeneration = dynamic(
+  () =>
+    import("./tool-invocation/music-generation").then((mod) => mod.MusicGeneration),
+  {
+    ssr: false,
+    loading,
+  },
+);
+
 // Local shortcuts for tool invocation approval/rejection
 const approveToolInvocationShortcut: Shortcut = {
   description: "approveToolInvocation",
@@ -960,6 +969,13 @@ export const ToolMessagePart = memo(
           case DefaultToolName.GenerateImage:
             return (
               <ImageGeneration
+                key={`${toolCallId}-${toolName}`}
+                {...(output as any)}
+              />
+            );
+          case DefaultToolName.GenerateMusic:
+            return (
+              <MusicGeneration
                 key={`${toolCallId}-${toolName}`}
                 {...(output as any)}
               />

@@ -43,6 +43,7 @@ import { getSession } from "@/lib/auth/supabase-auth";
 import { colorize } from "consola/utils";
 import { generateUUID } from "lib/utils";
 import { trackUsage } from "lib/ai/usage-tracker";
+import { truncateConversation, logTruncationResult } from "lib/ai/context-manager";
 
 const logger = globalLogger.withDefaults({
   message: colorize("blackBright", `Chat API: `),
@@ -224,14 +225,21 @@ export async function POST(request: Request) {
         );
         logger.info(`model: ${chatModel?.provider}/${chatModel?.model}`);
 
+        // Context truncation optimization
+        const truncationResult = truncateConversation(messages, chatModel!);
+        logTruncationResult(truncationResult, logger);
+        
+        // Use truncated messages for the API call
+        const optimizedMessages = truncationResult.messages;
+
         // Log messages before conversion for debugging
         logger.info(`Messages before conversion (last message parts):`, 
-          JSON.stringify(messages.slice(-1)[0]?.parts, null, 2));
+          JSON.stringify(optimizedMessages.slice(-1)[0]?.parts, null, 2));
         
         const result = streamText({
           model,
           system: systemPrompt,
-          messages: convertToModelMessages(messages),
+          messages: convertToModelMessages(optimizedMessages),
           experimental_transform: smoothStream({ chunking: "word" }),
           maxRetries: 2,
           tools: vercelAITooles,

@@ -4,6 +4,7 @@ export enum AppDefaultToolkit {
   Http = "http",
   Code = "code",
   ImageGeneration = "imageGeneration",
+  MusicGeneration = "musicGeneration",
 }
 
 export enum DefaultToolName {
@@ -17,6 +18,7 @@ export enum DefaultToolName {
   JavascriptExecution = "mini-javascript-execution",
   PythonExecution = "python-execution",
   GenerateImage = "generateImage",
+  GenerateMusic = "generateMusic",
 }
 
 export const SequentialThinkingToolName = "sequential-thinking";
