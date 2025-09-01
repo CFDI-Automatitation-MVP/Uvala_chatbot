@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PromptInput from "./prompt-input";
 import clsx from "clsx";
 import { appStore } from "@/app/store";
-import { cn, createDebounce, generateUUID, truncateString } from "lib/utils";
+import { cn, generateUUID, truncateString } from "lib/utils";
 import { ErrorMessage, PreviewMessage } from "./message";
 import { ChatGreeting } from "./chat-greeting";
 
@@ -53,7 +53,7 @@ const OrbBackground = dynamic(() => import("@/components/orb-background").then(m
   ssr: false,
 });
 
-const debounce = createDebounce();
+// const debounce = createDebounce(); // Unused for now
 
 const firstTimeStorage = getStorageManager("IS_FIRST");
 const isFirstTime = firstTimeStorage.get() ?? true;
@@ -89,7 +89,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     threadId,
   });
 
-  const [showParticles, setShowParticles] = useState(true);
+  const [_showParticles, _setShowParticles] = useState(true);
 
   const onFinish = useCallback(() => {
     const messages = latestRef.current.messages;

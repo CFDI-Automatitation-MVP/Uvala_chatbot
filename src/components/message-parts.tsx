@@ -62,13 +62,14 @@ import { notify } from "lib/notify";
 import { ModelProviderIcon } from "ui/model-provider-icon";
 import { appStore } from "@/app/store";
 import { BACKGROUND_COLORS, EMOJI_DATA } from "lib/const";
+import { MessagePartRenderer } from "./message-part-renderer";
 
 type MessagePart = UIMessage["parts"][number];
 type TextMessagePart = Extract<MessagePart, { type: "text" }>;
 type AssistMessagePart = Extract<MessagePart, { type: "text" }>;
 
 interface UserMessagePartProps {
-  part: TextMessagePart;
+  part: MessagePart;
   isLast: boolean;
   message: UIMessage;
   setMessages: UseChatHelpers<UIMessage>["setMessages"];
@@ -120,11 +121,7 @@ export const UserMessagePart = memo(
     const ref = useRef<HTMLDivElement>(null);
     const scrolledRef = useRef(false);
 
-    const isLongText = part.text.length > MAX_TEXT_LENGTH;
-    const displayText =
-      expanded || !isLongText
-        ? part.text
-        : truncateString(part.text, MAX_TEXT_LENGTH);
+    // Variables now handled within renderPartContent function
 
     const deleteMessage = useCallback(async () => {
       const ok = await notify.confirm({
@@ -168,6 +165,49 @@ export const UserMessagePart = memo(
       );
     }
 
+    // Render different content based on part type
+    const renderPartContent = () => {
+      if (part.type === "text") {
+        const textPart = part as TextMessagePart;
+        const isLongText = textPart.text.length > MAX_TEXT_LENGTH;
+        const displayText =
+          expanded || !isLongText
+            ? textPart.text
+            : truncateString(textPart.text, MAX_TEXT_LENGTH);
+
+        return (
+          <>
+            {isLongText && !expanded && (
+              <div className="absolute pointer-events-none bg-gradient-to-t from-accent to-transparent w-full h-40 bottom-0 left-0" />
+            )}
+            <p className={cn("whitespace-pre-wrap text-sm break-words")}>
+              {displayText}
+            </p>
+            {isLongText && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setExpanded(!expanded)}
+                className="h-auto p-1 text-xs z-10 text-muted-foreground hover:text-foreground self-start"
+              >
+                <span className="flex items-center gap-1">
+                  {t(expanded ? "Common.showLess" : "Common.showMore")}
+                  {expanded ? (
+                    <ChevronUp className="size-3" />
+                  ) : (
+                    <ChevronDownIcon className="size-3" />
+                  )}
+                </span>
+              </Button>
+            )}
+          </>
+        );
+      } else {
+        // Use MessagePartRenderer for non-text parts (images, files, etc.)
+        return <MessagePartRenderer part={part} />;
+      }
+    };
+
     return (
       <div className="flex flex-col gap-2 items-end my-2">
         <div
@@ -175,35 +215,13 @@ export const UserMessagePart = memo(
           className={cn(
             "flex flex-col gap-4 max-w-full ring ring-input relative overflow-hidden",
             {
-              "bg-accent text-accent-foreground px-4 py-3 rounded-2xl": isLast,
+              "bg-accent text-accent-foreground px-4 py-3 rounded-2xl": isLast && part.type === "text",
               "opacity-50": isError,
             },
             isError && "border-destructive border",
           )}
         >
-          {isLongText && !expanded && (
-            <div className="absolute pointer-events-none bg-gradient-to-t from-accent to-transparent w-full h-40 bottom-0 left-0" />
-          )}
-          <p className={cn("whitespace-pre-wrap text-sm break-words")}>
-            {displayText}
-          </p>
-          {isLongText && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setExpanded(!expanded)}
-              className="h-auto p-1 text-xs z-10 text-muted-foreground hover:text-foreground self-start"
-            >
-              <span className="flex items-center gap-1">
-                {t(expanded ? "Common.showLess" : "Common.showMore")}
-                {expanded ? (
-                  <ChevronUp className="size-3" />
-                ) : (
-                  <ChevronDownIcon className="size-3" />
-                )}
-              </span>
-            </Button>
-          )}
+          {renderPartContent()}
         </div>
         {isLast && (
           <div className="flex w-full justify-end opacity-0 group-hover/message:opacity-100 transition-opacity duration-300">
@@ -214,7 +232,19 @@ export const UserMessagePart = memo(
                   variant="ghost"
                   size="icon"
                   className={cn("size-3! p-4!")}
-                  onClick={() => copy(part.text)}
+                  onClick={() => {
+                    if (part.type === "text") {
+                      copy((part as TextMessagePart).text);
+                    } else if ((part as any).type === "image") {
+                      const imagePart = part as any;
+                      copy(imagePart.url || imagePart.image || "Image content");
+                    } else if ((part as any).type === "file") {
+                      const filePart = part as any;
+                      copy(filePart.url || filePart.data || "File content");
+                    } else {
+                      copy(`${part.type} content`);
+                    }
+                  }}
                 >
                   {copied ? <Check /> : <Copy />}
                 </Button>
@@ -263,7 +293,7 @@ export const UserMessagePart = memo(
     );
   },
   (prev, next) => {
-    if (prev.part.text != next.part.text) return false;
+    if ((prev.part as any).text != (next.part as any).text) return false;
     if (prev.isError != next.isError) return false;
     if (prev.isLast != next.isLast) return false;
     if (prev.status != next.status) return false;
@@ -721,6 +751,15 @@ const CodeExecutor = dynamic(
   },
 );
 
+const ImageGeneration = dynamic(
+  () =>
+    import("./tool-invocation/image-generation").then((mod) => mod.ImageGeneration),
+  {
+    ssr: false,
+    loading,
+  },
+);
+
 // Local shortcuts for tool invocation approval/rejection
 const approveToolInvocationShortcut: Shortcut = {
   description: "approveToolInvocation",
@@ -916,6 +955,13 @@ export const ToolMessagePart = memo(
               <InteractiveTable
                 key={`${toolCallId}-${toolName}`}
                 {...(input as any)}
+              />
+            );
+          case DefaultToolName.GenerateImage:
+            return (
+              <ImageGeneration
+                key={`${toolCallId}-${toolName}`}
+                {...(output as any)}
               />
             );
         }

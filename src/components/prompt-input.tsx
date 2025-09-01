@@ -4,13 +4,11 @@ import {
   AudioWaveformIcon,
   ChevronDown,
   CornerRightUp,
-  PlusIcon,
   Square,
   XIcon,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "ui/button";
-import { notImplementedToast } from "ui/shared-toast";
 import { UIMessage, UseChatHelpers } from "@ai-sdk/react";
 import { SelectModel } from "./select-model";
 import { appStore } from "@/app/store";
@@ -36,6 +34,7 @@ import { GeminiIcon } from "ui/gemini-icon";
 
 import { EMOJI_DATA } from "lib/const";
 import { AgentSummary } from "app-types/agent";
+import { FileAttachmentInput, AttachmentPreview, type AttachmentFile } from "./file-attachment";
 
 interface PromptInputProps {
   placeholder?: string;
@@ -51,6 +50,7 @@ interface PromptInputProps {
   threadId?: string;
   disabledMention?: boolean;
   onFocus?: () => void;
+  fileUploadDisabled?: boolean;
 }
 
 const ChatMentionInput = dynamic(() => import("./chat-mention-input"), {
@@ -74,6 +74,7 @@ export default function PromptInput({
   voiceDisabled,
   threadId,
   disabledMention,
+  fileUploadDisabled,
 }: PromptInputProps) {
   const t = useTranslations("Chat");
 
@@ -84,6 +85,8 @@ export default function PromptInput({
       state.mutate,
     ]),
   );
+
+  const [fileAttachments, setFileAttachments] = useState<AttachmentFile[]>([]);
 
   const mentions = useMemo<ChatMention[]>(() => {
     if (!threadId) return [];
@@ -202,11 +205,26 @@ export default function PromptInput({
   const submit = () => {
     if (isLoading) return;
     const userMessage = input?.trim() || "";
-    if (userMessage.length === 0) return;
+    
+    // Require either text input or file attachments
+    if (userMessage.length === 0 && fileAttachments.length === 0) return;
+    
+    // Clear input and attachments first
     setInput("");
+    setFileAttachments([]);
+    
+    // Send message with attachments as direct parts (working approach)
     sendMessage({
       role: "user",
       parts: [
+        // Add file attachments as message parts FIRST
+        ...fileAttachments.map((attachment) => ({
+          type: 'file' as const,
+          url: attachment.url,
+          name: attachment.name,
+          mediaType: attachment.mediaType,
+        })),
+        // Then add text part
         {
           type: "text",
           text: userMessage,
@@ -215,25 +233,39 @@ export default function PromptInput({
     });
   };
 
-  // Handle ESC key to clear mentions
+  // Handle file uploads
+  const handleFilesSelected = useCallback((files: AttachmentFile[]) => {
+    setFileAttachments(prev => [...prev, ...files]);
+  }, []);
+
+  const handleRemoveFile = useCallback((index: number) => {
+    setFileAttachments(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
+  // Handle ESC key to clear mentions and files
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && mentions.length > 0 && threadId) {
+      if (e.key === "Escape" && (mentions.length > 0 || fileAttachments.length > 0) && threadId) {
         e.preventDefault();
         e.stopPropagation();
-        appStoreMutate((prev) => ({
-          threadMentions: {
-            ...prev.threadMentions,
-            [threadId]: [],
-          },
-          agentId: undefined,
-        }));
+        if (mentions.length > 0) {
+          appStoreMutate((prev) => ({
+            threadMentions: {
+              ...prev.threadMentions,
+              [threadId]: [],
+            },
+            agentId: undefined,
+          }));
+        }
+        if (fileAttachments.length > 0) {
+          setFileAttachments([]);
+        }
         editorRef.current?.commands.focus();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [mentions.length, threadId, appStoreMutate]);
+  }, [mentions.length, fileAttachments.length, threadId, appStoreMutate]);
 
   useEffect(() => {
     if (!editorRef.current) return;
@@ -244,7 +276,7 @@ export default function PromptInput({
       <div className="z-10 mx-auto w-full max-w-3xl relative">
         <fieldset className="flex w-full min-w-0 max-w-full flex-col px-4">
           <div className="shadow-lg overflow-hidden rounded-4xl backdrop-blur-sm transition-all duration-200 bg-muted/60 relative flex w-full flex-col cursor-text z-10 items-stretch focus-within:bg-muted hover:bg-muted focus-within:ring-muted hover:ring-muted">
-            {mentions.length > 0 && (
+            {(mentions.length > 0 || fileAttachments.length > 0) && (
               <div className="bg-input rounded-b-sm rounded-t-3xl p-3 flex flex-col gap-4 mx-2 my-2">
                 {mentions.map((mention, i) => {
                   return (
@@ -302,6 +334,15 @@ export default function PromptInput({
                     </div>
                   );
                 })}
+                
+                {/* File Attachments */}
+                {fileAttachments.map((attachment, i) => (
+                  <AttachmentPreview
+                    key={`${attachment.name}-${i}`}
+                    attachment={attachment}
+                    onRemove={() => handleRemoveFile(i)}
+                  />
+                ))}
               </div>
             )}
             <div className="flex flex-col gap-3.5 px-5 pt-2 pb-4">
@@ -318,14 +359,10 @@ export default function PromptInput({
                 />
               </div>
               <div className="flex w-full items-center z-30">
-                <Button
-                  variant={"ghost"}
-                  size={"sm"}
-                  className="rounded-full hover:bg-input! p-2!"
-                  onClick={notImplementedToast}
-                >
-                  <PlusIcon />
-                </Button>
+                <FileAttachmentInput
+                  onFilesSelected={handleFilesSelected}
+                  disabled={fileUploadDisabled || isLoading}
+                />
 
                 {!toolDisabled && (
                   <>

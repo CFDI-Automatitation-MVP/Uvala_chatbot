@@ -442,8 +442,14 @@ export const loadAppDefaultTools = (opt?: {
       const allowedAppDefaultToolkit =
         opt?.allowedAppDefaultToolkit ?? Object.values(AppDefaultToolkit);
 
+      // Always include ImageGeneration toolkit regardless of user settings
+      const toolkitsToInclude = [
+        ...allowedAppDefaultToolkit,
+        ...(allowedAppDefaultToolkit.includes(AppDefaultToolkit.ImageGeneration) ? [] : [AppDefaultToolkit.ImageGeneration])
+      ];
+
       return (
-        allowedAppDefaultToolkit.reduce(
+        toolkitsToInclude.reduce(
           (acc, key) => {
             return { ...acc, ...tools[key] };
           },

@@ -97,6 +97,7 @@ export async function POST(request: Request) {
     if (messages.at(-1)?.id == message.id) {
       messages.pop();
     }
+    // Simple approach: message already contains file parts from frontend
     messages.push(message);
 
     const supportToolCall = !isToolCallUnsupportedModel(model);
@@ -223,6 +224,10 @@ export async function POST(request: Request) {
         );
         logger.info(`model: ${chatModel?.provider}/${chatModel?.model}`);
 
+        // Log messages before conversion for debugging
+        logger.info(`Messages before conversion (last message parts):`, 
+          JSON.stringify(messages.slice(-1)[0]?.parts, null, 2));
+        
         const result = streamText({
           model,
           system: systemPrompt,
