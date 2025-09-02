@@ -5,6 +5,7 @@ export enum AppDefaultToolkit {
   Code = "code",
   ImageGeneration = "imageGeneration",
   MusicGeneration = "musicGeneration",
+  VideoGeneration = "videoGeneration",
 }
 
 export enum DefaultToolName {
@@ -19,6 +20,7 @@ export enum DefaultToolName {
   PythonExecution = "python-execution",
   GenerateImage = "generateImage",
   GenerateMusic = "generateMusic",
+  GenerateVideo = "generateVideo",
 }
 
 export const SequentialThinkingToolName = "sequential-thinking";

@@ -10,6 +10,7 @@ import { jsExecutionTool } from "./code/js-run-tool";
 import { pythonExecutionTool } from "./code/python-run-tool";
 import { generateImageTool } from "./image/generate-image";
 import { generateMusicTool } from "./music/generate-music";
+import { generateVideoTool } from "./video/generate-video";
 
 export const APP_DEFAULT_TOOL_KIT: Record<
   AppDefaultToolkit,
@@ -37,5 +38,8 @@ export const APP_DEFAULT_TOOL_KIT: Record<
   },
   [AppDefaultToolkit.MusicGeneration]: {
     [DefaultToolName.GenerateMusic]: generateMusicTool,
+  },
+  [AppDefaultToolkit.VideoGeneration]: {
+    [DefaultToolName.GenerateVideo]: generateVideoTool,
   },
 };
