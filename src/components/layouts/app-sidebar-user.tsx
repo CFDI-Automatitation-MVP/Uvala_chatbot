@@ -34,10 +34,11 @@ import { supabase } from "@/lib/supabase/client";
 import { useTranslations } from "next-intl";
 import useSWR from "swr";
 import { getLocaleAction } from "@/i18n/get-locale";
-import { useCallback } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { GithubIcon } from "ui/github-icon";
 import { DiscordIcon } from "ui/discord-icon";
 import { useThemeStyle } from "@/hooks/use-theme-style";
+import { useSidebar } from "ui/sidebar";
 type SessionUser = {
   id: string;
   email?: string;
@@ -50,8 +51,17 @@ export function AppSidebarUser({
 }: { session?: { user: SessionUser } }) {
   const appStoreMutate = appStore((state) => state.mutate);
   const t = useTranslations("Layout");
+  const { open, openMobile } = useSidebar();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const user = session?.user;
+
+  // Close dropdown when sidebar closes
+  useEffect(() => {
+    if (!open && !openMobile) {
+      setDropdownOpen(false);
+    }
+  }, [open, openMobile]);
 
   const logout = async () => {
     try {
@@ -68,7 +78,7 @@ export function AppSidebarUser({
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <DropdownMenu>
+        <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground bg-input/30 border"

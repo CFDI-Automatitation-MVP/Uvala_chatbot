@@ -1,6 +1,7 @@
 import { SidebarProvider } from "ui/sidebar";
 import { AppSidebar } from "@/components/layouts/app-sidebar";
 import { AppHeader } from "@/components/layouts/app-header";
+import { SidebarHoverZone } from "@/components/layouts/sidebar-hover-zone";
 import { cookies } from "next/headers";
 
 import { getSessionWithRedirect } from "@/lib/auth/supabase-auth";
@@ -22,6 +23,7 @@ export default async function ChatLayout({
       <SWRConfigProvider>
         <AppPopupProvider />
         <AppSidebar session={session} />
+        <SidebarHoverZone />
         <main className="relative bg-background  w-full flex flex-col h-screen">
           <AppHeader />
           <div className="flex-1 overflow-y-auto relative z-30">{children}</div>

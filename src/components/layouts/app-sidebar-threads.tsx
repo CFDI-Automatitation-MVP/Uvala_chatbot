@@ -108,43 +108,12 @@ export function AppSidebarThreads() {
       return [];
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    const lastWeek = new Date(today);
-    lastWeek.setDate(lastWeek.getDate() - 7);
-
-    const groups: ThreadGroup[] = [
-      { label: t("today"), threads: [] },
-      { label: t("yesterday"), threads: [] },
-      { label: t("lastWeek"), threads: [] },
-      { label: t("older"), threads: [] },
-    ];
-
-    displayThreadList.forEach((thread) => {
-      const threadDate =
-        (thread.lastMessageAt
-          ? new Date(thread.lastMessageAt)
-          : new Date(thread.createdAt)) || new Date();
-      threadDate.setHours(0, 0, 0, 0);
-
-      if (threadDate.getTime() === today.getTime()) {
-        groups[0].threads.push(thread);
-      } else if (threadDate.getTime() === yesterday.getTime()) {
-        groups[1].threads.push(thread);
-      } else if (threadDate.getTime() >= lastWeek.getTime()) {
-        groups[2].threads.push(thread);
-      } else {
-        groups[3].threads.push(thread);
-      }
-    });
-
-    // Filter out empty groups
-    return groups.filter((group) => group.threads.length > 0);
-  }, [displayThreadList]);
+    // Return all threads in a single group without date-based grouping
+    return [{
+      label: t("recentChats"),
+      threads: displayThreadList
+    }];
+  }, [displayThreadList, t]);
 
   const handleDeleteAllThreads = async () => {
     await toast.promise(deleteThreadsAction(), {
