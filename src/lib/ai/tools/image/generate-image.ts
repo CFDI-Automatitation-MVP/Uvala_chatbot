@@ -2,7 +2,7 @@ import { tool as createTool } from "ai";
 import { z } from "zod";
 
 export const generateImageTool = createTool({
-  description: "Generate high-quality images from text descriptions using FLUX.1 model. Use this when users ask to create, generate, make, or draw images.",
+  description: "Generate high-quality images from text descriptions using uvala-plateu model. Use this when users ask to create, generate, make, or draw images.",
   inputSchema: z.object({
     prompt: z.string().describe("Detailed description of the image to generate"),
     aspectRatio: z.enum(["1:1", "16:9", "9:16", "4:3", "3:4"]).default("1:1").describe("Aspect ratio for the generated image"),
@@ -49,7 +49,7 @@ export const generateImageTool = createTool({
         prompt: prompt,
         aspectRatio: aspectRatio,
         steps: steps,
-        model: "FLUX.1-dev-fp8",
+        model: "uvala-plateu",
         message: `Successfully generated image with prompt: "${prompt}"`
       };
 

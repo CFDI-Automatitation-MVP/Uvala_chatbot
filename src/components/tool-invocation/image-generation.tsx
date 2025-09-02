@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, Copy } from "lucide-react";
+import { Download, ChevronDown, ChevronUp } from "lucide-react";
 import { JsonViewPopup } from "../json-view-popup";
 import { toast } from "sonner";
 
@@ -30,6 +30,13 @@ export interface ImageGenerationProps {
 
 export function ImageGeneration(props: ImageGenerationProps) {
   const { success, imageUrl, prompt, aspectRatio, steps, model, message, error, solution } = props;
+  const [showPrompt, setShowPrompt] = React.useState(false);
+  
+  // Filter out imageUrl and steps from JSON data
+  const filteredProps = React.useMemo(() => {
+    const { imageUrl: _, steps: __, ...filtered } = props;
+    return filtered;
+  }, [props]);
 
   const handleDownload = React.useCallback(() => {
     if (!imageUrl) return;
@@ -56,13 +63,13 @@ export function ImageGeneration(props: ImageGenerationProps) {
 
   if (!success || !imageUrl) {
     return (
-      <Card className="flex flex-col bg-destructive/10 border-destructive">
-        <CardHeader className="items-center pb-0 flex flex-col gap-2 relative">
+      <Card className="flex flex-col bg-destructive/10 border-destructive relative">
+        <div className="absolute right-2 top-2 z-10">
+          <JsonViewPopup data={filteredProps} />
+        </div>
+        <CardHeader className="items-center pb-0 flex flex-col gap-2">
           <CardTitle className="flex items-center text-destructive">
             Image Generation Failed
-            <div className="absolute right-4 top-4">
-              <JsonViewPopup data={props} />
-            </div>
           </CardTitle>
           <CardDescription className="text-center">
             Prompt: &ldquo;{prompt}&rdquo;
@@ -83,22 +90,33 @@ export function ImageGeneration(props: ImageGenerationProps) {
   }
 
   return (
-    <Card className="flex flex-col bg-card">
-      <CardHeader className="items-center pb-0 flex flex-col gap-2 relative">
+    <Card className="flex flex-col bg-card relative">
+      <div className="absolute right-2 top-2 z-10">
+        <JsonViewPopup data={filteredProps} />
+      </div>
+      <CardHeader className="items-center pb-0 flex flex-col gap-2">
         <CardTitle className="flex items-center">
           Generated Image
-          <div className="absolute right-4 top-4">
-            <JsonViewPopup data={props} />
-          </div>
         </CardTitle>
-        <CardDescription className="text-center">
-          &ldquo;{prompt}&rdquo;
-        </CardDescription>
-        {model && (
-          <div className="text-xs text-muted-foreground">
-            Model: {model} • Aspect Ratio: {aspectRatio} • Steps: {steps}
-          </div>
-        )}
+        <div className="w-full max-w-2xl">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowPrompt(!showPrompt)}
+            className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground p-2 h-auto"
+          >
+            See more
+            {showPrompt ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+          </Button>
+          {showPrompt && (
+            <CardDescription className="text-center text-sm mt-2 px-4">
+              &ldquo;{prompt}&rdquo;
+            </CardDescription>
+          )}
+        </div>
+        <div className="text-xs text-muted-foreground">
+          Aspect Ratio: {aspectRatio}
+        </div>
       </CardHeader>
       <CardContent className="flex-1 pb-6">
         <div className="relative max-w-full mx-auto">
@@ -120,22 +138,8 @@ export function ImageGeneration(props: ImageGenerationProps) {
               <Download className="w-4 h-4" />
               Download
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleCopyUrl}
-              className="flex items-center gap-2"
-            >
-              <Copy className="w-4 h-4" />
-              Copy URL
-            </Button>
           </div>
         </div>
-        {message && (
-          <div className="text-sm text-muted-foreground mt-4 text-center">
-            {message}
-          </div>
-        )}
       </CardContent>
     </Card>
   );
