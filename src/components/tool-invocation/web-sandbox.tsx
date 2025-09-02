@@ -54,7 +54,6 @@ export function WebSandbox(props: WebSandboxProps) {
   const [showCode, setShowCode] = React.useState(false);
   const [viewportSize, setViewportSize] = React.useState('desktop');
   const [activeTab, setActiveTab] = React.useState('controls');
-  const [chatInput, setChatInput] = React.useState('');
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   
   // Get chat model from store
@@ -437,35 +436,92 @@ export function WebSandbox(props: WebSandboxProps) {
 
   const viewportDimensions = getViewportDimensions();
 
-  // Separate Web Development Dashboard
+  // Standalone Web Development Dashboard - Chat left, Sandbox full-width right
   return (
     <div className="fixed inset-0 z-50 bg-background">
-      {/* Top Header */}
+      {/* Top Header with simple controls */}
       <div className="h-12 bg-card border-b flex items-center px-4">
         <div className="flex items-center gap-2">
           <Code2 className="w-4 h-4 text-primary" />
           <span className="font-semibold">{title}</span>
         </div>
         
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={exitDashboard}
-          className="ml-auto flex items-center gap-2"
-        >
-          <X className="w-4 h-4" />
-          Exit
-        </Button>
+        <div className="flex items-center gap-2 ml-auto">
+          {/* Device Size Controls */}
+          <Button
+            variant={viewportSize === 'desktop' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewportSize('desktop')}
+            className="gap-2"
+          >
+            <Monitor className="w-4 h-4" />
+            Desktop
+          </Button>
+          <Button
+            variant={viewportSize === 'tablet' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewportSize('tablet')}
+            className="gap-2"
+          >
+            <Tablet className="w-4 h-4" />
+            Tablet
+          </Button>
+          <Button
+            variant={viewportSize === 'mobile' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewportSize('mobile')}
+            className="gap-2"
+          >
+            <Smartphone className="w-4 h-4" />
+            Mobile
+          </Button>
+          
+          {/* Action Buttons */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleCopyCode}
+            className="gap-2"
+          >
+            {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+            Copy
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={runCode}
+            disabled={isRunning}
+            className="gap-2"
+          >
+            {isRunning ? (
+              <RefreshCw className="w-4 h-4 animate-spin" />
+            ) : (
+              <RotateCcw className="w-4 h-4" />
+            )}
+            Refresh
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={exitDashboard}
+            className="gap-2"
+          >
+            <X className="w-4 h-4" />
+            Exit
+          </Button>
+        </div>
       </div>
 
-      {/* Three-column layout */}
+      {/* Two-column layout: Chat Left, Full-width Sandbox Right */}
       <div className="flex h-[calc(100vh-48px)]">
-        {/* Left Panel - Chat */}
-        <div className="w-80 border-r bg-card flex flex-col">
+        {/* Left Panel - Chat Only */}
+        <div className="w-80 flex-shrink-0 border-r bg-card flex flex-col">
           <div className="p-3 border-b">
-            <h3 className="font-medium text-sm">Continue Development</h3>
+            <h3 className="font-medium text-sm">Web Development Chat</h3>
             <p className="text-xs text-muted-foreground mt-1">
-              Chat here to make changes to your web page
+              Make changes to your web application
             </p>
           </div>
           
@@ -503,19 +559,17 @@ export function WebSandbox(props: WebSandboxProps) {
           </ScrollArea>
           
           {/* Chat Input */}
-          <div className="p-3 border-t">
+          <div className="p-3 border-t flex-shrink-0">
             <form onSubmit={handleSubmit} className="space-y-2">
-              <div className="flex gap-2">
-                <Textarea
-                  value={input}
-                  onChange={handleInputChange}
-                  placeholder="Ask for changes: 'Make the header blue', 'Add a contact form', etc..."
-                  className="flex-1 min-h-[60px] resize-none text-sm"
-                  disabled={isLoading}
-                />
-              </div>
+              <Textarea
+                value={input}
+                onChange={handleInputChange}
+                placeholder="Ask for changes: 'Make the header blue', 'Add a contact form', etc..."
+                className="w-full min-h-[80px] resize-none text-sm"
+                disabled={isLoading}
+              />
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-2">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -527,28 +581,28 @@ export function WebSandbox(props: WebSandboxProps) {
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0"
                     disabled={isLoading}
                     onClick={() => fileInputRef.current?.click()}
+                    className="gap-2"
                   >
                     <Paperclip className="w-4 h-4" />
+                    Upload
                   </Button>
-                  <span className="text-xs text-muted-foreground">Image upload</span>
                 </div>
                 <Button
                   type="submit"
                   disabled={isLoading || !input?.trim()}
                   size="sm"
-                  className="gap-1"
+                  className="gap-2"
                 >
-                  <Send className="w-3 h-3" />
+                  <Send className="w-4 h-4" />
                   Send
                 </Button>
               </div>
             </form>
             
             {/* Quick Actions */}
-            <div className="mt-2 flex flex-wrap gap-1">
+            <div className="mt-3 flex flex-wrap gap-1">
               <Button
                 variant="outline"
                 size="sm"
@@ -557,7 +611,7 @@ export function WebSandbox(props: WebSandboxProps) {
                   content: 'Change the color scheme to a darker theme'
                 })}
                 disabled={isLoading}
-                className="h-6 text-xs"
+                className="h-7 text-xs"
               >
                 Dark theme
               </Button>
@@ -569,7 +623,7 @@ export function WebSandbox(props: WebSandboxProps) {
                   content: 'Add a contact form section'
                 })}
                 disabled={isLoading}
-                className="h-6 text-xs"
+                className="h-7 text-xs"
               >
                 Add form
               </Button>
@@ -581,195 +635,36 @@ export function WebSandbox(props: WebSandboxProps) {
                   content: 'Make it mobile responsive'
                 })}
                 disabled={isLoading}
-                className="h-6 text-xs"
+                className="h-7 text-xs"
               >
-                Mobile
+                Responsive
               </Button>
             </div>
           </div>
         </div>
 
-        {/* Center Panel - Web Preview */}
-        <div className="flex-1 flex flex-col bg-muted/10">
-          {/* Preview Header */}
-          <div className="h-10 bg-background border-b flex items-center px-4 justify-between">
-            <span className="text-sm font-medium">Live Preview</span>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={runCode}
-                disabled={isRunning}
-              >
-                {isRunning ? (
-                  <RefreshCw className="w-3 h-3 animate-spin" />
-                ) : (
-                  <RotateCcw className="w-3 h-3" />
-                )}
-              </Button>
-              <span className="text-xs text-muted-foreground">
-                {viewportSize === 'desktop' ? 'Responsive' : `${viewportDimensions.width} × ${viewportDimensions.height}`}
-              </span>
-            </div>
-          </div>
-          
-          {/* Preview Area */}
-          <div className="flex-1 flex items-center justify-center p-6">
-            <div 
-              className="bg-white rounded-lg shadow-md border overflow-hidden transition-all duration-300"
+        {/* Right Panel - Full-width Sandbox */}
+        <div className="flex-1 bg-white">
+          <div 
+            className="w-full h-full transition-all duration-300"
+            style={{
+              maxWidth: viewportSize === 'desktop' ? '100%' : viewportDimensions.width,
+              maxHeight: '100%',
+              margin: viewportSize === 'desktop' ? '0' : '20px auto'
+            }}
+          >
+            <iframe
+              ref={iframeRef}
+              className="w-full h-full border-0"
+              title={title}
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+              loading="lazy"
               style={{
-                width: viewportDimensions.width,
-                height: viewportDimensions.height,
-                maxWidth: '100%',
-                maxHeight: '100%'
+                width: viewportSize === 'desktop' ? '100%' : viewportDimensions.width,
+                height: viewportSize === 'desktop' ? '100%' : viewportDimensions.height
               }}
-            >
-              <iframe
-                ref={iframeRef}
-                className="w-full h-full"
-                title={title}
-                sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-                loading="lazy"
-              />
-            </div>
+            />
           </div>
-        </div>
-
-        {/* Right Panel - Controls & Code */}
-        <div className="w-72 border-l bg-card flex flex-col">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-            <TabsList className="grid w-full grid-cols-2 m-3">
-              <TabsTrigger value="controls" className="text-xs">Controls</TabsTrigger>
-              <TabsTrigger value="code" className="text-xs">Code</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="controls" className="flex-1 p-3 space-y-4">
-              {/* Device Controls */}
-              <div>
-                <h4 className="font-medium mb-3 text-sm">Device Size</h4>
-                <div className="grid grid-cols-1 gap-2">
-                  <Button
-                    variant={viewportSize === 'desktop' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setViewportSize('desktop')}
-                    className="justify-start gap-2"
-                  >
-                    <Monitor className="w-4 h-4" />
-                    Desktop
-                  </Button>
-                  <Button
-                    variant={viewportSize === 'tablet' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setViewportSize('tablet')}
-                    className="justify-start gap-2"
-                  >
-                    <Tablet className="w-4 h-4" />
-                    Tablet
-                  </Button>
-                  <Button
-                    variant={viewportSize === 'mobile' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setViewportSize('mobile')}
-                    className="justify-start gap-2"
-                  >
-                    <Smartphone className="w-4 h-4" />
-                    Mobile
-                  </Button>
-                </div>
-              </div>
-              
-              {/* Actions */}
-              <div>
-                <h4 className="font-medium mb-3 text-sm">Actions</h4>
-                <div className="space-y-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCopyCode}
-                    className="w-full justify-start gap-2"
-                  >
-                    {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                    Copy Code
-                  </Button>
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full justify-start gap-2"
-                  >
-                    <Download className="w-4 h-4" />
-                    Download
-                  </Button>
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full justify-start gap-2"
-                  >
-                    <Share className="w-4 h-4" />
-                    Share
-                  </Button>
-                </div>
-              </div>
-              
-              {/* Stats */}
-              <div>
-                <h4 className="font-medium mb-3 text-sm">Project Info</h4>
-                <div className="space-y-2 text-xs">
-                  <div className="flex justify-between p-2 bg-muted/30 rounded">
-                    <span>HTML</span>
-                    <span>{html.split('\n').length} lines</span>
-                  </div>
-                  <div className="flex justify-between p-2 bg-muted/30 rounded">
-                    <span>CSS</span>
-                    <span>{css.split('\n').length} lines</span>
-                  </div>
-                  <div className="flex justify-between p-2 bg-muted/30 rounded">
-                    <span>JavaScript</span>
-                    <span>{javascript.split('\n').length} lines</span>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="code" className="flex-1 overflow-auto">
-              <div className="p-3 space-y-3">
-                {html && (
-                  <div>
-                    <h5 className="font-medium mb-2 text-xs flex items-center gap-1">
-                      <FileCode className="w-3 h-3" />
-                      HTML
-                    </h5>
-                    <pre className="bg-muted p-2 rounded text-xs overflow-x-auto border max-h-32">
-                      <code>{html}</code>
-                    </pre>
-                  </div>
-                )}
-                {css && (
-                  <div>
-                    <h5 className="font-medium mb-2 text-xs flex items-center gap-1">
-                      <Palette className="w-3 h-3" />
-                      CSS
-                    </h5>
-                    <pre className="bg-muted p-2 rounded text-xs overflow-x-auto border max-h-32">
-                      <code>{css}</code>
-                    </pre>
-                  </div>
-                )}
-                {javascript && (
-                  <div>
-                    <h5 className="font-medium mb-2 text-xs flex items-center gap-1">
-                      <Settings className="w-3 h-3" />
-                      JavaScript
-                    </h5>
-                    <pre className="bg-muted p-2 rounded text-xs overflow-x-auto border max-h-32">
-                      <code>{javascript}</code>
-                    </pre>
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
         </div>
       </div>
     </div>
