@@ -1,22 +1,17 @@
 import { UIMessage } from "ai";
 import { ChatModel } from "app-types/chat";
 
-// Context limits for your 2 current models (CORRECTED VALUES)
+// Context limits for your current model
 const MODEL_CONTEXT_LIMITS = {
-  "Daily Assistant/Fuji": 128000,        // GPT-5-mini equivalent
-  "Advanced Reasoning/Everest": 131072,  // Fireworks GPT-OSS-120B (CORRECTED)
+  "Great for all your tasks/Uvala-Fuji": 128000,        // Advanced language model
   "default": 128000 // Default fallback
 } as const;
 
 // Research-based configuration per model
 const MODEL_CONFIGS = {
-  "Daily Assistant/Fuji": {
+  "Great for all your tasks/Uvala-Fuji": {
     maxContextRatio: 0.68, // 68% - optimal for large context windows
     reserveTokensForResponse: 6000, // More room for complex responses
-  },
-  "Advanced Reasoning/Everest": {
-    maxContextRatio: 0.68, // 68% - similar large context window to Fuji
-    reserveTokensForResponse: 6000, // Same as Fuji since both have large contexts
   },
   "default": {
     maxContextRatio: 0.7,

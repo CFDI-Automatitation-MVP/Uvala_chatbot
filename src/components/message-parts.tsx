@@ -768,6 +768,14 @@ const MusicGeneration = dynamic(
     loading,
   },
 );
+const WebSandbox = dynamic(
+  () =>
+    import("./tool-invocation/web-sandbox").then((mod) => mod.WebSandbox),
+  {
+    ssr: false,
+    loading,
+  },
+);
 
 // Local shortcuts for tool invocation approval/rejection
 const approveToolInvocationShortcut: Shortcut = {
@@ -980,6 +988,13 @@ export const ToolMessagePart = memo(
                 {...(output as any)}
               />
             );
+          case DefaultToolName.CreateWebSandbox:
+            return (
+              <WebSandbox
+                key={`${toolCallId}-${toolName}`}
+                {...(output as any)}
+              />
+            );
         }
       }
       return null;
@@ -1034,7 +1049,12 @@ export const ToolMessagePart = memo(
               </div>
               <span className="font-bold flex items-center gap-2">
                 {isExecuting ? (
-                  <TextShimmer>{mcpServerName}</TextShimmer>
+                  <TextShimmer>
+                    {toolName === DefaultToolName.CreateWebSandbox 
+                      ? "generating web page" 
+                      : mcpServerName
+                    }
+                  </TextShimmer>
                 ) : (
                   mcpServerName
                 )}

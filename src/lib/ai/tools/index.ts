@@ -3,6 +3,7 @@ export enum AppDefaultToolkit {
   WebSearch = "webSearch",
   Http = "http",
   Code = "code",
+  WebSandbox = "webSandbox",
   ImageGeneration = "imageGeneration",
   MusicGeneration = "musicGeneration",
 }
@@ -17,6 +18,7 @@ export enum DefaultToolName {
   Http = "http",
   JavascriptExecution = "mini-javascript-execution",
   PythonExecution = "python-execution",
+  CreateWebSandbox = "createWebSandbox",
   GenerateImage = "generateImage",
   GenerateMusic = "generateMusic",
 }

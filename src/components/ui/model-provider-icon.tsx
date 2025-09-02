@@ -3,7 +3,7 @@ import { ClaudeIcon } from "./claude-icon";
 import { GeminiIcon } from "./gemini-icon";
 import { GrokIcon } from "./grok-icon";
 import { OpenAIIcon } from "./openai-icon";
-import { EverestIcon } from "./everest-icon";
+import { UvalaIcon } from "./uvala-icon";
 
 export function ModelProviderIcon({
   provider,
@@ -17,8 +17,8 @@ export function ModelProviderIcon({
     <ClaudeIcon className={className} />
   ) : provider === "google" ? (
     <GeminiIcon className={className} />
-  ) : provider === "Advanced Reasoning" ? (
-    <EverestIcon className={className} />
+  ) : provider === "Great for all your tasks" ? (
+    <UvalaIcon className={className} />
   ) : (
     <BlendIcon className={className} />
   );

@@ -10,16 +10,13 @@ import {
 import { ChatModel } from "app-types/chat";
 
 const staticModels = {
-  "Daily Assistant": {
-    "Fuji": openai("gpt-5-mini-2025-08-07"),
-  },
-  "Advanced Reasoning": {
-    "Everest": fireworks("accounts/fireworks/models/gpt-oss-120b"),
+  "Great for all your tasks": {
+    "Uvala-Fuji": openai("gpt-5-mini-2025-08-07"),
   },
 };
 
 const staticUnsupportedModels = new Set([
-  // Both gpt-5-mini and gpt-oss-120b support tool calling
+  // Uvala-Fuji supports tool calling
 ]);
 
 const openaiCompatibleProviders = openaiCompatibleModelsSafeParse(
@@ -42,7 +39,7 @@ export const isToolCallUnsupportedModel = (model: LanguageModel) => {
   return allUnsupportedModels.has(model);
 };
 
-const fallbackModel = staticModels["Daily Assistant"]["Fuji"];
+const fallbackModel = staticModels["Great for all your tasks"]["Uvala-Fuji"];
 
 export const customModelProvider = {
   modelsInfo: Object.entries(allModels).map(([provider, models]) => ({
