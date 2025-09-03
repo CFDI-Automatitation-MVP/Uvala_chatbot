@@ -786,6 +786,15 @@ const Presentation = dynamic(
   },
 );
 
+const VideoGeneration = dynamic(
+  () =>
+    import("./tool-invocation/video-generation").then((mod) => mod.VideoGeneration),
+  {
+    ssr: false,
+    loading,
+  },
+);
+
 // Local shortcuts for tool invocation approval/rejection
 const approveToolInvocationShortcut: Shortcut = {
   description: "approveToolInvocation",
@@ -1007,6 +1016,13 @@ export const ToolMessagePart = memo(
           case DefaultToolName.CreatePresentation:
             return (
               <Presentation
+                key={`${toolCallId}-${toolName}`}
+                {...(output as any)}
+              />
+            );
+          case DefaultToolName.GenerateVideo:
+            return (
+              <VideoGeneration
                 key={`${toolCallId}-${toolName}`}
                 {...(output as any)}
               />

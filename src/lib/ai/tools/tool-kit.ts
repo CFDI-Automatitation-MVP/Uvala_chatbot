@@ -12,6 +12,7 @@ import { generateImageTool } from "./image/generate-image";
 import { generateMusicTool } from "./music/generate-music";
 import { createWebSandboxTool } from "./web/create-web-sandbox";
 import { createPresentationTool } from "./presentation/create-presentation";
+import { generateVideoTool } from "./video/generate-video";
 
 export const APP_DEFAULT_TOOL_KIT: Record<
   AppDefaultToolkit,
@@ -45,5 +46,8 @@ export const APP_DEFAULT_TOOL_KIT: Record<
   },
   [AppDefaultToolkit.Presentation]: {
     [DefaultToolName.CreatePresentation]: createPresentationTool,
+  },
+  [AppDefaultToolkit.VideoGeneration]: {
+    [DefaultToolName.GenerateVideo]: generateVideoTool,
   },
 };

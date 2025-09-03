@@ -7,6 +7,7 @@ export enum AppDefaultToolkit {
   ImageGeneration = "imageGeneration",
   MusicGeneration = "musicGeneration",
   Presentation = "presentation",
+  VideoGeneration = "videoGeneration",
 }
 
 export enum DefaultToolName {
@@ -23,6 +24,7 @@ export enum DefaultToolName {
   GenerateImage = "generateImage",
   GenerateMusic = "generateMusic",
   CreatePresentation = "createPresentation",
+  GenerateVideo = "generateVideo",
 }
 
 export const SequentialThinkingToolName = "sequential-thinking";
