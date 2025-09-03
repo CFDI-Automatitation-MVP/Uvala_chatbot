@@ -2,7 +2,7 @@ import { tool as createTool } from "ai";
 import { z } from "zod";
 
 export const generateVideoTool = createTool({
-  description: "Generate videos from text descriptions or animate existing images using the Wan 2.2 model. Use this when users ask to create, generate, make, or produce videos, animations, or motion clips. Can create video from text prompt alone or animate an existing image.",
+  description: "Generate videos from text descriptions or animate existing images using the uvala-vibe model. Use this when users ask to create, generate, make, or produce videos, animations, or motion clips. Can create video from text prompt alone or animate an existing image.",
   inputSchema: z.object({
     prompt: z.string()
       .min(1)
@@ -73,7 +73,7 @@ export const generateVideoTool = createTool({
         throw new Error("Replicate API token not configured. Please set REPLICATE_API_TOKEN environment variable.");
       }
 
-      // Build input object for wan-video
+      // Build input object for uvala-vibe video generation
       const input: any = {
         prompt,
         resolution,
@@ -91,7 +91,7 @@ export const generateVideoTool = createTool({
       if (negative_prompt) input.negative_prompt = negative_prompt;
       if (seed !== undefined) input.seed = seed;
 
-      // Create prediction using Replicate API with wan-video model
+      // Create prediction using Replicate API with uvala-vibe model
       const response = await fetch("https://api.replicate.com/v1/predictions", {
         method: "POST",
         headers: {
@@ -99,7 +99,7 @@ export const generateVideoTool = createTool({
           "Authorization": `Token ${REPLICATE_API_TOKEN}`
         },
         body: JSON.stringify({
-          version: "wan-video/wan-2.2-5b-fast",
+          version: "uvala-vibe/uvala-vibe",
           input: input
         }),
       });
@@ -137,7 +137,7 @@ export const generateVideoTool = createTool({
         throw new Error(`Video generation incomplete. Status: ${result.status}`);
       }
 
-      // Wan-video returns a direct URL to the MP4 file
+      // uvala-vibe returns a direct URL to the MP4 file
       const videoUrl = result.output;
       
       // Calculate approximate duration
@@ -156,7 +156,7 @@ export const generateVideoTool = createTool({
         duration: `${durationSeconds}s`,
         sampleShift: sample_shift,
         seed: seed,
-        model: "Wan 2.2 Fast",
+        model: "uvala-vibe",
         predictionId: result.id,
         message: `Successfully generated ${durationSeconds}s video: "${prompt.substring(0, 100)}${prompt.length > 100 ? '...' : ''}"`
       };
