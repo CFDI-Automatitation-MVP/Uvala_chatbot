@@ -66,16 +66,16 @@ export const exaSearchSchema: JSONSchema7 = {
     numResults: {
       type: "number",
       description: "Number of search results to return",
-      default: 5,
+      default: 4,
       minimum: 1,
-      maximum: 20,
+      maximum: 4,
     },
     type: {
       type: "string",
-      enum: ["auto", "keyword", "neural"],
+      enum: ["keyword"],
       description:
-        "Search type - auto lets Exa decide, keyword for exact matches, neural for semantic search",
-      default: "auto",
+        "Search type - keyword search for exact matches and cost optimization",
+      default: "keyword",
     },
     category: {
       type: "string",
@@ -184,13 +184,13 @@ const fetchExa = async (endpoint: string, body: any): Promise<any> => {
 
 export const exaSearchToolForWorkflow = createTool({
   description:
-    "Search the web using Exa AI - performs real-time web searches with semantic and neural search capabilities. Returns high-quality, relevant results with full content extraction.",
+    "Search the web using Exa AI - performs real-time keyword-based web searches. Returns high-quality, relevant results with full content extraction.",
   inputSchema: jsonSchemaToZod(exaSearchSchema),
   execute: async (params) => {
     const searchRequest: ExaSearchRequest = {
       query: params.query,
-      type: params.type || "auto",
-      numResults: params.numResults || 5,
+      type: params.type || "keyword",
+      numResults: params.numResults || 4,
       contents: {
         text: {
           maxCharacters: params.maxCharacters || 3000,
@@ -235,14 +235,14 @@ export const exaContentsToolForWorkflow = createTool({
 
 export const exaSearchTool = createTool({
   description:
-    "Search the web using Exa AI - performs real-time web searches with semantic and neural search capabilities. Returns high-quality, relevant results with full content extraction.",
+    "Search the web using Exa AI - performs real-time keyword-based web searches. Returns high-quality, relevant results with full content extraction.",
   inputSchema: jsonSchemaToZod(exaSearchSchema),
   execute: (params) => {
     return safe(async () => {
       const searchRequest: ExaSearchRequest = {
         query: params.query,
-        type: params.type || "auto",
-        numResults: params.numResults || 5,
+        type: params.type || "keyword",
+        numResults: params.numResults || 4,
         contents: {
           text: {
             maxCharacters: params.maxCharacters || 3000,
