@@ -73,7 +73,7 @@ export const generateVideoTool = createTool({
         throw new Error("Replicate API token not configured. Please set REPLICATE_API_TOKEN environment variable.");
       }
 
-      // Build input object for uvala-vibe video generation
+      // Build input object for wan-video (internal model)
       const input: any = {
         prompt,
         resolution,
@@ -91,7 +91,7 @@ export const generateVideoTool = createTool({
       if (negative_prompt) input.negative_prompt = negative_prompt;
       if (seed !== undefined) input.seed = seed;
 
-      // Create prediction using Replicate API with uvala-vibe model
+      // Create prediction using Replicate API with wan-video model (hidden from user)
       const response = await fetch("https://api.replicate.com/v1/predictions", {
         method: "POST",
         headers: {
@@ -99,7 +99,7 @@ export const generateVideoTool = createTool({
           "Authorization": `Token ${REPLICATE_API_TOKEN}`
         },
         body: JSON.stringify({
-          version: "uvala-vibe/uvala-vibe",
+          version: "wan-video/wan-2.2-5b-fast",
           input: input
         }),
       });
@@ -137,7 +137,7 @@ export const generateVideoTool = createTool({
         throw new Error(`Video generation incomplete. Status: ${result.status}`);
       }
 
-      // uvala-vibe returns a direct URL to the MP4 file
+      // Wan-video returns a direct URL to the MP4 file
       const videoUrl = result.output;
       
       // Calculate approximate duration
