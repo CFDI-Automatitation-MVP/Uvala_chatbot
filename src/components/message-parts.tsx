@@ -777,6 +777,15 @@ const WebSandbox = dynamic(
   },
 );
 
+const Presentation = dynamic(
+  () =>
+    import("./tool-invocation/presentation").then((mod) => mod.Presentation),
+  {
+    ssr: false,
+    loading,
+  },
+);
+
 // Local shortcuts for tool invocation approval/rejection
 const approveToolInvocationShortcut: Shortcut = {
   description: "approveToolInvocation",
@@ -991,6 +1000,13 @@ export const ToolMessagePart = memo(
           case DefaultToolName.CreateWebSandbox:
             return (
               <WebSandbox
+                key={`${toolCallId}-${toolName}`}
+                {...(output as any)}
+              />
+            );
+          case DefaultToolName.CreatePresentation:
+            return (
+              <Presentation
                 key={`${toolCallId}-${toolName}`}
                 {...(output as any)}
               />

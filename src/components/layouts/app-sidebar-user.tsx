@@ -17,7 +17,6 @@ import { AvatarFallback, AvatarImage, Avatar } from "ui/avatar";
 import { SidebarMenuButton, SidebarMenuItem, SidebarMenu } from "ui/sidebar";
 import {
   ChevronsUpDown,
-  Command,
   LogOutIcon,
   Settings2,
   Palette,
@@ -25,6 +24,7 @@ import {
   Sun,
   MoonStar,
   ChevronRight,
+  CreditCard,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { appStore } from "@/app/store";
@@ -35,10 +35,10 @@ import { useTranslations } from "next-intl";
 import useSWR from "swr";
 import { getLocaleAction } from "@/i18n/get-locale";
 import { useCallback, useState, useEffect } from "react";
-import { GithubIcon } from "ui/github-icon";
-import { DiscordIcon } from "ui/discord-icon";
 import { useThemeStyle } from "@/hooks/use-theme-style";
 import { useSidebar } from "ui/sidebar";
+import { Button } from "ui/button";
+import Link from "next/link";
 type SessionUser = {
   id: string;
   email?: string;
@@ -77,6 +77,16 @@ export function AppSidebarUser({
 
   return (
     <SidebarMenu>
+      {/* Subscribe Button */}
+      <SidebarMenuItem className="mb-2">
+        <Button asChild className="w-full" variant="default">
+          <Link href="/pricing" className="flex items-center gap-2">
+            <CreditCard className="size-4" />
+            Subscribe
+          </Link>
+        </Button>
+      </SidebarMenuItem>
+      
       <SidebarMenuItem>
         <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
           <DropdownMenuTrigger asChild>
@@ -131,33 +141,6 @@ export function AppSidebarUser({
             </DropdownMenuItem>
             <SelectTheme />
             <SelectLanguage />
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="cursor-pointer"
-              onClick={() => appStoreMutate({ openShortcutsPopup: true })}
-            >
-              <Command className="size-4 text-foreground" />
-              <span>{t("keyboardShortcuts")}</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                window.open(
-                  "https://github.com/cgoinglove/better-chatbot/issues/new",
-                  "_blank",
-                );
-              }}
-            >
-              <GithubIcon className="size-4 fill-foreground" />
-              <span>{t("reportAnIssue")}</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                window.open("https://discord.gg/gCRu69Upnp", "_blank");
-              }}
-            >
-              <DiscordIcon className="size-4 fill-foreground" />
-              <span>{t("joinCommunity")}</span>
-            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logout} className="cursor-pointer">
               <LogOutIcon className="size-4 text-foreground" />

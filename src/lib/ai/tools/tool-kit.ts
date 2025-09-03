@@ -11,6 +11,7 @@ import { pythonExecutionTool } from "./code/python-run-tool";
 import { generateImageTool } from "./image/generate-image";
 import { generateMusicTool } from "./music/generate-music";
 import { createWebSandboxTool } from "./web/create-web-sandbox";
+import { createPresentationTool } from "./presentation/create-presentation";
 
 export const APP_DEFAULT_TOOL_KIT: Record<
   AppDefaultToolkit,
@@ -41,5 +42,8 @@ export const APP_DEFAULT_TOOL_KIT: Record<
   },
   [AppDefaultToolkit.MusicGeneration]: {
     [DefaultToolName.GenerateMusic]: generateMusicTool,
+  },
+  [AppDefaultToolkit.Presentation]: {
+    [DefaultToolName.CreatePresentation]: createPresentationTool,
   },
 };

@@ -7,7 +7,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 export function SidebarHoverZone() {
   const { open, setOpen, openMobile, setOpenMobile } = useSidebar();
   const isMobile = useIsMobile();
-  const closeTimeoutRef = useRef<NodeJS.Timeout>();
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -25,7 +25,7 @@ export function SidebarHoverZone() {
       // Clear close timeout when in sidebar zone
       if (isInSidebarZone && closeTimeoutRef.current) {
         clearTimeout(closeTimeoutRef.current);
-        closeTimeoutRef.current = undefined;
+        closeTimeoutRef.current = null;
       }
 
       // Open sidebar immediately when in narrow left zone

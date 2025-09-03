@@ -367,14 +367,16 @@ export default function PromptInput({
                 {!toolDisabled && (
                   <>
                     <ToolModeDropdown />
-                    <ToolSelectDropdown
-                      className="mx-1"
-                      align="start"
-                      side="top"
-                      onSelectWorkflow={onSelectWorkflow}
-                      onSelectAgent={onSelectAgent}
-                      mentions={mentions}
-                    />
+                    {false && (
+                      <ToolSelectDropdown
+                        className="mx-1"
+                        align="start"
+                        side="top"
+                        onSelectWorkflow={onSelectWorkflow}
+                        onSelectAgent={onSelectAgent}
+                        mentions={mentions}
+                      />
+                    )}
                   </>
                 )}
 

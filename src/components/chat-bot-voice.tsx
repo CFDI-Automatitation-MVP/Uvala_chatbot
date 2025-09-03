@@ -234,11 +234,13 @@ export function ChatBotVoice() {
                 </Tooltip>
               </div>
               <DrawerTitle className="flex items-center gap-2 w-full">
-                <EnabledMcpToolsDropdown
-                  align="start"
-                  side="bottom"
-                  prependTools={prependTools}
-                />
+                {false && (
+                  <EnabledMcpToolsDropdown
+                    align="start"
+                    side="bottom"
+                    prependTools={prependTools}
+                  />
+                )}
 
                 <div className="flex-1" />
                 <DropdownMenu>

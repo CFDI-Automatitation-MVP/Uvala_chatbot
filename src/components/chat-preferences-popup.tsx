@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect } from "react";
 import { AutoHeight } from "ui/auto-height";
 
 import { appStore } from "@/app/store";
@@ -14,35 +14,16 @@ import {
   DrawerTitle,
 } from "ui/drawer";
 import {
-  MCPInstructionsContent,
   UserInstructionsContent,
 } from "./chat-preferences-content";
-import { UserIcon, X } from "lucide-react";
+import { X } from "lucide-react";
 import { Button } from "ui/button";
-import { useTranslations } from "next-intl";
-import { MCPIcon } from "ui/mcp-icon";
 
 export function ChatPreferencesPopup() {
   const [openChatPreferences, appStoreMutate] = appStore(
     useShallow((state) => [state.openChatPreferences, state.mutate]),
   );
 
-  const t = useTranslations();
-
-  const tabs = useMemo(() => {
-    return [
-      {
-        label: t("Chat.ChatPreferences.userInstructions"),
-        icon: <UserIcon className="w-4 h-4" />,
-      },
-      {
-        label: t("Chat.ChatPreferences.mcpInstructions"),
-        icon: <MCPIcon className="w-4 h-4 fill-muted-foreground" />,
-      },
-    ];
-  }, []);
-
-  const [tab, setTab] = useState(0);
 
   const handleClose = () => {
     appStoreMutate({ openChatPreferences: false });
@@ -72,9 +53,6 @@ export function ChatPreferencesPopup() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [openChatPreferences]);
 
-  useEffect(() => {
-    if (!openChatPreferences) setTab(0);
-  }, [openChatPreferences]);
 
   return (
     <Drawer
@@ -100,62 +78,14 @@ export function ChatPreferencesPopup() {
 
           <div className="flex justify-center">
             <div className="w-full mt-4 lg:w-5xl lg:mt-14">
-              {/* Mobile: Tabs as horizontal scroll */}
-              <div className="md:hidden">
-                <div className="flex gap-2 overflow-x-auto pb-2">
-                  {tabs.map((tabItem, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setTab(index)}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-200 ${
-                        tab === index
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted/50 text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      {tabItem.icon}
-                      <span>{tabItem.label}</span>
-                    </button>
-                  ))}
+              {/* Content */}
+              <AutoHeight className="rounded-lg border max-h-[80vh] overflow-y-auto">
+                <div className="p-4 md:p-8">
+                  {openChatPreferences && (
+                    <UserInstructionsContent />
+                  )}
                 </div>
-              </div>
-
-              <div className="flex flex-1 overflow-hidden">
-                {/* Desktop: Sidebar */}
-                <div className="hidden md:block w-64">
-                  <nav className="px-4 flex flex-col gap-2">
-                    {tabs.map((tabItem, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setTab(index)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
-                          tab === index
-                            ? "bg-primary text-primary-foreground shadow-md"
-                            : "hover:bg-muted/50 text-muted-foreground hover:text-foreground"
-                        }`}
-                      >
-                        {tabItem.icon}
-                        <span className="font-medium">{tabItem.label}</span>
-                      </button>
-                    ))}
-                  </nav>
-                </div>
-
-                {/* Content */}
-                <AutoHeight className="flex-1 rounded-lg border max-h-[80vh] overflow-y-auto">
-                  <div className="p-4 md:p-8">
-                    {openChatPreferences && (
-                      <>
-                        {tab == 0 ? (
-                          <UserInstructionsContent />
-                        ) : tab == 1 ? (
-                          <MCPInstructionsContent />
-                        ) : null}
-                      </>
-                    )}
-                  </div>
-                </AutoHeight>
-              </div>
+              </AutoHeight>
             </div>
           </div>
         </DrawerContent>

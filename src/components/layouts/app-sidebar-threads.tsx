@@ -39,10 +39,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import { deduplicateByKey, groupBy } from "lib/utils";
 import { ChatThread } from "app-types/chat";
 
-type ThreadGroup = {
-  label: string;
-  threads: any[];
-};
 
 const MAX_THREADS_COUNT = 40;
 

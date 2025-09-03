@@ -1,7 +1,6 @@
 import "server-only";
 
 import { openai } from "@ai-sdk/openai";
-import { fireworks } from "@ai-sdk/fireworks";
 import { LanguageModel } from "ai";
 import {
   createOpenAICompatibleModels,

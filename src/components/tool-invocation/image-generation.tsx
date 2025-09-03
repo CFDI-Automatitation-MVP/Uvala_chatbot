@@ -29,7 +29,7 @@ export interface ImageGenerationProps {
 }
 
 export function ImageGeneration(props: ImageGenerationProps) {
-  const { success, imageUrl, prompt, aspectRatio, steps, model, message, error, solution } = props;
+  const { success, imageUrl, prompt, aspectRatio, error, solution } = props;
   const [showPrompt, setShowPrompt] = React.useState(false);
   
   // Filter out imageUrl and steps from JSON data
@@ -50,16 +50,6 @@ export function ImageGeneration(props: ImageGenerationProps) {
     toast.success('Image downloaded successfully');
   }, [imageUrl]);
 
-  const handleCopyUrl = React.useCallback(async () => {
-    if (!imageUrl) return;
-    
-    try {
-      await navigator.clipboard.writeText(imageUrl);
-      toast.success('Image URL copied to clipboard');
-    } catch (_err) {
-      toast.error('Failed to copy URL');
-    }
-  }, [imageUrl]);
 
   if (!success || !imageUrl) {
     return (

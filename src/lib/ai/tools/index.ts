@@ -6,6 +6,7 @@ export enum AppDefaultToolkit {
   WebSandbox = "webSandbox",
   ImageGeneration = "imageGeneration",
   MusicGeneration = "musicGeneration",
+  Presentation = "presentation",
 }
 
 export enum DefaultToolName {
@@ -21,6 +22,7 @@ export enum DefaultToolName {
   CreateWebSandbox = "createWebSandbox",
   GenerateImage = "generateImage",
   GenerateMusic = "generateMusic",
+  CreatePresentation = "createPresentation",
 }
 
 export const SequentialThinkingToolName = "sequential-thinking";
