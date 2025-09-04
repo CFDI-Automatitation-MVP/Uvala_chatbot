@@ -9,6 +9,12 @@ export const runMigrate = async () => {
   await migrate(pgDb, {
     migrationsFolder: join(process.cwd(), "src/lib/db/migrations/pg"),
   }).catch((err) => {
+    // Check if error is about tables already existing (PostgreSQL error code 42P07)
+    if (err.code === '42P07') {
+      console.log("ℹ️ Tables already exist, skipping migration...");
+      return;
+    }
+    
     console.error(
       `❌ PostgreSQL migrations failed. check the postgres instance is running.`,
       err.cause,

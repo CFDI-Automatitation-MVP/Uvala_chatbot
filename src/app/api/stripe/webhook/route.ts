@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import Stripe from 'stripe'
+import { db } from '@/lib/db/pg/db.pg'
+import { SubscriptionRepository } from '@/lib/db/pg/repositories/subscription-repository.pg'
+import { getPlanTypeFromPriceId } from '@/lib/subscription'
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
@@ -81,71 +84,129 @@ export async function POST(request: NextRequest) {
 async function handlePaymentSuccess(session: Stripe.Checkout.Session) {
   const { customer, metadata } = session
   
-  // Here you would typically:
-  // 1. Retrieve user from your database using metadata.userId
-  // 2. Update user's subscription status
-  // 3. Grant access to premium features
-  // 4. Send confirmation email
-  
   console.log('Processing payment success for customer:', customer)
   console.log('Session metadata:', metadata)
   
-  // Example database update (implement with your database):
-  // await updateUserSubscription(metadata?.userId, {
-  //   stripeCustomerId: customer,
-  //   subscriptionStatus: 'active',
-  //   planType: getPlanFromPriceId(session.line_items?.data[0]?.price?.id)
-  // })
+  if (!metadata?.userId) {
+    console.error('No userId in session metadata')
+    return
+  }
+
+  const subscriptionRepo = new SubscriptionRepository(db)
+  
+  // Get line items to find the price ID
+  const lineItems = await stripe.checkout.sessions.listLineItems(session.id)
+  const priceId = lineItems.data[0]?.price?.id
+  
+  if (!priceId) {
+    console.error('No price ID found in session line items')
+    return
+  }
+
+  const planType = getPlanTypeFromPriceId(priceId)
+  
+  console.log('Payment success processed:', {
+    userId: metadata.userId,
+    customerId: customer,
+    priceId,
+    planType
+  })
 }
 
 async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
   const { customer, items, status } = subscription
+  const priceId = items.data[0]?.price.id
   
-  // Update user's subscription in your database
-  console.log('Creating subscription record:', {
-    customerId: customer,
-    subscriptionId: subscription.id,
-    status,
-    priceId: items.data[0]?.price.id
-  })
+  if (!priceId) {
+    console.error('No price ID found in subscription items')
+    return
+  }
+
+  const subscriptionRepo = new SubscriptionRepository(db)
+  const planType = getPlanTypeFromPriceId(priceId)
   
-  // Example database operation:
-  // await createUserSubscription({
-  //   stripeCustomerId: customer,
-  //   stripeSubscriptionId: subscription.id,
-  //   status,
-  //   currentPeriodEnd: new Date(subscription.current_period_end * 1000)
-  // })
+  // Get customer to find userId (assuming we stored it in customer metadata)
+  const stripeCustomer = await stripe.customers.retrieve(customer as string)
+  
+  let userId: string | null = null
+  if ('metadata' in stripeCustomer && stripeCustomer.metadata?.userId) {
+    userId = stripeCustomer.metadata.userId
+  }
+  
+  if (!userId) {
+    console.error('No userId found in customer metadata')
+    return
+  }
+
+  try {
+    await subscriptionRepo.createSubscription({
+      userId,
+      stripeCustomerId: customer as string,
+      stripeSubscriptionId: subscription.id,
+      stripePriceId: priceId,
+      planType,
+      status,
+      currentPeriodStart: new Date(subscription.current_period_start * 1000),
+      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      trialStart: subscription.trial_start ? new Date(subscription.trial_start * 1000) : undefined,
+      trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : undefined,
+      metadata: subscription.metadata,
+    })
+
+    console.log('Subscription created successfully:', {
+      userId,
+      subscriptionId: subscription.id,
+      planType,
+      status
+    })
+  } catch (error) {
+    console.error('Error creating subscription:', error)
+  }
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
-  const { customer, status } = subscription
+  const { customer, status, items } = subscription
   
-  // Update subscription status in your database
-  console.log('Updating subscription:', {
-    customerId: customer,
-    subscriptionId: subscription.id,
-    newStatus: status
-  })
+  const subscriptionRepo = new SubscriptionRepository(db)
+  const priceId = items.data[0]?.price.id
+  const planType = priceId ? getPlanTypeFromPriceId(priceId) : undefined
   
-  // Example database operation:
-  // await updateUserSubscription(subscription.id, {
-  //   status,
-  //   currentPeriodEnd: new Date(subscription.current_period_end * 1000)
-  // })
+  try {
+    await subscriptionRepo.updateSubscription(subscription.id, {
+      status,
+      currentPeriodStart: new Date(subscription.current_period_start * 1000),
+      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      cancelAtPeriodEnd: subscription.cancel_at_period_end,
+      stripePriceId: priceId,
+      planType,
+      metadata: subscription.metadata,
+    })
+
+    console.log('Subscription updated successfully:', {
+      subscriptionId: subscription.id,
+      status,
+      planType
+    })
+  } catch (error) {
+    console.error('Error updating subscription:', error)
+  }
 }
 
 async function handleSubscriptionCanceled(subscription: Stripe.Subscription) {
   const { customer } = subscription
   
-  // Update user's access in your database
-  console.log('Canceling subscription access for customer:', customer)
+  const subscriptionRepo = new SubscriptionRepository(db)
   
-  // Example database operation:
-  // await updateUserSubscription(subscription.id, {
-  //   status: 'canceled',
-  //   canceledAt: new Date()
-  // })
+  try {
+    await subscriptionRepo.cancelSubscription(subscription.id)
+    
+    console.log('Subscription canceled successfully:', {
+      subscriptionId: subscription.id,
+      customerId: customer
+    })
+  } catch (error) {
+    console.error('Error canceling subscription:', error)
+  }
 }
 
 async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {

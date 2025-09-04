@@ -420,7 +420,78 @@ export const ThreadUsageSchema = pgTable("thread_usage", {
 ]);
 
 // Export types for the new schemas
+// Subscription Management Schemas
+export const SubscriptionSchema = pgTable("subscription", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => UserSchema.id, { onDelete: "cascade" }),
+  stripeCustomerId: text("stripe_customer_id").notNull(),
+  stripeSubscriptionId: text("stripe_subscription_id").notNull().unique(),
+  stripePriceId: text("stripe_price_id").notNull(),
+  planType: varchar("plan_type", {
+    enum: ["free", "pro", "max"],
+  }).notNull().default("free"),
+  status: varchar("status", {
+    enum: ["active", "canceled", "incomplete", "incomplete_expired", "past_due", "trialing", "unpaid"],
+  }).notNull(),
+  currentPeriodStart: timestamp("current_period_start").notNull(),
+  currentPeriodEnd: timestamp("current_period_end").notNull(),
+  cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
+  canceledAt: timestamp("canceled_at"),
+  trialStart: timestamp("trial_start"),
+  trialEnd: timestamp("trial_end"),
+  metadata: json("metadata"),
+  createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+}, (table) => [
+  index("subscription_user_id_idx").on(table.userId),
+  index("subscription_stripe_customer_id_idx").on(table.stripeCustomerId),
+  index("subscription_status_idx").on(table.status),
+]);
+
+export const SubscriptionLimitsSchema = pgTable("subscription_limits", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  planType: varchar("plan_type", {
+    enum: ["free", "pro", "max"],
+  }).notNull().unique(),
+  maxTokensPerMonth: integer("max_tokens_per_month").notNull().default(0),
+  maxApiCallsPerMonth: integer("max_api_calls_per_month").notNull().default(0),
+  maxToolCallsPerMonth: integer("max_tool_calls_per_month").notNull().default(0),
+  hasFileUploads: boolean("has_file_uploads").notNull().default(false),
+  hasAdvancedFeatures: boolean("has_advanced_features").notNull().default(false),
+  hasApiAccess: boolean("has_api_access").notNull().default(false),
+  hasPrioritySupport: boolean("has_priority_support").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const UserSubscriptionUsageSchema = pgTable("user_subscription_usage", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => UserSchema.id, { onDelete: "cascade" }),
+  subscriptionId: uuid("subscription_id")
+    .notNull()
+    .references(() => SubscriptionSchema.id, { onDelete: "cascade" }),
+  usageMonth: integer("usage_month").notNull(),
+  usageYear: integer("usage_year").notNull(),
+  tokensUsed: integer("tokens_used").notNull().default(0),
+  apiCallsUsed: integer("api_calls_used").notNull().default(0),
+  toolCallsUsed: integer("tool_calls_used").notNull().default(0),
+  resetAt: timestamp("reset_at").notNull(),
+  createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+}, (table) => [
+  unique().on(table.userId, table.usageMonth, table.usageYear),
+  index("user_subscription_usage_user_period_idx").on(table.userId, table.usageYear, table.usageMonth),
+]);
+
+// Export types for the new schemas
 export type ApiUsageEntity = typeof ApiUsageSchema.$inferSelect;
 export type UserDailyUsageEntity = typeof UserDailyUsageSchema.$inferSelect;
 export type UserMonthlyUsageEntity = typeof UserMonthlyUsageSchema.$inferSelect;
 export type ThreadUsageEntity = typeof ThreadUsageSchema.$inferSelect;
+export type SubscriptionEntity = typeof SubscriptionSchema.$inferSelect;
+export type SubscriptionLimitsEntity = typeof SubscriptionLimitsSchema.$inferSelect;
+export type UserSubscriptionUsageEntity = typeof UserSubscriptionUsageSchema.$inferSelect;

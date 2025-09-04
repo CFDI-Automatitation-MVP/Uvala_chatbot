@@ -47,17 +47,17 @@ const pricingPlans: PricingPlan[] = [
     ]
   },
   {
-    id: 'standard',
-    name: 'Standard',
+    id: 'pro',
+    name: 'Pro',
     description: 'For regular users',
     price: {
       USD: 7,
-      MXN: 120
+      MXN: 119
     },
     interval: 'month',
     stripePriceId: {
-      USD: process.env.NEXT_PUBLIC_STRIPE_STANDARD_USD_PRICE_ID || '',
-      MXN: process.env.NEXT_PUBLIC_STRIPE_STANDARD_MXN_PRICE_ID || ''
+      USD: 'price_1S3WO31pY9V37Up55MxEAfbh',
+      MXN: ''
     },
     popular: true,
     features: [
@@ -69,25 +69,26 @@ const pricingPlans: PricingPlan[] = [
     ]
   },
   {
-    id: 'premium',
-    name: 'Premium',
+    id: 'max',
+    name: 'Max',
     description: 'For power users and professionals',
     price: {
-      USD: 10,
-      MXN: 200
+      USD: 11,
+      MXN: 199
     },
     interval: 'month',
     stripePriceId: {
-      USD: process.env.NEXT_PUBLIC_STRIPE_PREMIUM_USD_PRICE_ID || '',
-      MXN: process.env.NEXT_PUBLIC_STRIPE_PREMIUM_MXN_PRICE_ID || ''
+      USD: 'price_1S3WNc1pY9V37Up5kRxJfKSG',
+      MXN: 'price_1S3WMv1pY9V37Up5gCETgD4x'
     },
     features: [
-      'Everything in Standard',
+      'Everything in Pro',
       'Custom AI models',
       'API access',
       'Priority support',
       'Advanced integrations',
-      'Analytics dashboard'
+      'Analytics dashboard',
+      'Higher usage limits'
     ]
   }
 ]
