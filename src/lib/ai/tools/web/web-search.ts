@@ -66,9 +66,9 @@ export const exaSearchSchema: JSONSchema7 = {
     numResults: {
       type: "number",
       description: "Number of search results to return",
-      default: 4,
+      default: 2, // Reduced from 4 for cost optimization
       minimum: 1,
-      maximum: 4,
+      maximum: 2, // Reduced from 4 for cost optimization
     },
     type: {
       type: "string",
@@ -117,9 +117,9 @@ export const exaSearchSchema: JSONSchema7 = {
     maxCharacters: {
       type: "number",
       description: "Maximum characters to extract from each result",
-      default: 3000,
+      default: 1500, // Reduced from 3000 for cost optimization  
       minimum: 100,
-      maximum: 10000,
+      maximum: 2000, // Reduced from 10000 for cost optimization
     },
   },
   required: ["query"],
@@ -190,10 +190,10 @@ export const exaSearchToolForWorkflow = createTool({
     const searchRequest: ExaSearchRequest = {
       query: params.query,
       type: params.type || "keyword",
-      numResults: params.numResults || 4,
+      numResults: params.numResults || 2,
       contents: {
         text: {
-          maxCharacters: params.maxCharacters || 3000,
+          maxCharacters: params.maxCharacters || 1500,
         },
         livecrawl: "preferred",
       },
@@ -223,7 +223,7 @@ export const exaContentsToolForWorkflow = createTool({
       ids: params.urls,
       contents: {
         text: {
-          maxCharacters: params.maxCharacters || 3000,
+          maxCharacters: params.maxCharacters || 1500,
         },
         livecrawl: params.livecrawl || "preferred",
       },
@@ -242,10 +242,10 @@ export const exaSearchTool = createTool({
       const searchRequest: ExaSearchRequest = {
         query: params.query,
         type: params.type || "keyword",
-        numResults: params.numResults || 4,
+        numResults: params.numResults || 2,
         contents: {
           text: {
-            maxCharacters: params.maxCharacters || 3000,
+            maxCharacters: params.maxCharacters || 1500,
           },
           livecrawl: "preferred",
         },
@@ -291,7 +291,7 @@ export const exaContentsTool = createTool({
         ids: params.urls,
         contents: {
           text: {
-            maxCharacters: params.maxCharacters || 3000,
+            maxCharacters: params.maxCharacters || 1500,
           },
           livecrawl: params.livecrawl || "preferred",
         },
