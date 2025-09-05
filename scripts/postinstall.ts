@@ -33,7 +33,7 @@ async function main() {
       process.exit(1);
     }
     console.log("Running on Vercel, performing database migration.");
-    await runCommand("pnpm db:migrate", "Database migration");
+    await runCommand("npm run db:migrate", "Database migration");
   } else if (IS_DOCKER_ENV) {
     if (FILE_BASED_MCP_CONFIG) {
       console.error("File based MCP config is not supported in Docker.");
@@ -43,9 +43,9 @@ async function main() {
     console.log(
       "Running in a normal environment, performing initial environment setup.",
     );
-    await runCommand("pnpm initial:env", "Initial environment setup");
+    await runCommand("npm run initial:env", "Initial environment setup");
     await runCommand(
-      "pnpm openai-compatiable:init",
+      "npm run openai-compatiable:init",
       "Initial openAI compatiable config setup",
     );
   }

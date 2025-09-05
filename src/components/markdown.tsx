@@ -1,7 +1,10 @@
 import React, { memo, PropsWithChildren } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
 import { PreBlock } from "./pre-block";
+import { AutoMathRenderer } from "./math-renderer";
 import { isJson, isString, toAny } from "lib/utils";
 import JsonView from "ui/json-view";
 import { LinkIcon } from "lucide-react";
@@ -76,9 +79,20 @@ const components: Partial<Components> = {
     );
   },
   p: ({ children }) => {
+    // Convert children to string for math processing
+    const textContent = React.Children.toArray(children).join(' ');
+    
+    // Check if the text contains math expressions
+    // Using improved patterns for LaTeX delimiters
+    const hasMath = /\\\(.*?\\\)|\\\[.*?\\\]|\$\$.*?\$\$|\$[^$\s][^$]*[^$\s]\$|\$[^$\s]\$/.test(textContent);
+    
     return (
       <p className="leading-6 my-4 break-words">
-        <WordByWordFadeIn>{children}</WordByWordFadeIn>
+        {hasMath ? (
+          <AutoMathRenderer>{textContent}</AutoMathRenderer>
+        ) : (
+          <WordByWordFadeIn>{children}</WordByWordFadeIn>
+        )}
       </p>
     );
   },
@@ -188,7 +202,11 @@ const NonMemoizedMarkdown = ({ children }: { children: string }) => {
       {isJson(children) ? (
         <JsonView data={children} />
       ) : (
-        <ReactMarkdown components={components} remarkPlugins={[remarkGfm]}>
+        <ReactMarkdown 
+          components={components} 
+          remarkPlugins={[remarkGfm, remarkMath]}
+          rehypePlugins={[rehypeKatex]}
+        >
           {children}
         </ReactMarkdown>
       )}

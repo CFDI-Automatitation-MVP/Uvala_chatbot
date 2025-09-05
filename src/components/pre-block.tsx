@@ -16,29 +16,7 @@ import { Button } from "ui/button";
 import { CheckIcon, CopyIcon } from "lucide-react";
 import JsonView from "ui/json-view";
 import { useCopy } from "@/hooks/use-copy";
-import dynamic from "next/dynamic";
-
-// Dynamically import MermaidDiagram component
-const MermaidDiagram = dynamic(
-  () => import("./mermaid-diagram").then((mod) => mod.MermaidDiagram),
-  {
-    loading: () => (
-      <div className="text-sm flex bg-accent/30 flex-col rounded-2xl relative my-4 overflow-hidden border">
-        <div className="w-full flex z-20 py-2 px-4 items-center">
-          <span className="text-sm text-muted-foreground">mermaid</span>
-        </div>
-        <div className="relative overflow-x-auto px-6 pb-6">
-          <div className="h-20 w-full flex items-center justify-center">
-            <span className="text-muted-foreground">
-              Loading Mermaid renderer...
-            </span>
-          </div>
-        </div>
-      </div>
-    ),
-    ssr: false,
-  },
-);
+// Clean code block handling without mermaid dependencies
 
 const PurePre = ({
   children,
@@ -93,13 +71,7 @@ export async function Highlight(
     );
   }
 
-  if (lang === "mermaid") {
-    return (
-      <PurePre code={code} lang={lang}>
-        <MermaidDiagram chart={code} />
-      </PurePre>
-    );
-  }
+  // Mermaid support has been removed - will show as regular code block
 
   const out = await codeToHast(code, {
     lang: parsed,

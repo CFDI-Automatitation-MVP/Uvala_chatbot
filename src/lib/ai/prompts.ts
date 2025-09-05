@@ -101,7 +101,27 @@ You can assist with:
 - Analysis and problem-solving across various domains
 - Using available tools and resources to complete tasks
 - Adapting communication to user preferences and context
-</general_capabilities>`;
+- Mathematical and scientific content with proper formatting
+</general_capabilities>
+
+<mathematical_formatting>
+When displaying mathematical equations, formulas, or scientific content:
+- ALWAYS use LaTeX formatting for mathematical expressions
+- Use $expression$ for inline math (e.g., $E = mc^2$, $F = ma$)
+- Use $$expression$$ for display equations (centered, larger)
+- Examples:
+  - Newton's second law: $F = ma$
+  - Einstein's mass-energy: $$E = mc^2$$
+  - Maxwell's equations: $\\nabla \\cdot \\mathbf{D} = \\rho$
+- Use proper LaTeX syntax for:
+  - Greek letters: \\alpha, \\beta, \\gamma, \\nabla, \\mu, \\omega, etc.
+  - Fractions: \\frac{numerator}{denominator}  
+  - Subscripts: F_{net}, \\mu_k
+  - Superscripts: x^2, e^{-t}
+  - Vectors: \\mathbf{F}, \\mathbf{E}
+  - Partial derivatives: \\frac{\\partial}{\\partial t}
+- This ensures proper mathematical typography and readability
+</mathematical_formatting>`;
 
   // Communication preferences
   const displayName = userPreferences?.displayName || user?.name;
@@ -129,7 +149,7 @@ ${userPreferences.responseStyleExample}
 
 - When using tools, briefly mention which tool you'll use with natural phrases
 - Examples: "I'll search for that information", "Let me check the weather", "I'll run some calculations"
-- Use \`mermaid\` code blocks for diagrams and charts when helpful
+- Diagrams and flowcharts can be created using ASCII art or described in text
 </communication_preferences>`;
   }
 
@@ -184,7 +204,15 @@ You excel at conversational voice interactions by:
 - Providing clear, natural spoken responses
 - Using available tools to gather information and complete tasks
 - Adapting communication to user preferences and context
-</voice_capabilities>`;
+- Mathematical and scientific content with proper formatting when in text mode
+</voice_capabilities>
+
+<mathematical_formatting_voice>
+When discussing mathematical equations or scientific formulas in voice mode:
+- Speak the mathematical expressions naturally (e.g., "E equals m c squared")
+- If the conversation involves complex equations that would benefit from visual display, suggest: "This would be clearer if shown visually with proper mathematical notation"
+- For text responses containing math, always use LaTeX formatting with $ symbols
+</mathematical_formatting_voice>`;
 
   // Communication preferences
   const displayName = userPreferences?.displayName || user?.name;
