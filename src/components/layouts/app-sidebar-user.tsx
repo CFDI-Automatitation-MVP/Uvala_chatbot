@@ -25,6 +25,8 @@ import {
   MoonStar,
   ChevronRight,
   CreditCard,
+  Sparkles,
+  Zap,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { appStore } from "@/app/store";
@@ -77,38 +79,50 @@ export function AppSidebarUser({
 
   return (
     <SidebarMenu>
-      {/* Subscribe Button */}
-      <SidebarMenuItem className="mb-2">
-        <Button asChild className="w-full" variant="default">
-          <Link href="/pricing" className="flex items-center gap-2">
+      {/* Upgrade Button */}
+      <SidebarMenuItem className="mb-2 group-data-[collapsible=icon]:hidden">
+        <Button
+          asChild
+          className="w-full h-12 animate-shimmer border border-slate-700/50 bg-[linear-gradient(110deg,rgba(0,1,3,0.3),45%,rgba(30,38,49,0.4),55%,rgba(0,1,3,0.3))] dark:bg-[linear-gradient(110deg,rgba(0,1,3,0.3),45%,rgba(30,38,49,0.4),55%,rgba(0,1,3,0.3))] bg-[linear-gradient(110deg,rgba(248,250,252,0.8),45%,rgba(226,232,240,0.9),55%,rgba(248,250,252,0.8))] bg-[length:200%_100%] text-slate-300 dark:text-slate-300 text-slate-600 hover:text-slate-200 dark:hover:text-slate-200 hover:text-slate-700 border-slate-700/50 dark:border-slate-700/50 border-slate-300/50 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+          variant="outline"
+        >
+          <Link
+            href="/pricing"
+            className="flex items-center gap-2 justify-center"
+          >
             <CreditCard className="size-4" />
-            Subscribe
+            {t("upgrade")}
           </Link>
         </Button>
       </SidebarMenuItem>
-      
+
       <SidebarMenuItem>
         <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground bg-input/30 border"
+              className="h-12 animate-shimmer border border-slate-700/50 dark:border-slate-700/50 border-slate-300/50 bg-[linear-gradient(110deg,rgba(0,1,3,0.2),45%,rgba(30,38,49,0.3),55%,rgba(0,1,3,0.2))] dark:bg-[linear-gradient(110deg,rgba(0,1,3,0.2),45%,rgba(30,38,49,0.3),55%,rgba(0,1,3,0.2))] bg-[linear-gradient(110deg,rgba(248,250,252,0.6),45%,rgba(226,232,240,0.7),55%,rgba(248,250,252,0.6))] bg-[length:200%_100%] text-slate-300 dark:text-slate-300 text-slate-600 hover:text-slate-200 dark:hover:text-slate-200 hover:text-slate-700 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:w-12 group-data-[collapsible=icon]:h-12 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:mx-auto focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
               size={"lg"}
+              tooltip={user?.email || "Profile"}
             >
-              <Avatar className="rounded-full size-8 border">
+              <Avatar className="rounded-full size-8 border border-slate-600/50 dark:border-slate-600/50 border-slate-400/50 group-data-[collapsible=icon]:size-9">
                 <AvatarImage
                   className="object-cover"
                   src={user?.image || "/pf.png"}
                   alt={user?.name || ""}
                 />
-                <AvatarFallback>{user?.name?.slice(0, 1) || ""}</AvatarFallback>
+                <AvatarFallback className="bg-slate-700/50 dark:bg-slate-700/50 bg-slate-200/70 text-slate-300 dark:text-slate-300 text-slate-600">
+                  {user?.name?.slice(0, 1) || ""}
+                </AvatarFallback>
               </Avatar>
-              <span className="truncate">{user?.email}</span>
-              <ChevronsUpDown className="ml-auto" />
+              <span className="truncate group-data-[collapsible=icon]:sr-only">
+                {user?.email}
+              </span>
+              <ChevronsUpDown className="ml-auto group-data-[collapsible=icon]:hidden" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
             side="top"
-            className="bg-background w-[--radix-dropdown-menu-trigger-width] min-w-60 rounded-lg"
+            className="bg-background/80 backdrop-blur-md border-border/20 w-[--radix-dropdown-menu-trigger-width] min-w-60 rounded-lg"
             align="center"
           >
             <DropdownMenuLabel className="p-0 font-normal">
@@ -179,7 +193,7 @@ function SelectTheme() {
         <span className="mr-auto">{t("theme")}</span>
       </DropdownMenuSubTrigger>
       <DropdownMenuPortal>
-        <DropdownMenuSubContent className="w-48">
+        <DropdownMenuSubContent className="w-48" side="top" align="center">
           <DropdownMenuLabel className="text-muted-foreground w-full flex items-center">
             <span className="text-muted-foreground text-xs mr-2 select-none">
               {capitalizeFirstLetter(theme)}
@@ -249,7 +263,11 @@ function SelectLanguage() {
         <span>{t("language")}</span>
       </DropdownMenuSubTrigger>
       <DropdownMenuPortal>
-        <DropdownMenuSubContent className="w-48 max-h-96 overflow-y-auto">
+        <DropdownMenuSubContent
+          className="w-48 max-h-96 overflow-y-auto"
+          side="top"
+          align="center"
+        >
           <DropdownMenuLabel className="text-muted-foreground">
             {t("language")}
           </DropdownMenuLabel>

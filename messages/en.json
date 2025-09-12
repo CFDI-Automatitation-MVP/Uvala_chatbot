@@ -42,7 +42,8 @@
     "createWithExample": "Create With Example",
     "resultsFound": "{count} results found",
     "youAreAnExpertIn": "You are an expert in {role}",
-    "sharedBy": "Shared by {userName}"
+    "sharedBy": "Shared by {userName}",
+    "greatForAllYourTasks": "Great for all your tasks"
   },
   "Error": {},
   "Info": {
@@ -259,7 +260,7 @@
       "unarchivedChatsDeleted": "Unarchived chats have been deleted",
       "failedToDeleteUnarchivedChats": "Failed to delete unarchived chats",
       "failedToDeleteThread": "Failed to delete thread",
-      "threadDeleted": "Thread deleted",
+      "threadDeleted": "Chat deleted",
       "failedToUpdateThread": "Failed to update thread",
       "titleRequired": "Title is required",
       "threadUpdated": "Thread updated",
@@ -293,6 +294,7 @@
     "workflow": "Workflow",
     "toggleSidebar": "Toggle Sidebar",
     "newChat": "New Chat",
+    "temporaryChat": "Temporary Chat",
     "mcpConfiguration": "MCP Configuration",
     "agents": "Agents",
     "newAgent": "Create Agent",
@@ -325,8 +327,8 @@
     "noConversationsYet": "No conversations yet",
     "deletingAllChats": "Deleting all threads...",
     "deletingUnarchivedChats": "Deleting unarchived threads...",
-    "allChatsDeleted": "All threads deleted",
-    "unarchivedChatsDeleted": "Unarchived threads deleted",
+    "allChatsDeleted": "All chats deleted",
+    "unarchivedChatsDeleted": "Unarchived chats deleted",
     "failedToDeleteAllChats": "Failed to delete all threads",
     "failedToDeleteUnarchivedChats": "Failed to delete unarchived threads",
     "chatPreferences": "Chat Preferences",
@@ -334,6 +336,7 @@
     "theme": "Theme",
     "signOut": "Sign out",
     "language": "Language",
+    "upgrade": "Upgrade",
 
     "showAllChats": "View All Chats",
     "showLessChats": "Show less",

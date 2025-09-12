@@ -42,7 +42,8 @@
     "generateWithAI": "用 AI 生成",
     "resultsFound": "找到 {count} 个结果",
     "youAreAnExpertIn": "您是{role}专家",
-    "sharedBy": "{userName} 分享"
+    "sharedBy": "{userName} 分享",
+    "greatForAllYourTasks": "适用于您的所有任务"
   },
   "Auth": {
     "SignIn": {
@@ -149,7 +150,7 @@
       "unarchivedChatsDeleted": "未归档的聊天已删除",
       "failedToDeleteUnarchivedChats": "删除未归档聊天失败",
       "failedToDeleteThread": "删除线程失败",
-      "threadDeleted": "线程已删除",
+      "threadDeleted": "聊天已删除",
       "failedToUpdateThread": "更新线程失败",
       "titleRequired": "标题是必需的",
       "threadUpdated": "线程已更新",
@@ -222,6 +223,7 @@
     "theme": "主题",
     "signOut": "登出",
     "language": "语言",
+    "upgrade": "升级",
 
     "showAllChats": "查看所有聊天",
     "showLessChats": "显示更少",

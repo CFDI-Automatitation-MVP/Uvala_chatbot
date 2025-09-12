@@ -12,6 +12,7 @@ import {
   ToolMessagePart,
   ReasoningPart,
 } from "./message-parts";
+import { MessagePartRenderer } from "./message-part-renderer";
 import { ChevronDown, ChevronUp, TriangleAlertIcon } from "lucide-react";
 import { Button } from "ui/button";
 import { useTranslations } from "next-intl";
@@ -129,6 +130,13 @@ const PurePreviewMessage = ({
               );
             } else if (part.type === "step-start") {
               return null;
+            } else if ((part as any).type === "file") {
+              // Handle file parts with MessagePartRenderer
+              return (
+                <div key={key} className="my-2">
+                  <MessagePartRenderer part={part} />
+                </div>
+              );
             } else {
               return <div key={key}> unknown part {part.type}</div>;
             }

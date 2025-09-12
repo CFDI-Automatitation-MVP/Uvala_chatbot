@@ -53,7 +53,8 @@ export function AppPopupProvider() {
     <>
       <KeyboardShortcutsPopup />
       <ChatPreferencesPopup />
-      <ChatBotVoice />
+      {/* Voice chat functionality is hidden */}
+      {false && <ChatBotVoice />}
       <ChatBotTemporary />
       <McpCustomizationPopup />
     </>

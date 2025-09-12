@@ -9,7 +9,7 @@ import { cn } from "lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 
 export interface AttachmentFile {
-  type: 'file';
+  type: "file";
   name: string;
   mediaType: string;
   url: string; // Data URL for AI SDK experimental_attachments
@@ -22,11 +22,11 @@ interface FileAttachmentInputProps {
   className?: string;
 }
 
-export function FileAttachmentInput({ 
-  onFilesSelected, 
-  disabled, 
+export function FileAttachmentInput({
+  onFilesSelected,
+  disabled,
   maxFiles = 5,
-  className 
+  className,
 }: FileAttachmentInputProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -46,7 +46,7 @@ export function FileAttachmentInput({
     if (files.length === 0) return;
 
     const fileArray = Array.from(files);
-    
+
     if (fileArray.length > maxFiles) {
       toast.error(`Maximum ${maxFiles} files allowed`);
       return;
@@ -60,7 +60,7 @@ export function FileAttachmentInput({
         // Validate file
         const validation = getFileValidation(file);
         const validationResult = validateFile(file, validation);
-        
+
         if (!validationResult.valid) {
           toast.error(`${file.name}: ${validationResult.error}`);
           continue;
@@ -69,12 +69,12 @@ export function FileAttachmentInput({
         try {
           // Convert to data URL - AI SDK experimental_attachments expects this format
           const url = await fileToDataURL(file);
-          
+
           attachments.push({
-            type: 'file',
+            type: "file",
             name: file.name,
             mediaType: file.type,
-            url // Data URL format: "data:image/jpeg;base64,..."
+            url, // Data URL format: "data:image/jpeg;base64,..."
           });
         } catch (_error) {
           toast.error(`Failed to process file: ${file.name}`);
@@ -89,7 +89,7 @@ export function FileAttachmentInput({
       setIsProcessing(false);
       // Reset file input
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
     }
   };
@@ -140,7 +140,7 @@ export function FileAttachmentInput({
         }}
         className="hidden"
       />
-      
+
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
@@ -155,21 +155,18 @@ export function FileAttachmentInput({
             className={cn(
               "rounded-full hover:bg-input! p-2!",
               dragActive && "bg-input ring-2 ring-primary",
-              className
+              className,
             )}
           >
-            {isProcessing ? (
-              <Loader className="animate-spin" />
-            ) : (
-              <PlusIcon />
-            )}
+            {isProcessing ? <Loader className="animate-spin" /> : <PlusIcon />}
           </Button>
         </TooltipTrigger>
         <TooltipContent>
           <div className="text-xs">
             <div className="font-semibold">Upload Files</div>
             <div className="text-muted-foreground mt-1">
-              Images: JPG, PNG, GIF, WebP (10MB max)<br/>
+              Images: JPG, PNG, GIF, WebP (10MB max)
+              <br />
               Documents: PDF, TXT, MD, DOC, CSV, JSON (50MB max)
             </div>
           </div>
@@ -185,27 +182,51 @@ interface AttachmentPreviewProps {
   className?: string;
 }
 
-export function AttachmentPreview({ attachment, onRemove, className }: AttachmentPreviewProps) {
-  const isImage = attachment.mediaType.startsWith('image/');
-  
-  return (
-    <div className={cn(
-      "flex items-center gap-2 p-2 bg-input/60 rounded-lg border",
-      className
-    )}>
-      <div className="flex-shrink-0">
-        {isImage ? (
-          <ImageIcon className="size-4 text-blue-500" />
-        ) : (
-          <FileIcon className="size-4 text-gray-500" />
-        )}
+export function AttachmentPreview({
+  attachment,
+  onRemove,
+  className,
+}: AttachmentPreviewProps) {
+  const isImage = attachment.mediaType.startsWith("image/");
+
+  if (isImage) {
+    // Simple image preview - just thumbnail with remove button
+    return (
+      <div className={cn("relative flex-shrink-0", className)}>
+        <img
+          src={attachment.url}
+          alt="Preview"
+          className="w-16 h-16 object-cover rounded-lg border"
+        />
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onRemove}
+          className="absolute -top-2 -right-2 size-6 rounded-full bg-destructive hover:bg-destructive/90 text-destructive-foreground hover:text-destructive-foreground shadow-md"
+        >
+          <X className="size-3" />
+        </Button>
       </div>
-      
+    );
+  }
+
+  // Non-image files keep the original layout with filename
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-3 p-2 bg-input/60 rounded-lg border",
+        className,
+      )}
+    >
+      <div className="flex-shrink-0">
+        <FileIcon className="size-4 text-gray-500" />
+      </div>
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium truncate">{attachment.name}</div>
-        <div className="text-xs text-muted-foreground">{attachment.mediaType}</div>
+        <div className="text-xs text-muted-foreground">
+          {attachment.mediaType}
+        </div>
       </div>
-      
       <Button
         variant="ghost"
         size="icon"

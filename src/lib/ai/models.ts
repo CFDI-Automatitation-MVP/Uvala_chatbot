@@ -10,7 +10,7 @@ import { ChatModel } from "app-types/chat";
 
 const staticModels = {
   "Great for all your tasks": {
-    "Uvala-Fuji": openai("gpt-5-mini-2025-08-07"),
+    "uvala-fuji": openai("gpt-5-mini-2025-08-07"),
   },
 };
 
@@ -38,7 +38,7 @@ export const isToolCallUnsupportedModel = (model: LanguageModel) => {
   return allUnsupportedModels.has(model);
 };
 
-const fallbackModel = staticModels["Great for all your tasks"]["Uvala-Fuji"];
+const fallbackModel = staticModels["Great for all your tasks"]["uvala-fuji"];
 
 export const customModelProvider = {
   modelsInfo: Object.entries(allModels).map(([provider, models]) => ({

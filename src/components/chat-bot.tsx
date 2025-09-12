@@ -49,9 +49,15 @@ type Props = {
   selectedChatModel?: string;
 };
 
-const OrbBackground = dynamic(() => import("@/components/orb-background").then(mod => ({ default: mod.OrbBackground })), {
-  ssr: false,
-});
+const RippleBackground = dynamic(
+  () =>
+    import("@/components/ripple-background").then((mod) => ({
+      default: mod.RippleBackground,
+    })),
+  {
+    ssr: false,
+  },
+);
 
 // const debounce = createDebounce(); // Unused for now
 
@@ -226,7 +232,6 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     return false;
   }, [isLoading, messages.at(-1)]);
 
-
   const handleFocus = useCallback(() => {
     // Keep background visible - Orb component is optimized for performance
     // setShowParticles(false);
@@ -312,9 +317,9 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
 
   return (
     <>
-      {/* Show Orb only when starting new chat (no messages) */}
-      {emptyMessage && <OrbBackground />}
-      
+      {/* Show Ripple only when starting new chat (no messages) */}
+      {emptyMessage && <RippleBackground />}
+
       <div
         className={cn(
           emptyMessage && "justify-center pb-24",

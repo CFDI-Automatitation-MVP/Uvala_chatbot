@@ -21,6 +21,8 @@ import { isShortcutEvent, Shortcuts } from "lib/keyboard-shortcuts";
 import { AppSidebarUser } from "./app-sidebar-user";
 import { PanelLeft } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Button } from "ui/button";
+import { useTheme } from "next-themes";
 type SessionUser = {
   id: string;
   email?: string;
@@ -28,12 +30,11 @@ type SessionUser = {
   image?: string;
 };
 
-export function AppSidebar({
-  session,
-}: { session?: { user: SessionUser } }) {
+export function AppSidebar({ session }: { session?: { user: SessionUser } }) {
   const { toggleSidebar, setOpenMobile } = useSidebar();
   const router = useRouter();
   const isMobile = useIsMobile();
+  const { theme } = useTheme();
 
   const currentPath = usePathname();
 
@@ -61,37 +62,37 @@ export function AppSidebar({
   }, [currentPath, isMobile]);
 
   return (
-    <Sidebar
-      collapsible="offcanvas"
-      className="border-r border-sidebar-border/80"
-    >
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem className="flex items-center gap-0.5">
-            <SidebarMenuButton asChild className="hover:bg-transparent">
-              <Link
-                href={`/`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  router.push("/");
-                  router.refresh();
-                }}
-              >
-                <h4 className="font-bold">uvala</h4>
-                <div
-                  className="ml-auto block sm:hidden"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setOpenMobile(false);
-                  }}
-                >
-                  <PanelLeft className="size-4" />
-                </div>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border/80">
+      <SidebarHeader className="p-2">
+        {/* Logo Container - Bigger than menu icons */}
+        <div className="flex items-center justify-center p-2 group-data-[collapsible=icon]:p-1">
+          <div className="flex items-center justify-center group-data-[collapsible=icon]:w-16 group-data-[collapsible=icon]:h-16 group-data-[collapsible=icon]:bg-accent/10 group-data-[collapsible=icon]:rounded-lg">
+            <img
+              src={
+                theme === "dark"
+                  ? "/uvala-white-log.svg"
+                  : "/uvala-black-log.svg"
+              }
+              alt="Uvala"
+              className="size-8 group-data-[collapsible=icon]:size-12"
+            />
+            <span className="ml-2 font-bold text-lg group-data-[collapsible=icon]:sr-only">
+              Uvala
+            </span>
+          </div>
+        </div>
+
+        {/* Mobile close trigger */}
+        <div
+          className="absolute right-2 top-2 block sm:hidden z-50"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setOpenMobile(false);
+          }}
+        >
+          <PanelLeft className="size-4" />
+        </div>
       </SidebarHeader>
 
       <SidebarContent className="mt-2 overflow-hidden relative">

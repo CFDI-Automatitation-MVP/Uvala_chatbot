@@ -6,6 +6,7 @@ import { ChatModel } from "app-types/chat";
 import { CheckIcon, ChevronDown } from "lucide-react";
 import { Fragment, memo, PropsWithChildren, useEffect, useState } from "react";
 import { Button } from "ui/button";
+import { useTranslations } from "next-intl";
 
 import {
   Command,
@@ -61,12 +62,12 @@ export const SelectModel = (props: PropsWithChildren<SelectModelProps>) => {
         )}
       </PopoverTrigger>
       <PopoverContent
-        className="p-0 w-[240px]"
+        className="p-0 w-[240px] bg-background/80 backdrop-blur-md border-border/20"
         align={props.align || "end"}
         data-testid="model-selector-popover"
       >
         <Command
-          className="rounded-lg relative shadow-md h-auto"
+          className="rounded-lg relative shadow-md h-auto bg-transparent"
           value={JSON.stringify(model)}
           onClick={(e) => e.stopPropagation()}
         >
@@ -84,7 +85,7 @@ export const SelectModel = (props: PropsWithChildren<SelectModelProps>) => {
                   {provider.models.map((item) => (
                     <CommandItem
                       key={item.name}
-                      className="cursor-pointer"
+                      className="cursor-pointer justify-center"
                       onSelect={() => {
                         setModel({
                           provider: provider.provider,
@@ -102,13 +103,13 @@ export const SelectModel = (props: PropsWithChildren<SelectModelProps>) => {
                       {model?.provider === provider.provider &&
                       model?.model === item.name ? (
                         <CheckIcon
-                          className="size-3"
+                          className="size-3 mr-2"
                           data-testid="selected-model-check"
                         />
                       ) : (
-                        <div className="ml-3" />
+                        <div className="size-3 mr-2" />
                       )}
-                      <span className="pr-2">{item.name}</span>
+                      <span>{item.name}</span>
                       {item.isToolCallUnsupported && (
                         <div className="ml-auto flex items-center gap-1 text-xs text-muted-foreground">
                           No tools
@@ -130,17 +131,25 @@ export const SelectModel = (props: PropsWithChildren<SelectModelProps>) => {
 const ProviderHeader = memo(function ProviderHeader({
   provider,
 }: { provider: string }) {
+  const t = useTranslations("Common");
+
   return (
-    <div className="text-sm text-muted-foreground flex items-center gap-1.5 group-hover:text-foreground transition-colors duration-300">
-      {provider === "openai" ? (
-        <ModelProviderIcon
-          provider="openai"
-          className="size-3 text-foreground"
-        />
-      ) : (
-        <ModelProviderIcon provider={provider} className="size-3" />
+    <div className="text-sm text-muted-foreground flex items-center justify-center gap-1.5 group-hover:text-foreground transition-colors duration-300">
+      {provider !== "Great for all your tasks" && (
+        <>
+          {provider === "openai" ? (
+            <ModelProviderIcon
+              provider="openai"
+              className="size-3 text-foreground"
+            />
+          ) : (
+            <ModelProviderIcon provider={provider} className="size-3" />
+          )}
+        </>
       )}
-      {provider}
+      {provider === "Great for all your tasks"
+        ? t("greatForAllYourTasks")
+        : provider}
     </div>
   );
 });

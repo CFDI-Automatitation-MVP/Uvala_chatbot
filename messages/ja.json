@@ -41,7 +41,8 @@
     "createWithExample": "例で作成",
     "resultsFound": "{count}件の結果が見つかりました",
     "youAreAnExpertIn": "あなたは{role}の専門家です",
-    "sharedBy": "{userName}さんが共有"
+    "sharedBy": "{userName}さんが共有",
+    "greatForAllYourTasks": "すべてのタスクに最適"
   },
   "Auth": {
     "SignIn": {
@@ -148,7 +149,7 @@
       "unarchivedChatsDeleted": "アーカイブされていないチャットが削除されました",
       "failedToDeleteUnarchivedChats": "アーカイブされていないチャットの削除に失敗しました",
       "failedToDeleteThread": "スレッドの削除に失敗しました",
-      "threadDeleted": "スレッドが削除されました",
+      "threadDeleted": "チャットが削除されました",
       "failedToUpdateThread": "スレッドの更新に失敗しました",
       "titleRequired": "タイトルが必要です",
       "threadUpdated": "スレッドが更新されました",
@@ -221,6 +222,7 @@
     "theme": "テーマ",
     "signOut": "サインアウト",
     "language": "言語",
+    "upgrade": "アップグレード",
     "showAllChats": "すべてのチャットを表示",
     "showLessChats": "少なく表示",
     "reportAnIssue": "問題を報告",

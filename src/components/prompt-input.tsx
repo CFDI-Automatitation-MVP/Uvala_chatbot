@@ -1,11 +1,63 @@
 "use client";
 
+// Extend Window interface for Web Speech API
+declare global {
+  interface Window {
+    SpeechRecognition: typeof SpeechRecognition;
+    webkitSpeechRecognition: typeof SpeechRecognition;
+  }
+}
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start(): void;
+  stop(): void;
+  abort(): void;
+  onresult: (event: SpeechRecognitionEvent) => void;
+  onend: () => void;
+  onerror: (event: SpeechRecognitionErrorEvent) => void;
+}
+
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+}
+
+interface SpeechRecognitionResultList {
+  length: number;
+  item(index: number): SpeechRecognitionResult;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResult {
+  length: number;
+  item(index: number): SpeechRecognitionAlternative;
+  [index: number]: SpeechRecognitionAlternative;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+declare const SpeechRecognition: {
+  prototype: SpeechRecognition;
+  new (): SpeechRecognition;
+};
+
 import {
   AudioWaveformIcon,
   ChevronDown,
   CornerRightUp,
   Square,
   XIcon,
+  Mic,
+  MicOff,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "ui/button";
@@ -34,7 +86,11 @@ import { GeminiIcon } from "ui/gemini-icon";
 
 import { EMOJI_DATA } from "lib/const";
 import { AgentSummary } from "app-types/agent";
-import { FileAttachmentInput, AttachmentPreview, type AttachmentFile } from "./file-attachment";
+import {
+  FileAttachmentInput,
+  AttachmentPreview,
+  type AttachmentFile,
+} from "./file-attachment";
 
 interface PromptInputProps {
   placeholder?: string;
@@ -87,6 +143,69 @@ export default function PromptInput({
   );
 
   const [fileAttachments, setFileAttachments] = useState<AttachmentFile[]>([]);
+  const [isDictating, setIsDictating] = useState(false);
+  const [recognition, setRecognition] = useState<SpeechRecognition | null>(
+    null,
+  );
+
+  // Initialize speech recognition
+  useEffect(() => {
+    if (typeof window !== "undefined" && "webkitSpeechRecognition" in window) {
+      const SpeechRecognition =
+        window.webkitSpeechRecognition || window.SpeechRecognition;
+      const recognitionInstance = new SpeechRecognition();
+      recognitionInstance.continuous = true;
+      recognitionInstance.interimResults = true;
+      recognitionInstance.lang = "en-US";
+
+      let processedCount = 0;
+
+      recognitionInstance.onresult = (event) => {
+        // Only process new final results
+        for (let i = processedCount; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            const transcript = event.results[i][0].transcript.trim();
+            if (transcript) {
+              setInput((prevInput) => {
+                const newInput = prevInput
+                  ? `${prevInput} ${transcript}`
+                  : transcript;
+                return newInput;
+              });
+              processedCount = i + 1;
+            }
+          }
+        }
+      };
+
+      recognitionInstance.onstart = () => {
+        processedCount = 0; // Reset when starting
+      };
+
+      recognitionInstance.onend = () => {
+        setIsDictating(false);
+      };
+
+      recognitionInstance.onerror = (event) => {
+        console.error("Speech recognition error:", event.error);
+        setIsDictating(false);
+      };
+
+      setRecognition(recognitionInstance);
+    }
+  }, [setInput]);
+
+  const toggleDictation = useCallback(() => {
+    if (!recognition) return;
+
+    if (isDictating) {
+      recognition.stop();
+      setIsDictating(false);
+    } else {
+      recognition.start();
+      setIsDictating(true);
+    }
+  }, [recognition, isDictating]);
 
   const mentions = useMemo<ChatMention[]>(() => {
     if (!threadId) return [];
@@ -204,22 +323,29 @@ export default function PromptInput({
 
   const submit = () => {
     if (isLoading) return;
+
+    // Stop dictation if it's running
+    if (isDictating && recognition) {
+      recognition.stop();
+      setIsDictating(false);
+    }
+
     const userMessage = input?.trim() || "";
-    
+
     // Require either text input or file attachments
     if (userMessage.length === 0 && fileAttachments.length === 0) return;
-    
+
     // Clear input and attachments first
     setInput("");
     setFileAttachments([]);
-    
+
     // Send message with attachments as direct parts (working approach)
     sendMessage({
       role: "user",
       parts: [
         // Add file attachments as message parts FIRST
         ...fileAttachments.map((attachment) => ({
-          type: 'file' as const,
+          type: "file" as const,
           url: attachment.url,
           name: attachment.name,
           mediaType: attachment.mediaType,
@@ -235,17 +361,58 @@ export default function PromptInput({
 
   // Handle file uploads
   const handleFilesSelected = useCallback((files: AttachmentFile[]) => {
-    setFileAttachments(prev => [...prev, ...files]);
+    setFileAttachments((prev) => [...prev, ...files]);
   }, []);
 
   const handleRemoveFile = useCallback((index: number) => {
-    setFileAttachments(prev => prev.filter((_, i) => i !== index));
+    setFileAttachments((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
+  // Handle clipboard paste for images
+  useEffect(() => {
+    const handlePaste = async (e: ClipboardEvent) => {
+      if (!e.clipboardData) return;
+
+      const items = Array.from(e.clipboardData.items);
+      const imageItem = items.find((item) => item.type.startsWith("image/"));
+
+      if (imageItem) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const file = imageItem.getAsFile();
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const dataUrl = event.target?.result as string;
+            if (dataUrl) {
+              const attachmentFile: AttachmentFile = {
+                type: "file",
+                name: `pasted-image-${Date.now()}.${file.type.split("/")[1] || "png"}`,
+                url: dataUrl,
+                mediaType: file.type,
+              };
+
+              setFileAttachments((prev) => [...prev, attachmentFile]);
+            }
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    };
+
+    document.addEventListener("paste", handlePaste, true);
+    return () => document.removeEventListener("paste", handlePaste, true);
   }, []);
 
   // Handle ESC key to clear mentions and files
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && (mentions.length > 0 || fileAttachments.length > 0) && threadId) {
+      if (
+        e.key === "Escape" &&
+        (mentions.length > 0 || fileAttachments.length > 0) &&
+        threadId
+      ) {
         e.preventDefault();
         e.stopPropagation();
         if (mentions.length > 0) {
@@ -273,76 +440,89 @@ export default function PromptInput({
 
   return (
     <div className="max-w-3xl mx-auto fade-in animate-in">
+      {/* File Attachments Preview - Above Input */}
+      {fileAttachments.length > 0 && (
+        <div className="mb-4 px-4">
+          <div className="bg-background/80 backdrop-blur-md rounded-xl p-4 border shadow-lg">
+            <div className="text-sm font-medium text-foreground mb-3">
+              Attached Images ({fileAttachments.length})
+            </div>
+            <div className="flex flex-wrap gap-3">
+              {fileAttachments.map((attachment, i) => (
+                <AttachmentPreview
+                  key={`${attachment.name}-${i}`}
+                  attachment={attachment}
+                  onRemove={() => handleRemoveFile(i)}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="z-10 mx-auto w-full max-w-3xl relative">
         <fieldset className="flex w-full min-w-0 max-w-full flex-col px-4">
           <div className="shadow-lg overflow-hidden rounded-4xl backdrop-blur-sm transition-all duration-200 bg-muted/60 relative flex w-full flex-col cursor-text z-10 items-stretch focus-within:bg-muted hover:bg-muted focus-within:ring-muted hover:ring-muted">
-            {(mentions.length > 0 || fileAttachments.length > 0) && (
-              <div className="bg-input rounded-b-sm rounded-t-3xl p-3 flex flex-col gap-4 mx-2 my-2">
-                {mentions.map((mention, i) => {
-                  return (
-                    <div key={i} className="flex items-center gap-2">
-                      {mention.type === "workflow" ||
-                      mention.type === "agent" ? (
-                        <Avatar
-                          className="size-6 p-1 ring ring-border rounded-full flex-shrink-0"
-                          style={mention.icon?.style}
-                        >
-                          <AvatarImage
-                            src={
-                              mention.icon?.value ||
-                              EMOJI_DATA[i % EMOJI_DATA.length]
-                            }
-                          />
-                          <AvatarFallback>
-                            {mention.name.slice(0, 1)}
-                          </AvatarFallback>
-                        </Avatar>
-                      ) : (
-                        <Button className="size-6 flex items-center justify-center ring ring-border rounded-full flex-shrink-0 p-0.5">
-                          {mention.type == "mcpServer" ? (
-                            <MCPIcon className="size-3.5" />
-                          ) : (
-                            <DefaultToolIcon
-                              name={mention.name as DefaultToolName}
-                              className="size-3.5"
+            {mentions.length > 0 && (
+              <div className="bg-input rounded-b-sm rounded-t-3xl p-3 mx-2 my-2">
+                <div className="flex flex-col gap-4">
+                  {mentions.map((mention, i) => {
+                    return (
+                      <div key={i} className="flex items-center gap-2">
+                        {mention.type === "workflow" ||
+                        mention.type === "agent" ? (
+                          <Avatar
+                            className="size-6 p-1 ring ring-border rounded-full flex-shrink-0"
+                            style={mention.icon?.style}
+                          >
+                            <AvatarImage
+                              src={
+                                mention.icon?.value ||
+                                EMOJI_DATA[i % EMOJI_DATA.length]
+                              }
                             />
-                          )}
-                        </Button>
-                      )}
+                            <AvatarFallback>
+                              {mention.name.slice(0, 1)}
+                            </AvatarFallback>
+                          </Avatar>
+                        ) : (
+                          <Button className="size-6 flex items-center justify-center ring ring-border rounded-full flex-shrink-0 p-0.5">
+                            {mention.type == "mcpServer" ? (
+                              <MCPIcon className="size-3.5" />
+                            ) : (
+                              <DefaultToolIcon
+                                name={mention.name as DefaultToolName}
+                                className="size-3.5"
+                              />
+                            )}
+                          </Button>
+                        )}
 
-                      <div className="flex flex-col flex-1 min-w-0">
-                        <span className="text-sm font-semibold truncate">
-                          {mention.name}
-                        </span>
-                        {mention.description ? (
-                          <span className="text-muted-foreground text-xs truncate">
-                            {mention.description}
+                        <div className="flex flex-col flex-1 min-w-0">
+                          <span className="text-sm font-semibold truncate">
+                            {mention.name}
                           </span>
-                        ) : null}
+                          {mention.description ? (
+                            <span className="text-muted-foreground text-xs truncate">
+                              {mention.description}
+                            </span>
+                          ) : null}
+                        </div>
+                        <Button
+                          variant={"ghost"}
+                          size={"icon"}
+                          disabled={!threadId}
+                          className="rounded-full hover:bg-input! flex-shrink-0"
+                          onClick={() => {
+                            deleteMention(mention);
+                          }}
+                        >
+                          <XIcon />
+                        </Button>
                       </div>
-                      <Button
-                        variant={"ghost"}
-                        size={"icon"}
-                        disabled={!threadId}
-                        className="rounded-full hover:bg-input! flex-shrink-0"
-                        onClick={() => {
-                          deleteMention(mention);
-                        }}
-                      >
-                        <XIcon />
-                      </Button>
-                    </div>
-                  );
-                })}
-                
-                {/* File Attachments */}
-                {fileAttachments.map((attachment, i) => (
-                  <AttachmentPreview
-                    key={`${attachment.name}-${i}`}
-                    attachment={attachment}
-                    onRemove={() => handleRemoveFile(i)}
-                  />
-                ))}
+                    );
+                  })}
+                </div>
               </div>
             )}
             <div className="flex flex-col gap-3.5 px-5 pt-2 pb-4">
@@ -389,6 +569,11 @@ export default function PromptInput({
                     className="rounded-full group data-[state=open]:bg-input! hover:bg-input! mr-1"
                     data-testid="model-selector-button"
                   >
+                    <img
+                      src="/uvala-white-log.svg"
+                      alt="Uvala"
+                      className="size-4 opacity-100 group-data-[state=open]:opacity-50 group-hover:opacity-50 mr-1"
+                    />
                     {chatModel?.model ? (
                       <>
                         {chatModel.provider === "openai" ? (
@@ -414,26 +599,28 @@ export default function PromptInput({
                     <ChevronDown className="size-3" />
                   </Button>
                 </SelectModel>
-                {!isLoading && !input.length && !voiceDisabled ? (
+                {!isLoading &&
+                !input.length &&
+                fileAttachments.length === 0 &&
+                !voiceDisabled ? (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
                         size={"sm"}
-                        onClick={() => {
-                          appStoreMutate((state) => ({
-                            voiceChat: {
-                              ...state.voiceChat,
-                              isOpen: true,
-                              agentId: undefined,
-                            },
-                          }));
-                        }}
-                        className="rounded-full p-2!"
+                        onClick={toggleDictation}
+                        className={`rounded-full p-2! ${isDictating ? "bg-red-500 hover:bg-red-600 text-white" : ""}`}
+                        disabled={!recognition}
                       >
-                        <AudioWaveformIcon size={16} />
+                        {isDictating ? <MicOff size={16} /> : <Mic size={16} />}
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>{t("VoiceChat.title")}</TooltipContent>
+                    <TooltipContent>
+                      {recognition
+                        ? isDictating
+                          ? "Stop Dictation"
+                          : "Start Dictation"
+                        : "Dictation not supported"}
+                    </TooltipContent>
                   </Tooltip>
                 ) : (
                   <div

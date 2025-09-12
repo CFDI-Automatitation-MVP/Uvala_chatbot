@@ -1,4 +1,4 @@
-import { SidebarProvider } from "ui/sidebar";
+import { SidebarProvider, SidebarInset } from "ui/sidebar";
 import { AppSidebar } from "@/components/layouts/app-sidebar";
 import { AppHeader } from "@/components/layouts/app-header";
 import { SidebarHoverZone } from "@/components/layouts/sidebar-hover-zone";
@@ -24,10 +24,10 @@ export default async function ChatLayout({
         <AppPopupProvider />
         <AppSidebar session={session} />
         <SidebarHoverZone />
-        <main className="relative bg-background  w-full flex flex-col h-screen">
+        <SidebarInset className="relative bg-background flex flex-col h-screen">
           <AppHeader />
           <div className="flex-1 overflow-y-auto relative z-30">{children}</div>
-        </main>
+        </SidebarInset>
       </SWRConfigProvider>
     </SidebarProvider>
   );

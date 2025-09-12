@@ -41,7 +41,8 @@
     "createWithExample": "Créer avec Exemple",
     "resultsFound": "{count} résultats trouvés",
     "youAreAnExpertIn": "Vous êtes un expert en {role}",
-    "sharedBy": "Partagé par {userName}"
+    "sharedBy": "Partagé par {userName}",
+    "greatForAllYourTasks": "Parfait pour toutes vos tâches"
   },
   "Auth": {
     "SignIn": {
@@ -148,7 +149,7 @@
       "unarchivedChatsDeleted": "Les chats non archivés ont été supprimés",
       "failedToDeleteUnarchivedChats": "Échec de la suppression des chats non archivés",
       "failedToDeleteThread": "Échec de suppression du fil",
-      "threadDeleted": "Fil supprimé",
+      "threadDeleted": "Chat supprimé",
       "failedToUpdateThread": "Échec de mise à jour du fil",
       "titleRequired": "Le titre est requis",
       "threadUpdated": "Fil mis à jour",
@@ -221,6 +222,7 @@
     "theme": "Thème",
     "signOut": "Se déconnecter",
     "language": "Langue",
+    "upgrade": "Mettre à niveau",
 
     "showAllChats": "Voir Tous les Chats",
     "showLessChats": "Afficher moins",
