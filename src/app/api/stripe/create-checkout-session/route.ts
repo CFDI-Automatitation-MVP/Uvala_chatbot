@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createCheckoutSession } from '@/lib/stripe'
+import { createServerClient } from '@supabase/ssr'
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,18 +14,42 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Get authenticated user from Supabase
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll()
+          },
+          setAll() {
+            // No need to set cookies in API route
+          },
+        },
+      }
+    )
+
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    
+    if (!user || userError) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
     const origin = request.headers.get('origin') || 'http://localhost:3000'
     
-    const session = await createCheckoutSession({
+    const checkoutSession = await createCheckoutSession({
       priceId,
+      userId: user.id, // Real authenticated user ID
+      userEmail: user.email || undefined,
       successUrl: `${origin}/pricing/success?session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${origin}/pricing?canceled=true`,
-      // You can add user info here if available from session/auth
-      // userId: user?.id,
-      // userEmail: user?.email
     })
 
-    return NextResponse.json({ url: session.url })
+    return NextResponse.json({ url: checkoutSession.url })
   } catch (error) {
     console.error('Error creating checkout session:', error)
     return NextResponse.json(

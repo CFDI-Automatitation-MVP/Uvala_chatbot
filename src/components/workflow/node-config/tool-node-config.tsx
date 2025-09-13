@@ -17,10 +17,8 @@ import { Separator } from "ui/separator";
 import { SelectModel } from "@/components/select-model";
 import { OutputSchemaMentionInput } from "../output-schema-mention-input";
 import { useWorkflowStore } from "@/app/store/workflow.store";
-import { MCPIcon } from "ui/mcp-icon";
 import { useTranslations } from "next-intl";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
-import { useMcpList } from "@/hooks/queries/use-mcp-list";
 
 import {
   exaSearchSchema,
@@ -47,21 +45,7 @@ export const ToolNodeDataConfig = memo(function ({
     );
   });
 
-  const { data: mcpList } = useMcpList();
-
   const toolList = useMemo<WorkflowToolKey[]>(() => {
-    const mcpTools: WorkflowToolKey[] = mcpList.flatMap((mcp) => {
-      return mcp.toolInfo.map((tool) => {
-        return {
-          type: "mcp-tool",
-          serverId: mcp.id,
-          serverName: mcp.name,
-          id: tool.name,
-          description: tool.description,
-          parameterSchema: tool.inputSchema,
-        };
-      });
-    });
     const defaultTools: WorkflowToolKey[] = [
       {
         type: "app-tool",
@@ -76,8 +60,8 @@ export const ToolNodeDataConfig = memo(function ({
         parameterSchema: exaContentsSchema,
       },
     ];
-    return [...mcpTools, ...defaultTools];
-  }, [mcpList]);
+    return [...defaultTools];
+  }, []);
 
   useEffect(() => {
     if (!data.model) {
@@ -198,7 +182,7 @@ export const ToolNodeStack = memo(function ({ data }: { data: ToolNodeData }) {
     if (data.tool.type == "mcp-tool") {
       return (
         <>
-          <MCPIcon className="size-3" />
+          <WrenchIcon className="size-3" />
           <span className="font-bold">{data.tool.serverName}</span>
           <div className="bg-primary text-primary-foreground px-2 rounded-md truncate">
             {data.tool.id}

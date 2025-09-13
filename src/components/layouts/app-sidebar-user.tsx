@@ -25,8 +25,6 @@ import {
   MoonStar,
   ChevronRight,
   CreditCard,
-  Sparkles,
-  Zap,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { appStore } from "@/app/store";
@@ -41,6 +39,7 @@ import { useThemeStyle } from "@/hooks/use-theme-style";
 import { useSidebar } from "ui/sidebar";
 import { Button } from "ui/button";
 import Link from "next/link";
+import { useSubscription } from "@/hooks/useSubscription";
 type SessionUser = {
   id: string;
   email?: string;
@@ -55,6 +54,7 @@ export function AppSidebarUser({
   const t = useTranslations("Layout");
   const { open, openMobile } = useSidebar();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const { hasSubscription } = useSubscription();
 
   const user = session?.user;
 
@@ -79,23 +79,18 @@ export function AppSidebarUser({
 
   return (
     <SidebarMenu>
-      {/* Upgrade Button */}
-      <SidebarMenuItem className="mb-2 group-data-[collapsible=icon]:hidden">
-        <Button
-          asChild
-          className="w-full h-12 animate-shimmer border border-slate-700/50 bg-[linear-gradient(110deg,rgba(0,1,3,0.3),45%,rgba(30,38,49,0.4),55%,rgba(0,1,3,0.3))] dark:bg-[linear-gradient(110deg,rgba(0,1,3,0.3),45%,rgba(30,38,49,0.4),55%,rgba(0,1,3,0.3))] bg-[linear-gradient(110deg,rgba(248,250,252,0.8),45%,rgba(226,232,240,0.9),55%,rgba(248,250,252,0.8))] bg-[length:200%_100%] text-slate-300 dark:text-slate-300 text-slate-600 hover:text-slate-200 dark:hover:text-slate-200 hover:text-slate-700 border-slate-700/50 dark:border-slate-700/50 border-slate-300/50 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
-          variant="outline"
-        >
-          <Link
-            href="/pricing"
-            className="flex items-center gap-2 justify-center"
-          >
-            <CreditCard className="size-4" />
-            {t("upgrade")}
-          </Link>
-        </Button>
-      </SidebarMenuItem>
-
+      {/* Subscribe Button - Only show if user doesn't have active subscription */}
+      {!hasSubscription && (
+        <SidebarMenuItem className="mb-2">
+          <Button asChild className="w-full" variant="default">
+            <Link href="/pricing" className="flex items-center gap-2">
+              <CreditCard className="size-4" />
+              Subscribe
+            </Link>
+          </Button>
+        </SidebarMenuItem>
+      )}
+      
       <SidebarMenuItem>
         <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
           <DropdownMenuTrigger asChild>
@@ -193,7 +188,7 @@ function SelectTheme() {
         <span className="mr-auto">{t("theme")}</span>
       </DropdownMenuSubTrigger>
       <DropdownMenuPortal>
-        <DropdownMenuSubContent className="w-48" side="top" align="center">
+        <DropdownMenuSubContent className="w-48">
           <DropdownMenuLabel className="text-muted-foreground w-full flex items-center">
             <span className="text-muted-foreground text-xs mr-2 select-none">
               {capitalizeFirstLetter(theme)}
@@ -265,8 +260,6 @@ function SelectLanguage() {
       <DropdownMenuPortal>
         <DropdownMenuSubContent
           className="w-48 max-h-96 overflow-y-auto"
-          side="top"
-          align="center"
         >
           <DropdownMenuLabel className="text-muted-foreground">
             {t("language")}

@@ -12,7 +12,6 @@ import {
   CommandItem,
   CommandList,
 } from "ui/command";
-import { MCPIcon } from "ui/mcp-icon";
 import { Popover, PopoverContent, PopoverTrigger } from "ui/popover";
 
 export function WorkflowToolSelect({
@@ -61,7 +60,7 @@ export function WorkflowToolSelect({
     if (tool.type == "mcp-tool") {
       return (
         <>
-          <MCPIcon className="size-3.5" />
+          <WrenchIcon className="size-3.5" />
           <span className="font-bold">{tool.serverName}</span>
           <div className="bg-primary text-primary-foreground px-2 rounded-md truncate">
             {tool.id}

@@ -39,15 +39,6 @@ const ChatBotTemporary = dynamic(
   },
 );
 
-const McpCustomizationPopup = dynamic(
-  () =>
-    import("@/components/mcp-customization-popup").then(
-      (mod) => mod.McpCustomizationPopup,
-    ),
-  {
-    ssr: false,
-  },
-);
 export function AppPopupProvider() {
   return (
     <>
@@ -56,7 +47,6 @@ export function AppPopupProvider() {
       {/* Voice chat functionality is hidden */}
       {false && <ChatBotVoice />}
       <ChatBotTemporary />
-      <McpCustomizationPopup />
     </>
   );
 }

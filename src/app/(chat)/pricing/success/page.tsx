@@ -6,25 +6,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Check, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { useSubscription } from '@/hooks/useSubscription'
 
 export default function SuccessPage() {
   const searchParams = useSearchParams()
   const sessionId = searchParams.get('session_id')
   const [_session, _setSession] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const { hasSubscription, planType, refetch } = useSubscription()
 
   useEffect(() => {
     if (sessionId) {
-      // You could fetch session details here if needed
-      // fetch(`/api/stripe/session/${sessionId}`)
-      //   .then(res => res.json())
-      //   .then(setSession)
-      //   .finally(() => setLoading(false))
-      
-      // For now, just show success message
+      // Refetch subscription data to ensure it's up to date
+      refetch().finally(() => setLoading(false))
+    } else {
       setLoading(false)
     }
-  }, [sessionId])
+  }, [sessionId, refetch])
 
   if (loading) {
     return (
@@ -47,7 +45,11 @@ export default function SuccessPage() {
             </div>
             <CardTitle>Payment Successful!</CardTitle>
             <CardDescription>
-              Thank you for your subscription. Your account has been upgraded.
+              {hasSubscription ? (
+                <>Thank you for subscribing to the <strong>{planType.toUpperCase()}</strong> plan. Your account has been upgraded.</>
+              ) : (
+                'Thank you for your subscription. Your account has been upgraded.'
+              )}
             </CardDescription>
           </CardHeader>
           

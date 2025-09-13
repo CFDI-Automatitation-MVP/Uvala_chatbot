@@ -1,6 +1,5 @@
 import { Agent } from "app-types/agent";
 import { UserPreferences } from "app-types/user";
-import { MCPServerConfig } from "app-types/mcp";
 import { sql } from "drizzle-orm";
 import {
   pgTable,
@@ -16,7 +15,6 @@ import {
   decimal,
   date,
 } from "drizzle-orm/pg-core";
-import { isNotNull } from "drizzle-orm";
 import { DBWorkflow, DBEdge, DBNode } from "app-types/workflow";
 import { UIMessage } from "ai";
 import { ChatMetadata } from "app-types/chat";
@@ -81,14 +79,6 @@ export const BookmarkSchema = pgTable(
   ],
 );
 
-export const McpServerSchema = pgTable("mcp_server", {
-  id: uuid("id").primaryKey().notNull().defaultRandom(),
-  name: text("name").notNull(),
-  config: json("config").notNull().$type<MCPServerConfig>(),
-  enabled: boolean("enabled").notNull().default(true),
-  createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-});
 
 export const UserSchema = pgTable("user", {
   id: uuid("id").primaryKey().notNull().defaultRandom(),
@@ -146,49 +136,7 @@ export const VerificationSchema = pgTable("verification", {
   ),
 });
 
-// Tool customization table for per-user additional instructions
-export const McpToolCustomizationSchema = pgTable(
-  "mcp_server_tool_custom_instructions",
-  {
-    id: uuid("id").primaryKey().notNull().defaultRandom(),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => UserSchema.id, { onDelete: "cascade" }),
-    toolName: text("tool_name").notNull(),
-    mcpServerId: uuid("mcp_server_id")
-      .notNull()
-      .references(() => McpServerSchema.id, { onDelete: "cascade" }),
-    prompt: text("prompt"),
-    createdAt: timestamp("created_at")
-      .notNull()
-      .default(sql`CURRENT_TIMESTAMP`),
-    updatedAt: timestamp("updated_at")
-      .notNull()
-      .default(sql`CURRENT_TIMESTAMP`),
-  },
-  (table) => [unique().on(table.userId, table.toolName, table.mcpServerId)],
-);
 
-export const McpServerCustomizationSchema = pgTable(
-  "mcp_server_custom_instructions",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => UserSchema.id, { onDelete: "cascade" }),
-    mcpServerId: uuid("mcp_server_id")
-      .notNull()
-      .references(() => McpServerSchema.id, { onDelete: "cascade" }),
-    prompt: text("prompt"),
-    createdAt: timestamp("created_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: timestamp("updated_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-  },
-  (table) => [unique().on(table.userId, table.mcpServerId)],
-);
 
 export const WorkflowSchema = pgTable("workflow", {
   id: uuid("id").primaryKey().notNull().defaultRandom(),
@@ -277,45 +225,12 @@ export const ArchiveItemSchema = pgTable(
   (t) => [index("archive_item_item_id_idx").on(t.itemId)],
 );
 
-export const McpOAuthSessionSchema = pgTable(
-  "mcp_oauth_session",
-  {
-    id: uuid("id").primaryKey().notNull().defaultRandom(),
-    mcpServerId: uuid("mcp_server_id")
-      .notNull()
-      .references(() => McpServerSchema.id, { onDelete: "cascade" }),
-    serverUrl: text("server_url").notNull(),
-    clientInfo: json("client_info"),
-    tokens: json("tokens"),
-    codeVerifier: text("code_verifier"),
-    state: text("state").unique(), // OAuth state parameter for current flow (unique for security)
-    createdAt: timestamp("created_at")
-      .notNull()
-      .default(sql`CURRENT_TIMESTAMP`),
-    updatedAt: timestamp("updated_at")
-      .notNull()
-      .default(sql`CURRENT_TIMESTAMP`),
-  },
-  (t) => [
-    index("mcp_oauth_session_server_id_idx").on(t.mcpServerId),
-    index("mcp_oauth_session_state_idx").on(t.state),
-    // Partial index for sessions with tokens for better performance
-    index("mcp_oauth_session_tokens_idx")
-      .on(t.mcpServerId)
-      .where(isNotNull(t.tokens)),
-  ],
-);
 
-export type McpServerEntity = typeof McpServerSchema.$inferSelect;
 export type ChatThreadEntity = typeof ChatThreadSchema.$inferSelect;
 export type ChatMessageEntity = typeof ChatMessageSchema.$inferSelect;
 
 export type AgentEntity = typeof AgentSchema.$inferSelect;
 export type UserEntity = typeof UserSchema.$inferSelect;
-export type ToolCustomizationEntity =
-  typeof McpToolCustomizationSchema.$inferSelect;
-export type McpServerCustomizationEntity =
-  typeof McpServerCustomizationSchema.$inferSelect;
 
 export type ArchiveEntity = typeof ArchiveSchema.$inferSelect;
 export type ArchiveItemEntity = typeof ArchiveItemSchema.$inferSelect;
@@ -365,6 +280,10 @@ export const UserDailyUsageSchema = pgTable("user_daily_usage", {
   apiCallsCount: integer("api_calls_count").notNull().default(0),
   toolCallsCount: integer("tool_calls_count").notNull().default(0),
   toolCallsCostUsd: decimal("tool_calls_cost_usd", { precision: 10, scale: 8 }).notNull().default("0"),
+  // Tool-specific usage tracking
+  imageGenerationsCount: integer("image_generations_count").notNull().default(0),
+  videoGenerationsCount: integer("video_generations_count").notNull().default(0),
+  webSearchesCount: integer("web_searches_count").notNull().default(0),
   createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 }, (table) => [
@@ -388,6 +307,10 @@ export const UserMonthlyUsageSchema = pgTable("user_monthly_usage", {
   apiCallsCount: integer("api_calls_count").notNull().default(0),
   toolCallsCount: integer("tool_calls_count").notNull().default(0),
   toolCallsCostUsd: decimal("tool_calls_cost_usd", { precision: 10, scale: 8 }).notNull().default("0"),
+  // Tool-specific usage tracking
+  imageGenerationsCount: integer("image_generations_count").notNull().default(0),
+  videoGenerationsCount: integer("video_generations_count").notNull().default(0),
+  webSearchesCount: integer("web_searches_count").notNull().default(0),
   createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 }, (table) => [

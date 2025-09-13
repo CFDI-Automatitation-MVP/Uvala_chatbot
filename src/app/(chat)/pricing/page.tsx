@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Check, Zap } from 'lucide-react'
+import { Check, Zap, Crown } from 'lucide-react'
+import { useSubscription } from '@/hooks/useSubscription'
 
 type Currency = 'USD' | 'MXN'
 
@@ -56,8 +57,8 @@ const pricingPlans: PricingPlan[] = [
     },
     interval: 'month',
     stripePriceId: {
-      USD: 'price_1S3WO31pY9V37Up55MxEAfbh',
-      MXN: ''
+      USD: 'price_1S4o7A1pY9V37Up5u2I6dxIL',
+      MXN: 'price_1S4o7G1pY9V37Up5qN2yNxCt'
     },
     popular: true,
     features: [
@@ -78,8 +79,8 @@ const pricingPlans: PricingPlan[] = [
     },
     interval: 'month',
     stripePriceId: {
-      USD: 'price_1S3WNc1pY9V37Up5kRxJfKSG',
-      MXN: 'price_1S3WMv1pY9V37Up5gCETgD4x'
+      USD: 'price_1S4o7U1pY9V37Up5PUtup870',
+      MXN: 'price_1S4o7a1pY9V37Up5AeSbRFSs'
     },
     features: [
       'Everything in Pro',
@@ -96,6 +97,7 @@ const pricingPlans: PricingPlan[] = [
 export default function PricingPage() {
   const [isLoading, setIsLoading] = useState<string | null>(null)
   const [currency, setCurrency] = useState<Currency>('MXN')
+  const { hasSubscription, planType, subscription, loading: subscriptionLoading } = useSubscription()
 
   const handleSubscribe = async (plan: PricingPlan) => {
     if (plan.price[currency] === 0) return // Free plan doesn't need checkout
@@ -176,66 +178,104 @@ export default function PricingPage() {
       </div>
 
       <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-        {pricingPlans.map((plan) => (
-          <Card 
-            key={plan.id} 
-            className={`relative ${plan.popular ? 'border-primary shadow-lg' : ''}`}
-          >
-            {plan.popular && (
-              <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <Zap className="w-3 h-3 mr-1" />
-                Most Popular
-              </Badge>
-            )}
-            
-            <CardHeader>
-              <CardTitle className="flex justify-between items-center">
-                {plan.name}
-                <div className="text-right">
-                  <div className="text-3xl font-bold">
-                    {plan.price[currency] === 0 ? 'Free' : 
-                      `$${plan.price[currency]} ${currency}`
-                    }
-                    {plan.price[currency] > 0 && (
-                      <span className="text-base font-normal text-muted-foreground">
-                        /{plan.interval}
-                      </span>
-                    )}
+        {pricingPlans.map((plan) => {
+          const isCurrentPlan = hasSubscription && planType === plan.id
+          const isActivePlan = isCurrentPlan && subscription?.status === 'active'
+          
+          return (
+            <Card 
+              key={plan.id} 
+              className={`relative ${
+                isActivePlan ? 'border-green-500 shadow-lg ring-2 ring-green-200' : 
+                plan.popular ? 'border-primary shadow-lg' : ''
+              }`}
+            >
+              {isActivePlan && (
+                <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500">
+                  <Crown className="w-3 h-3 mr-1" />
+                  Current Plan
+                </Badge>
+              )}
+              {plan.popular && !isActivePlan && (
+                <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <Zap className="w-3 h-3 mr-1" />
+                  Most Popular
+                </Badge>
+              )}
+              
+              <CardHeader>
+                <CardTitle className="flex justify-between items-center">
+                  {plan.name}
+                  {isActivePlan && (
+                    <div className="flex items-center text-green-600">
+                      <Crown className="w-4 h-4 mr-1" />
+                      <span className="text-sm font-medium">Active</span>
+                    </div>
+                  )}
+                  <div className="text-right">
+                    <div className="text-3xl font-bold">
+                      {plan.price[currency] === 0 ? 'Free' : 
+                        `$${plan.price[currency]} ${currency}`
+                      }
+                      {plan.price[currency] > 0 && (
+                        <span className="text-base font-normal text-muted-foreground">
+                          /{plan.interval}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </CardTitle>
-              <CardDescription>{plan.description}</CardDescription>
-            </CardHeader>
+                </CardTitle>
+                <CardDescription>{plan.description}</CardDescription>
+              </CardHeader>
 
-            <CardContent>
-              <ul className="space-y-3 mb-6">
-                {plan.features.map((feature, index) => (
-                  <li key={index} className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span className="text-sm">{feature}</span>
-                  </li>
-                ))}
-              </ul>
+              <CardContent>
+                <ul className="space-y-3 mb-6">
+                  {plan.features.map((feature, index) => (
+                    <li key={index} className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      <span className="text-sm">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
 
-              <Button
-                className="w-full"
-                onClick={() => handleSubscribe(plan)}
-                disabled={isLoading === plan.id || (plan.price[currency] > 0 && !plan.stripePriceId[currency])}
-                variant={plan.popular ? 'default' : 'outline'}
-              >
-                {isLoading === plan.id ? (
-                  'Loading...'
-                ) : plan.price[currency] === 0 ? (
-                  'Get Started'
-                ) : !plan.stripePriceId[currency] ? (
-                  'Coming Soon'
+                {isActivePlan ? (
+                  <div className="w-full p-3 text-center bg-green-50 border border-green-200 rounded-md">
+                    <div className="flex items-center justify-center gap-2 text-green-700">
+                      <Crown className="w-4 h-4" />
+                      <span className="font-medium">Current Plan</span>
+                    </div>
+                    <p className="text-xs text-green-600 mt-1">
+                      You're subscribed to this plan
+                    </p>
+                  </div>
                 ) : (
-                  `Subscribe to ${plan.name}`
+                  <Button
+                    className="w-full"
+                    onClick={() => handleSubscribe(plan)}
+                    disabled={
+                      isLoading === plan.id || 
+                      (plan.price[currency] > 0 && !plan.stripePriceId[currency]) ||
+                      subscriptionLoading
+                    }
+                    variant={plan.popular ? 'default' : 'outline'}
+                  >
+                    {subscriptionLoading ? (
+                      'Loading...'
+                    ) : isLoading === plan.id ? (
+                      'Loading...'
+                    ) : plan.price[currency] === 0 ? (
+                      'Get Started'
+                    ) : !plan.stripePriceId[currency] ? (
+                      'Coming Soon'
+                    ) : (
+                      `Subscribe to ${plan.name}`
+                    )}
+                  </Button>
                 )}
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          )
+        })}
       </div>
 
       <div className="text-center mt-12">

@@ -39,11 +39,52 @@ export const createCheckoutSession = async ({
     cancel_url: cancelUrl,
     metadata: {
       userId: userId || ''
+    },
+    subscription_data: {
+      metadata: {
+        userId: userId || ''
+      }
+    },
+    custom_text: {
+      submit: {
+        message: 'We\'ll email you instructions on how to get started.'
+      }
     }
   }
 
-  if (userEmail) {
-    sessionParams.customer_email = userEmail
+  // If we have userId, create or update customer with metadata
+  if (userId) {
+    // Try to find existing customer by email or create new one
+    let customerId: string | undefined;
+    
+    if (userEmail) {
+      const existingCustomers = await stripe.customers.list({
+        email: userEmail,
+        limit: 1
+      });
+      
+      if (existingCustomers.data.length > 0) {
+        customerId = existingCustomers.data[0].id;
+        // Update existing customer metadata
+        await stripe.customers.update(customerId, {
+          metadata: { userId }
+        });
+      }
+    }
+    
+    if (!customerId) {
+      // Create new customer
+      const customer = await stripe.customers.create({
+        email: userEmail,
+        metadata: { userId }
+      });
+      customerId = customer.id;
+    }
+    
+    sessionParams.customer = customerId;
+  } else if (userEmail) {
+    // Only set customer_email if we don't have a userId (fallback case)
+    sessionParams.customer_email = userEmail;
   }
 
   return await stripe.checkout.sessions.create(sessionParams)

@@ -39,7 +39,6 @@ import { safe } from "ts-safe";
 import { ChatMetadata, ChatModel, ManualToolConfirmTag } from "app-types/chat";
 
 import { useTranslations } from "next-intl";
-import { extractMCPToolId } from "lib/ai/mcp/mcp-tool-id";
 import { Separator } from "ui/separator";
 
 import { TextShimmer } from "ui/text-shimmer";
@@ -760,14 +759,6 @@ const ImageGeneration = dynamic(
   },
 );
 
-const MusicGeneration = dynamic(
-  () =>
-    import("./tool-invocation/music-generation").then((mod) => mod.MusicGeneration),
-  {
-    ssr: false,
-    loading,
-  },
-);
 const WebSandbox = dynamic(
   () =>
     import("./tool-invocation/web-sandbox").then((mod) => mod.WebSandbox),
@@ -999,13 +990,6 @@ export const ToolMessagePart = memo(
                 {...(output as any)}
               />
             );
-          case DefaultToolName.GenerateMusic:
-            return (
-              <MusicGeneration
-                key={`${toolCallId}-${toolName}`}
-                {...(output as any)}
-              />
-            );
           case DefaultToolName.CreateWebSandbox:
             return (
               <WebSandbox
@@ -1033,7 +1017,7 @@ export const ToolMessagePart = memo(
     }, [toolName, state, onToolCallDirect, result, input]);
 
     const { serverName: mcpServerName, toolName: mcpToolName } = useMemo(() => {
-      return extractMCPToolId(toolName);
+      return { serverName: "", toolName: toolName };
     }, [toolName]);
 
     const isExpanded = useMemo(() => {

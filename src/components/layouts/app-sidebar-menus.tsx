@@ -16,7 +16,6 @@ import Link from "next/link";
 import { getShortcutKeyList, Shortcuts } from "lib/keyboard-shortcuts";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { MCPIcon } from "ui/mcp-icon";
 import { WriteIcon } from "ui/write-icon";
 import {
   FolderOpenIcon,
@@ -104,21 +103,6 @@ export function AppSidebarMenus() {
             </SidebarMenuItem>
           </Tooltip>
         </SidebarMenu>
-        {/* MCP Configuration - Hidden but preserved */}
-        {false && (
-          <SidebarMenu>
-            <Tooltip>
-              <SidebarMenuItem>
-                <Link href="/mcp">
-                  <SidebarMenuButton className="font-semibold">
-                    <MCPIcon className="size-4 fill-accent-foreground" />
-                    {t("Layout.mcpConfiguration")}
-                  </SidebarMenuButton>
-                </Link>
-              </SidebarMenuItem>
-            </Tooltip>
-          </SidebarMenu>
-        )}
 
         {/* Workflow - Hidden but preserved */}
         {false && (

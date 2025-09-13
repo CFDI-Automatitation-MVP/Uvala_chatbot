@@ -46,7 +46,6 @@ import { OpenAIIcon } from "ui/openai-icon";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import { ToolMessagePart } from "./message-parts";
 
-import { EnabledMcpToolsDropdown } from "./enabled-mcp-tools-dropdown";
 import { appStore } from "@/app/store";
 import { useShallow } from "zustand/shallow";
 import { useTranslations } from "next-intl";
@@ -234,13 +233,6 @@ export function ChatBotVoice() {
                 </Tooltip>
               </div>
               <DrawerTitle className="flex items-center gap-2 w-full">
-                {false && (
-                  <EnabledMcpToolsDropdown
-                    align="start"
-                    side="bottom"
-                    prependTools={prependTools}
-                  />
-                )}
 
                 <div className="flex-1" />
                 <DropdownMenu>

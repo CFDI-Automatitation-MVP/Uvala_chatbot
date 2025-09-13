@@ -9,7 +9,6 @@ import React, {
 } from "react";
 
 import { CheckIcon, HammerIcon, SearchIcon } from "lucide-react";
-import { MCPIcon } from "ui/mcp-icon";
 
 import { ChatMention } from "app-types/chat";
 
@@ -207,7 +206,7 @@ export function ChatMentionInputSuggestion({
                 label: `mcp("${mcp.name}")`,
                 id: mcpId,
               }),
-            icon: <MCPIcon className="size-3.5 text-foreground" />,
+            icon: <HammerIcon className="size-3.5 text-foreground" />,
             suffix: selectedIds?.includes(mcpId) ? (
               <CheckIcon className="size-3 ml-auto" />
             ) : (

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import Stripe from 'stripe'
-import { db } from '@/lib/db/pg/db.pg'
+import { pgDb as db } from '@/lib/db/pg/db.pg'
 import { SubscriptionRepository } from '@/lib/db/pg/repositories/subscription-repository.pg'
 import { getPlanTypeFromPriceId } from '@/lib/subscription'
 
@@ -92,8 +92,6 @@ async function handlePaymentSuccess(session: Stripe.Checkout.Session) {
     return
   }
 
-  const subscriptionRepo = new SubscriptionRepository(db)
-  
   // Get line items to find the price ID
   const lineItems = await stripe.checkout.sessions.listLineItems(session.id)
   const priceId = lineItems.data[0]?.price?.id
@@ -114,45 +112,61 @@ async function handlePaymentSuccess(session: Stripe.Checkout.Session) {
 }
 
 async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
-  const { customer, items, status } = subscription
+  console.log('🚀 WEBHOOK: handleSubscriptionCreated called')
+  console.log('🔍 Raw subscription object:', JSON.stringify(subscription, null, 2))
+  
+  const { customer, items, status, metadata } = subscription
   const priceId = items.data[0]?.price.id
   
+  console.log('💰 Price ID:', priceId)
+  console.log('👤 Customer:', customer)
+  console.log('📝 Status:', status)
+  console.log('🏷️ Metadata:', metadata)
+  
   if (!priceId) {
-    console.error('No price ID found in subscription items')
+    console.error('❌ No price ID found in subscription items')
     return
   }
 
   const subscriptionRepo = new SubscriptionRepository(db)
   const planType = getPlanTypeFromPriceId(priceId)
   
-  // Get customer to find userId (assuming we stored it in customer metadata)
-  const stripeCustomer = await stripe.customers.retrieve(customer as string)
+  console.log('📋 Plan type resolved:', planType)
   
-  let userId: string | null = null
-  if ('metadata' in stripeCustomer && stripeCustomer.metadata?.userId) {
-    userId = stripeCustomer.metadata.userId
-  }
+  // Get userId from subscription metadata (set during checkout session creation)
+  const userId = metadata?.userId
   
   if (!userId) {
-    console.error('No userId found in customer metadata')
+    console.error('❌ No userId found in subscription metadata')
+    console.log('🔍 Available metadata keys:', Object.keys(metadata || {}))
     return
   }
 
+  console.log('🆔 User ID found:', userId)
+  console.log('💾 Attempting database insertion...')
+
   try {
-    await subscriptionRepo.createSubscription({
+    const subscriptionData = {
       userId,
       stripeCustomerId: customer as string,
       stripeSubscriptionId: subscription.id,
       stripePriceId: priceId,
       planType,
       status,
-      currentPeriodStart: new Date(subscription.current_period_start * 1000),
-      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      currentPeriodStart: (subscription as any).current_period_start ? new Date((subscription as any).current_period_start * 1000) : new Date(),
+      currentPeriodEnd: (subscription as any).current_period_end ? new Date((subscription as any).current_period_end * 1000) : new Date(),
       trialStart: subscription.trial_start ? new Date(subscription.trial_start * 1000) : undefined,
       trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : undefined,
       metadata: subscription.metadata,
-    })
-
+    }
+    
+    console.log('📊 Subscription data to insert:', JSON.stringify(subscriptionData, null, 2))
+    
+    const result = await subscriptionRepo.createSubscription(subscriptionData)
+    
+    console.log('✅ Database insertion successful!')
+    console.log('🎉 Created subscription record:', result)
+    
     console.log('Subscription created successfully:', {
       userId,
       subscriptionId: subscription.id,
@@ -160,12 +174,14 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
       status
     })
   } catch (error) {
-    console.error('Error creating subscription:', error)
+    console.error('💥 CRITICAL ERROR creating subscription:')
+    console.error('Error details:', error)
+    console.error('Error stack:', (error as Error).stack)
   }
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
-  const { customer, status, items } = subscription
+  const { status, items } = subscription
   
   const subscriptionRepo = new SubscriptionRepository(db)
   const priceId = items.data[0]?.price.id
@@ -174,9 +190,9 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   try {
     await subscriptionRepo.updateSubscription(subscription.id, {
       status,
-      currentPeriodStart: new Date(subscription.current_period_start * 1000),
-      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-      cancelAtPeriodEnd: subscription.cancel_at_period_end,
+      currentPeriodStart: (subscription as any).current_period_start ? new Date((subscription as any).current_period_start * 1000) : undefined,
+      currentPeriodEnd: (subscription as any).current_period_end ? new Date((subscription as any).current_period_end * 1000) : undefined,
+      cancelAtPeriodEnd: (subscription as any).cancel_at_period_end,
       stripePriceId: priceId,
       planType,
       metadata: subscription.metadata,

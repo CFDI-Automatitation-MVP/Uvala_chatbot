@@ -1,11 +1,9 @@
 export enum AppDefaultToolkit {
   Visualization = "visualization",
   WebSearch = "webSearch",
-  Http = "http",
   Code = "code",
   WebSandbox = "webSandbox",
   ImageGeneration = "imageGeneration",
-  MusicGeneration = "musicGeneration",
   Presentation = "presentation",
   VideoGeneration = "videoGeneration",
 }
@@ -17,12 +15,10 @@ export enum DefaultToolName {
   CreateTable = "createTable",
   WebSearch = "webSearch",
   WebContent = "webContent",
-  Http = "http",
   JavascriptExecution = "mini-javascript-execution",
   PythonExecution = "python-execution",
   CreateWebSandbox = "createWebSandbox",
   GenerateImage = "generateImage",
-  GenerateMusic = "generateMusic",
   CreatePresentation = "createPresentation",
   GenerateVideo = "generateVideo",
 }

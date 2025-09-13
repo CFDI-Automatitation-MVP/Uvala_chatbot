@@ -15,6 +15,7 @@ export async function trackUsage({
   messageId,
   chatModel,
   toolCallsCount = 0,
+  toolUsage,
 }: {
   usage: LanguageModelUsage;
   userId: string;
@@ -22,6 +23,11 @@ export async function trackUsage({
   messageId?: string;
   chatModel: ChatModel;
   toolCallsCount?: number;
+  toolUsage?: {
+    imageGenerations?: number;
+    videoGenerations?: number;
+    webSearches?: number;
+  };
 }) {
   try {
     // Calculate cost based on model and usage
@@ -44,10 +50,10 @@ export async function trackUsage({
     const month = now.getMonth() + 1; // JavaScript months are 0-indexed
     
     // Update daily usage
-    await usageRepository.updateDailyUsage(userId, now, cost);
+    await usageRepository.updateDailyUsage(userId, now, cost, toolUsage);
     
     // Update monthly usage
-    await usageRepository.updateMonthlyUsage(userId, year, month, cost);
+    await usageRepository.updateMonthlyUsage(userId, year, month, cost, toolUsage);
     
     // Update thread usage if threadId is provided
     if (threadId) {

@@ -26,12 +26,23 @@ export interface UsageRepository {
   getApiUsageByThread(threadId: string): Promise<ApiUsageEntity[]>;
   
   // Daily usage aggregation
-  updateDailyUsage(userId: string, date: Date, usage: TokenCost): Promise<UserDailyUsageEntity>;
+  updateDailyUsage(
+    userId: string, 
+    date: Date, 
+    usage: TokenCost, 
+    toolUsage?: { imageGenerations?: number; videoGenerations?: number; webSearches?: number }
+  ): Promise<UserDailyUsageEntity>;
   getUserDailyUsage(userId: string, date: Date): Promise<UserDailyUsageEntity | null>;
   getUserDailyUsageRange(userId: string, startDate: Date, endDate: Date): Promise<UserDailyUsageEntity[]>;
   
   // Monthly usage aggregation
-  updateMonthlyUsage(userId: string, year: number, month: number, usage: TokenCost): Promise<UserMonthlyUsageEntity>;
+  updateMonthlyUsage(
+    userId: string, 
+    year: number, 
+    month: number, 
+    usage: TokenCost, 
+    toolUsage?: { imageGenerations?: number; videoGenerations?: number; webSearches?: number }
+  ): Promise<UserMonthlyUsageEntity>;
   getUserMonthlyUsage(userId: string, year: number, month: number): Promise<UserMonthlyUsageEntity | null>;
   getUserMonthlyUsageHistory(userId: string, limit?: number): Promise<UserMonthlyUsageEntity[]>;
   
@@ -56,6 +67,37 @@ export interface UsageRepository {
     totalToolCalls: number;
     avgCostPerUser: number;
     avgTokensPerUser: number;
+  }>;
+
+  // Pro user limit checking
+  checkProLimits(userId: string, plannedUsage?: {
+    llmCostUsd?: number;
+    imageGenerations?: number;
+    videoGenerations?: number;
+    webSearches?: number;
+  }): Promise<{
+    canProceed: boolean;
+    limits: {
+      dailyCostExceeded: boolean;
+      monthlyCostExceeded: boolean;
+      imageGenerationsExceeded: boolean;
+      videoGenerationsExceeded: boolean;
+      webSearchesExceeded: boolean;
+    };
+    current: {
+      dailyCost: number;
+      monthlyCost: number;
+      imageGenerations: number;
+      videoGenerations: number;
+      webSearches: number;
+    };
+    remaining: {
+      dailyCost: number;
+      monthlyCost: number;
+      imageGenerations: number;
+      videoGenerations: number;
+      webSearches: number;
+    };
   }>;
 }
 
@@ -104,7 +146,12 @@ export const pgUsageRepository: UsageRepository = {
       .orderBy(desc(ApiUsageSchema.createdAt));
   },
 
-  async updateDailyUsage(userId: string, date: Date, usage: TokenCost): Promise<UserDailyUsageEntity> {
+  async updateDailyUsage(
+    userId: string, 
+    date: Date, 
+    usage: TokenCost, 
+    toolUsage?: { imageGenerations?: number; videoGenerations?: number; webSearches?: number }
+  ): Promise<UserDailyUsageEntity> {
     const usageDate = date.toISOString().split('T')[0]; // YYYY-MM-DD format
     
     const [result] = await db
@@ -121,6 +168,9 @@ export const pgUsageRepository: UsageRepository = {
         apiCallsCount: 1,
         toolCallsCount: usage.toolCallsCount,
         toolCallsCostUsd: usage.toolCallsCostUsd.toString(),
+        imageGenerationsCount: toolUsage?.imageGenerations || 0,
+        videoGenerationsCount: toolUsage?.videoGenerations || 0,
+        webSearchesCount: toolUsage?.webSearches || 0,
         updatedAt: new Date(),
       })
       .onConflictDoUpdate({
@@ -135,6 +185,9 @@ export const pgUsageRepository: UsageRepository = {
           apiCallsCount: sql`${UserDailyUsageSchema.apiCallsCount} + 1`,
           toolCallsCount: sql`${UserDailyUsageSchema.toolCallsCount} + ${usage.toolCallsCount}`,
           toolCallsCostUsd: sql`${UserDailyUsageSchema.toolCallsCostUsd} + ${usage.toolCallsCostUsd}`,
+          imageGenerationsCount: sql`${UserDailyUsageSchema.imageGenerationsCount} + ${toolUsage?.imageGenerations || 0}`,
+          videoGenerationsCount: sql`${UserDailyUsageSchema.videoGenerationsCount} + ${toolUsage?.videoGenerations || 0}`,
+          webSearchesCount: sql`${UserDailyUsageSchema.webSearchesCount} + ${toolUsage?.webSearches || 0}`,
           updatedAt: new Date(),
         },
       })
@@ -172,7 +225,13 @@ export const pgUsageRepository: UsageRepository = {
       .orderBy(desc(UserDailyUsageSchema.usageDate));
   },
 
-  async updateMonthlyUsage(userId: string, year: number, month: number, usage: TokenCost): Promise<UserMonthlyUsageEntity> {
+  async updateMonthlyUsage(
+    userId: string, 
+    year: number, 
+    month: number, 
+    usage: TokenCost, 
+    toolUsage?: { imageGenerations?: number; videoGenerations?: number; webSearches?: number }
+  ): Promise<UserMonthlyUsageEntity> {
     const [result] = await db
       .insert(UserMonthlyUsageSchema)
       .values({
@@ -188,6 +247,9 @@ export const pgUsageRepository: UsageRepository = {
         apiCallsCount: 1,
         toolCallsCount: usage.toolCallsCount,
         toolCallsCostUsd: usage.toolCallsCostUsd.toString(),
+        imageGenerationsCount: toolUsage?.imageGenerations || 0,
+        videoGenerationsCount: toolUsage?.videoGenerations || 0,
+        webSearchesCount: toolUsage?.webSearches || 0,
         updatedAt: new Date(),
       })
       .onConflictDoUpdate({
@@ -202,6 +264,9 @@ export const pgUsageRepository: UsageRepository = {
           apiCallsCount: sql`${UserMonthlyUsageSchema.apiCallsCount} + 1`,
           toolCallsCount: sql`${UserMonthlyUsageSchema.toolCallsCount} + ${usage.toolCallsCount}`,
           toolCallsCostUsd: sql`${UserMonthlyUsageSchema.toolCallsCostUsd} + ${usage.toolCallsCostUsd}`,
+          imageGenerationsCount: sql`${UserMonthlyUsageSchema.imageGenerationsCount} + ${toolUsage?.imageGenerations || 0}`,
+          videoGenerationsCount: sql`${UserMonthlyUsageSchema.videoGenerationsCount} + ${toolUsage?.videoGenerations || 0}`,
+          webSearchesCount: sql`${UserMonthlyUsageSchema.webSearchesCount} + ${toolUsage?.webSearches || 0}`,
           updatedAt: new Date(),
         },
       })
@@ -340,6 +405,64 @@ export const pgUsageRepository: UsageRepository = {
       totalToolCalls,
       avgCostPerUser: totalUsers > 0 ? totalCost / totalUsers : 0,
       avgTokensPerUser: totalUsers > 0 ? totalTokens / totalUsers : 0,
+    };
+  },
+
+  // Pro user limit checking functions
+  async checkProLimits(userId: string, plannedUsage?: {
+    llmCostUsd?: number;
+    imageGenerations?: number;
+    videoGenerations?: number;
+    webSearches?: number;
+  }) {
+    const today = new Date();
+    const currentMonth = today.getMonth() + 1;
+    const currentYear = today.getFullYear();
+    
+    // Get current daily and monthly usage
+    const dailyUsage = await this.getUserDailyUsage(userId, today);
+    const monthlyUsage = await this.getUserMonthlyUsage(userId, currentYear, currentMonth);
+    
+    const currentDailyCost = parseFloat(dailyUsage?.totalCostUsd || '0');
+    const currentMonthlyCost = parseFloat(monthlyUsage?.totalCostUsd || '0');
+    
+    // Check LLM cost limits (Pro: $0.05/day, $1.50/month)
+    const wouldExceedDailyLimit = (currentDailyCost + (plannedUsage?.llmCostUsd || 0)) > 0.05;
+    const wouldExceedMonthlyLimit = (currentMonthlyCost + (plannedUsage?.llmCostUsd || 0)) > 1.50;
+    
+    // Check tool limits (monthly)
+    const currentImages = monthlyUsage?.imageGenerationsCount || 0;
+    const currentVideos = monthlyUsage?.videoGenerationsCount || 0;
+    const currentSearches = monthlyUsage?.webSearchesCount || 0;
+    
+    const wouldExceedImageLimit = (currentImages + (plannedUsage?.imageGenerations || 0)) > 10;
+    const wouldExceedVideoLimit = (currentVideos + (plannedUsage?.videoGenerations || 0)) > 2;
+    const wouldExceedSearchLimit = (currentSearches + (plannedUsage?.webSearches || 0)) > 40;
+    
+    return {
+      canProceed: !wouldExceedDailyLimit && !wouldExceedMonthlyLimit && 
+                  !wouldExceedImageLimit && !wouldExceedVideoLimit && !wouldExceedSearchLimit,
+      limits: {
+        dailyCostExceeded: wouldExceedDailyLimit,
+        monthlyCostExceeded: wouldExceedMonthlyLimit,
+        imageGenerationsExceeded: wouldExceedImageLimit,
+        videoGenerationsExceeded: wouldExceedVideoLimit,
+        webSearchesExceeded: wouldExceedSearchLimit,
+      },
+      current: {
+        dailyCost: currentDailyCost,
+        monthlyCost: currentMonthlyCost,
+        imageGenerations: currentImages,
+        videoGenerations: currentVideos,
+        webSearches: currentSearches,
+      },
+      remaining: {
+        dailyCost: Math.max(0, 0.05 - currentDailyCost),
+        monthlyCost: Math.max(0, 1.50 - currentMonthlyCost),
+        imageGenerations: Math.max(0, 10 - currentImages),
+        videoGenerations: Math.max(0, 2 - currentVideos),
+        webSearches: Math.max(0, 40 - currentSearches),
+      }
     };
   },
 };

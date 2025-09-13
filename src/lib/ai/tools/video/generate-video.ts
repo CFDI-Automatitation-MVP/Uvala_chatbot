@@ -16,8 +16,8 @@ export const generateVideoTool = createTool({
       .optional()
       .describe("Text prompt describing what to avoid in the video generation"),
     resolution: z.enum(["480p", "720p"])
-      .default("720p")
-      .describe("Video resolution quality"),
+      .default("480p")
+      .describe("Video resolution quality (Pro users limited to 480p only)"),
     aspect_ratio: z.enum(["16:9", "9:16"])
       .default("16:9")
       .describe("Video aspect ratio: 16:9 for landscape, 9:16 for portrait/vertical"),

@@ -1,5 +1,4 @@
 import { appStore } from "@/app/store";
-import { AllowedMCPServer, MCPServerInfo } from "app-types/mcp";
 import { cn, objectFlow } from "lib/utils";
 import {
   ArrowUpRightIcon,
@@ -8,6 +7,7 @@ import {
   ChevronRight,
   CodeIcon,
   GlobeIcon,
+  HammerIcon,
   HardDriveUploadIcon,
   InfoIcon,
   Loader,
@@ -49,13 +49,11 @@ import {
   DropdownMenuTrigger,
 } from "ui/dropdown-menu";
 import { Input } from "ui/input";
-import { MCPIcon } from "ui/mcp-icon";
 
 import { useTranslations } from "next-intl";
 
 import { Switch } from "ui/switch";
 import { useShallow } from "zustand/react/shallow";
-import { useMcpList } from "@/hooks/queries/use-mcp-list";
 import { useWorkflowToolList } from "@/hooks/queries/use-workflow-tool-list";
 import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
 import { WorkflowSummary } from "app-types/workflow";
@@ -70,11 +68,7 @@ import { AgentSummary } from "app-types/agent";
 import { useSession } from "@/hooks/use-supabase-session";
 
 import { Alert, AlertDescription, AlertTitle } from "ui/alert";
-import { safe } from "ts-safe";
-import { mutate } from "swr";
-import { handleErrorWithToast } from "ui/shared-toast";
 import { useAgents } from "@/hooks/queries/use-agents";
-import { redriectMcpOauth } from "lib/ai/mcp/oauth-redirect";
 
 interface ToolSelectDropdownProps {
   align?: "start" | "end" | "center";
@@ -86,14 +80,8 @@ interface ToolSelectDropdownProps {
   className?: string;
 }
 
-const calculateToolCount = (
-  allowedMcpServers: Record<string, AllowedMCPServer>,
-  mcpList: (MCPServerInfo & { id: string })[],
-) => {
-  return mcpList.reduce((acc, server) => {
-    const count = allowedMcpServers[server.id]?.tools?.length;
-    return acc + count;
-  }, 0);
+const calculateToolCount = () => {
+  return 0; // MCP removed
 };
 
 export function ToolSelectDropdown({
@@ -116,7 +104,7 @@ export function ToolSelectDropdown({
     );
 
   const t = useTranslations("Chat.Tool");
-  const { isLoading } = useMcpList();
+  const isLoading = false; // MCP removed
 
   useWorkflowToolList({
     refreshInterval: 1000 * 60 * 5,
@@ -273,7 +261,7 @@ function ToolPresets() {
   const presetWithToolCount = useMemo(() => {
     return presets.map((preset) => ({
       ...preset,
-      toolCount: calculateToolCount(preset.allowedMcpServers ?? {}, mcpList),
+      toolCount: calculateToolCount(),
     }));
   }, [presets, mcpList]);
 
@@ -651,7 +639,7 @@ function McpServerSelector() {
               }}
             >
               <div className="flex items-center justify-center p-1 rounded bg-input/40 border">
-                <MCPIcon className="fill-foreground size-2.5" />
+                <HammerIcon className="size-2.5" />
               </div>
 
               <span className={cn("truncate", !server.checked && "opacity-30")}>
@@ -671,7 +659,6 @@ function McpServerSelector() {
                   tools={server.tools}
                   isAuthorizing={server.status === "authorizing"}
                   checked={server.checked}
-                  serverId={server.id}
                   onClickAllChecked={(checked) => {
                     setMcpServerTool(
                       server.id,
@@ -707,14 +694,12 @@ interface McpServerToolSelectorProps {
     description: string;
   }[];
   isAuthorizing: boolean;
-  serverId: string;
   onClickAllChecked: (checked: boolean) => void;
   checked: boolean;
   onToolClick: (toolName: string, checked: boolean) => void;
 }
 function McpServerToolSelector({
   tools,
-  serverId,
   onClickAllChecked,
   isAuthorizing,
   checked,
@@ -729,16 +714,10 @@ function McpServerToolSelector({
     );
   }, [tools, search]);
 
-  const handleAuthorize = useCallback(
-    () =>
-      safe(() => setLoading(true))
-        .map(() => redriectMcpOauth(serverId))
-        .ifOk(() => mutate("/api/mcp/list"))
-        .ifFail(handleErrorWithToast)
-        .watch(() => setLoading(false)),
-
-    [serverId],
-  );
+  const handleAuthorize = useCallback(() => {
+    // MCP OAuth removed
+    setLoading(false);
+  }, []);
 
   if (isAuthorizing) {
     return (

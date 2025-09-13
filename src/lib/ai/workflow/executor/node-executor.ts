@@ -30,7 +30,6 @@ import {
   exaSearchToolForWorkflow,
   exaContentsToolForWorkflow,
 } from "lib/ai/tools/web/web-search";
-import { mcpClientsManager } from "lib/ai/mcp/mcp-manager";
 
 /**
  * Interface for node executor functions.
@@ -233,21 +232,8 @@ export const toolNodeExecutor: NodeExecutor<ToolNodeData> = async ({
 
   // Execute the tool based on its type
   if (node.tool.type == "mcp-tool") {
-    const toolResult = (await mcpClientsManager.toolCall(
-      node.tool.serverId,
-      node.tool.id,
-      result.input.parameter,
-    )) as any;
-    if (toolResult.isError) {
-      throw new Error(
-        toolResult.error?.message ||
-          toolResult.error?.name ||
-          JSON.stringify(toolResult),
-      );
-    }
-    result.output = {
-      tool_result: toolResult,
-    };
+    // MCP tools removed
+    throw new Error("MCP tools are no longer supported");
   } else if (node.tool.type == "app-tool") {
     const executor =
       node.tool.id == DefaultToolName.WebContent

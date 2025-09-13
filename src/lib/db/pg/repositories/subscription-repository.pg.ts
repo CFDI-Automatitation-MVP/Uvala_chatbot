@@ -1,5 +1,4 @@
 import { and, desc, eq } from 'drizzle-orm'
-import { PgDatabase } from 'drizzle-orm/pg-core'
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import { 
   SubscriptionSchema, 
@@ -10,6 +9,7 @@ import {
   type UserSubscriptionUsageEntity
 } from '../schema.pg'
 import { PlanType, getCurrentUsagePeriod, getNextResetDate, PLAN_LIMITS } from '@/lib/subscription'
+import { pgDb as db } from '../db.pg'
 
 export class SubscriptionRepository {
   constructor(private db: PostgresJsDatabase<any>) {}
@@ -203,3 +203,6 @@ export class SubscriptionRepository {
     })
   }
 }
+
+// Create and export instance
+export const subscriptionRepository = new SubscriptionRepository(db)

@@ -15,7 +15,15 @@ export const MathRenderer: React.FC<MathRendererProps> = ({
       displayMode,
       throwOnError: false,
       errorColor: '#cc0000',
-      strict: 'warn'
+      strict: 'ignore', // More permissive
+      trust: true, // Allow more LaTeX commands
+      macros: {
+        "\\RR": "\\mathbb{R}",
+        "\\CC": "\\mathbb{C}",
+        "\\NN": "\\mathbb{N}",
+        "\\ZZ": "\\mathbb{Z}",
+        "\\QQ": "\\mathbb{Q}"
+      }
     });
 
     return (
@@ -25,9 +33,11 @@ export const MathRenderer: React.FC<MathRendererProps> = ({
       />
     );
   } catch (error) {
+    // Fallback: try to render as simple text
+    console.warn('LaTeX rendering failed:', children, error);
     return (
-      <span className="text-red-500 bg-red-50 px-2 py-1 rounded">
-        Math Error: {children}
+      <span className="font-mono text-blue-600">
+        {children}
       </span>
     );
   }
@@ -39,7 +49,7 @@ const FadeInSpan: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 
 // Auto-detect and render math in text with improved delimiter support
 export const AutoMathRenderer: React.FC<{ children: string }> = ({ children }) => {
-  const mathElements: JSX.Element[] = [];
+  const mathElements: React.ReactElement[] = [];
   let elementIndex = 0;
   let processedText = children;
 
@@ -57,8 +67,8 @@ export const AutoMathRenderer: React.FC<{ children: string }> = ({ children }) =
     return placeholder;
   });
 
-  // Process display math ($$...$$)
-  processedText = processedText.replace(/\$\$(.*?)\$\$/g, (match, mathContent) => {
+  // Process display math ($$...$$) with better handling
+  processedText = processedText.replace(/\$\$([\s\S]*?)\$\$/g, (match, mathContent) => {
     const placeholder = `__MATH_DISPLAY_${elementIndex}__`;
     mathElements[elementIndex] = (
       <div key={elementIndex} className="block text-center my-4">
@@ -85,8 +95,8 @@ export const AutoMathRenderer: React.FC<{ children: string }> = ({ children }) =
     return placeholder;
   });
 
-  // Process inline math ($...$) with more restrictive pattern
-  processedText = processedText.replace(/\$([^$\s][^$]*?[^$\s]|[^$\s])\$/g, (match, mathContent) => {
+  // Process inline math ($...$) with improved pattern
+  processedText = processedText.replace(/\$([^$]+?)\$/g, (match, mathContent) => {
     const placeholder = `__MATH_INLINE_${elementIndex}__`;
     mathElements[elementIndex] = (
       <FadeInSpan key={elementIndex}>
@@ -101,7 +111,7 @@ export const AutoMathRenderer: React.FC<{ children: string }> = ({ children }) =
 
   // Auto-detect common LaTeX commands and wrap them (for expressions without delimiters)
   processedText = processedText.replace(
-    /\\(frac\{[^}]*\}\{[^}]*\}|sqrt\{[^}]*\}|nabla|partial|alpha|beta|gamma|delta|epsilon|zeta|eta|theta|iota|kappa|lambda|mu|nu|xi|pi|rho|sigma|tau|upsilon|phi|chi|psi|omega|cdot|times|pm|mp|leq|geq|neq|equiv|approx|infty|int|sum|prod|lim)\b/g,
+    /\\(?:frac\{[^}]*\}\{[^}]*\}|sqrt\{[^}]*\}|text\{[^}]*\}|mathbf\{[^}]*\}|nabla|partial|alpha|beta|gamma|delta|epsilon|zeta|eta|theta|iota|kappa|lambda|mu|nu|xi|pi|rho|sigma|tau|upsilon|phi|chi|psi|omega|cdot|times|pm|mp|leq|geq|neq|equiv|approx|infty|int|sum|prod|lim)\b/g,
     (match) => {
       const placeholder = `__MATH_AUTO_${elementIndex}__`;
       mathElements[elementIndex] = (

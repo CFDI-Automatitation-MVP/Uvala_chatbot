@@ -51,7 +51,6 @@ declare const SpeechRecognition: {
 };
 
 import {
-  AudioWaveformIcon,
   ChevronDown,
   CornerRightUp,
   Square,
@@ -76,7 +75,6 @@ import { Editor } from "@tiptap/react";
 import { WorkflowSummary } from "app-types/workflow";
 import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
 import equal from "lib/equal";
-import { MCPIcon } from "ui/mcp-icon";
 import { DefaultToolName } from "lib/ai/tools";
 import { DefaultToolIcon } from "./default-tool-icon";
 import { OpenAIIcon } from "ui/openai-icon";
@@ -163,22 +161,20 @@ export default function PromptInput({
       recognitionInstance.onresult = (event) => {
         // Only process new final results
         for (let i = processedCount; i < event.results.length; i++) {
-          if (event.results[i].isFinal) {
+          if ((event.results[i] as any).isFinal) {
             const transcript = event.results[i][0].transcript.trim();
             if (transcript) {
-              setInput((prevInput) => {
-                const newInput = prevInput
-                  ? `${prevInput} ${transcript}`
-                  : transcript;
-                return newInput;
-              });
+              const newInput = input
+                ? `${input} ${transcript}`
+                : transcript;
+              setInput(newInput);
               processedCount = i + 1;
             }
           }
         }
       };
 
-      recognitionInstance.onstart = () => {
+      (recognitionInstance as any).onstart = () => {
         processedCount = 0; // Reset when starting
       };
 
@@ -487,14 +483,10 @@ export default function PromptInput({
                           </Avatar>
                         ) : (
                           <Button className="size-6 flex items-center justify-center ring ring-border rounded-full flex-shrink-0 p-0.5">
-                            {mention.type == "mcpServer" ? (
-                              <MCPIcon className="size-3.5" />
-                            ) : (
-                              <DefaultToolIcon
-                                name={mention.name as DefaultToolName}
-                                className="size-3.5"
-                              />
-                            )}
+                            <DefaultToolIcon
+                              name={mention.name as DefaultToolName}
+                              className="size-3.5"
+                            />
                           </Button>
                         )}
 

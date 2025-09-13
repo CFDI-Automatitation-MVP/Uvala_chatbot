@@ -5,13 +5,11 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { useMutateAgents } from "@/hooks/queries/use-agents";
-import { useMcpList } from "@/hooks/queries/use-mcp-list";
 import { useWorkflowToolList } from "@/hooks/queries/use-workflow-tool-list";
 import { useObjectState } from "@/hooks/use-object-state";
 import { useBookmark } from "@/hooks/queries/use-bookmark";
 import { Agent, AgentCreateSchema, AgentUpdateSchema } from "app-types/agent";
 import { ChatMention } from "app-types/chat";
-import { MCPServerInfo } from "app-types/mcp";
 import { WorkflowSummary } from "app-types/workflow";
 import { DefaultToolName } from "lib/ai/tools";
 import { BACKGROUND_COLORS } from "lib/const";
@@ -104,7 +102,6 @@ export default function EditAgent({
     [initialAgent?.id, isBookmarkToggleLoadingFn],
   );
 
-  const { data: mcpList, isLoading: isMcpLoading } = useMcpList();
   const { data: workflowToolList, isLoading: isWorkflowLoading } =
     useWorkflowToolList();
 
@@ -122,18 +119,6 @@ export default function EditAgent({
         }
       });
 
-      (mcpList as (MCPServerInfo & { id: string })[])?.forEach((mcp) => {
-        mcp.toolInfo.forEach((tool) => {
-          if (toolNames.includes(tool.name)) {
-            allMentions.push({
-              type: "mcpTool",
-              serverName: mcp.name,
-              name: tool.name,
-              serverId: mcp.id,
-            });
-          }
-        });
-      });
 
       (workflowToolList as WorkflowSummary[])?.forEach((workflow) => {
         if (toolNames.includes(workflow.name)) {
@@ -154,7 +139,7 @@ export default function EditAgent({
         }));
       }
     },
-    [mcpList, workflowToolList, setAgent],
+    [workflowToolList, setAgent],
   );
 
   const saveAgent = useCallback(() => {
@@ -294,8 +279,8 @@ export default function EditAgent({
   }, []);
 
   const isLoadingTool = useMemo(() => {
-    return isMcpLoading || isWorkflowLoading;
-  }, [isMcpLoading, isWorkflowLoading]);
+    return isWorkflowLoading;
+  }, [isWorkflowLoading]);
 
   const isLoading = useMemo(() => {
     return (

@@ -1,12 +1,24 @@
-import { SubscriptionEntity, SubscriptionLimitsEntity, UserSubscriptionUsageEntity } from '@/lib/db/pg/schema.pg'
+import { SubscriptionEntity, UserSubscriptionUsageEntity } from '@/lib/db/pg/schema.pg'
 
 export type PlanType = 'free' | 'pro' | 'max'
 export type SubscriptionStatus = 'active' | 'canceled' | 'incomplete' | 'incomplete_expired' | 'past_due' | 'trialing' | 'unpaid'
 
 export interface PlanLimits {
   maxTokensPerMonth: number
+  maxTokensPerDay?: number
   maxApiCallsPerMonth: number
+  maxApiCallsPerDay?: number
   maxToolCallsPerMonth: number
+  // Cost-based limits
+  maxDailyCostUSD: number
+  maxMonthlyCostUSD: number
+  // Tool-specific limits
+  maxImageGenerationsPerMonth: number
+  maxVideoGenerationsPerMonth: number
+  maxWebSearchesPerMonth: number
+  // Video quality restrictions
+  allowedVideoQualities: ('480p' | '720p' | '1080p')[]
+  // Feature flags
   hasFileUploads: boolean
   hasAdvancedFeatures: boolean
   hasApiAccess: boolean
@@ -24,9 +36,20 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     hasPrioritySupport: false,
   },
   pro: {
-    maxTokensPerMonth: 1000000, // 1M tokens per month
-    maxApiCallsPerMonth: 2000,
+    maxTokensPerMonth: 1100000, // 1.1M tokens per month (based on $1.50 budget)
+    maxTokensPerDay: 37000, // ~37K tokens per day (based on $0.05 budget)
+    maxApiCallsPerMonth: 850, // ~850 messages per month
+    maxApiCallsPerDay: 28, // ~28 messages per day
     maxToolCallsPerMonth: 1000,
+    // Cost limits - LLM usage based on cost only
+    maxDailyCostUSD: 0.05, // $0.05 per day
+    maxMonthlyCostUSD: 1.50, // $1.50 per month
+    // Tool-specific limits
+    maxImageGenerationsPerMonth: 10, // 10 images
+    maxVideoGenerationsPerMonth: 2, // 2 videos
+    maxWebSearchesPerMonth: 40, // 40 EXA searches
+    allowedVideoQualities: ['480p'], // Only 480p quality, no 720p
+    // Features
     hasFileUploads: true,
     hasAdvancedFeatures: true,
     hasApiAccess: false,
@@ -45,10 +68,10 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
 
 export function getPlanTypeFromPriceId(priceId: string): PlanType {
   const priceIdMap: Record<string, PlanType> = {
-    'price_1S3WO31pY9V37Up55MxEAfbh': 'pro', // Pro USD
-    'price_1S3WGo1pY9V37Up5I1Q1YUgA': 'pro', // Pro MXN
-    'price_1S3WNc1pY9V37Up5kRxJfKSG': 'max', // Max USD
-    'price_1S3WMv1pY9V37Up5gCETgD4x': 'max', // Max MXN
+    'price_1S4o7A1pY9V37Up5u2I6dxIL': 'pro', // Pro USD
+    'price_1S4o7G1pY9V37Up5qN2yNxCt': 'pro', // Pro MXN
+    'price_1S4o7U1pY9V37Up5PUtup870': 'max', // Max USD
+    'price_1S4o7a1pY9V37Up5AeSbRFSs': 'max', // Max MXN
   }
   
   return priceIdMap[priceId] || 'free'

@@ -18,12 +18,6 @@ import {
 } from "app-types/chat";
 import { errorToString, exclude, objectFlow } from "lib/utils";
 import logger from "logger";
-import {
-  AllowedMCPServer,
-  McpServerCustomizationsPrompt,
-  VercelAIMcpTool,
-  VercelAIMcpToolTag,
-} from "app-types/mcp";
 import { MANUAL_REJECT_RESPONSE_PROMPT } from "lib/ai/prompts";
 
 import { ObjectJsonSchema7 } from "app-types/util";
@@ -38,59 +32,13 @@ import {
 } from "app-types/workflow";
 import { createWorkflowExecutor } from "lib/ai/workflow/executor/workflow-executor";
 import { NodeKind } from "lib/ai/workflow/workflow.interface";
-import { mcpClientsManager } from "lib/ai/mcp/mcp-manager";
 import { APP_DEFAULT_TOOL_KIT } from "lib/ai/tools/tool-kit";
 import { AppDefaultToolkit } from "lib/ai/tools";
+import { checkToolLimits, formatLimitError, checkVideoQuality } from "@/lib/subscription-limits";
+import { subscriptionRepository } from "@/lib/db/repository";
+import { isSubscriptionActive } from "@/lib/subscription";
 
-export function filterMCPToolsByMentions(
-  tools: Record<string, VercelAIMcpTool>,
-  mentions: ChatMention[],
-) {
-  if (mentions.length === 0) {
-    return tools;
-  }
-  const toolMentions = mentions.filter(
-    (mention) => mention.type == "mcpTool" || mention.type == "mcpServer",
-  );
 
-  const metionsByServer = toolMentions.reduce(
-    (acc, mention) => {
-      if (mention.type == "mcpServer") {
-        return {
-          ...acc,
-          [mention.serverId]: Object.values(tools).map(
-            (tool) => tool._originToolName,
-          ),
-        };
-      }
-      return {
-        ...acc,
-        [mention.serverId]: [...(acc[mention.serverId] ?? []), mention.name],
-      };
-    },
-    {} as Record<string, string[]>,
-  );
-
-  return objectFlow(tools).filter((_tool) => {
-    if (!metionsByServer[_tool._mcpServerId]) return false;
-    return metionsByServer[_tool._mcpServerId].includes(_tool._originToolName);
-  });
-}
-
-export function filterMCPToolsByAllowedMCPServers(
-  tools: Record<string, VercelAIMcpTool>,
-  allowedMcpServers?: Record<string, AllowedMCPServer>,
-): Record<string, VercelAIMcpTool> {
-  if (!allowedMcpServers || Object.keys(allowedMcpServers).length === 0) {
-    return {};
-  }
-  return objectFlow(tools).filter((_tool) => {
-    if (!allowedMcpServers[_tool._mcpServerId]?.tools) return false;
-    return allowedMcpServers[_tool._mcpServerId].tools.includes(
-      _tool._originToolName,
-    );
-  });
-}
 
 export function excludeToolExecution(
   tool: Record<string, Tool>,
@@ -99,6 +47,76 @@ export function excludeToolExecution(
     return createTool({
       inputSchema: value.inputSchema,
       description: value.description,
+    });
+  });
+}
+
+/**
+ * Wrap tools with Pro user limit checking
+ */
+export function wrapToolsWithLimits(
+  tools: Record<string, Tool>,
+  userId: string
+): Record<string, Tool> {
+  return objectFlow(tools).map((tool, toolName) => {
+    const originalExecute = tool.execute;
+    
+    return createTool({
+      inputSchema: tool.inputSchema,
+      description: tool.description,
+      execute: async (input: any, options: any) => {
+        // Check limits based on tool type - using exact tool names from DefaultToolName enum
+        let toolType: 'image' | 'video' | 'search' | null = null;
+        
+        if (toolName === 'generateImage' || toolName.toLowerCase().includes('image')) {
+          toolType = 'image';
+        } else if (toolName === 'generateVideo' || toolName.toLowerCase().includes('video')) {
+          toolType = 'video';
+        } else if (toolName === 'webSearch' || toolName === 'webContent' || toolName.toLowerCase().includes('search') || toolName.toLowerCase().includes('web')) {
+          toolType = 'search';
+        }
+        
+        // If it's a tool with limits, check them
+        if (toolType && userId) {
+          const limitCheck = await checkToolLimits(userId, toolType);
+          
+          if (!limitCheck.canProceed) {
+            const errorMessage = formatLimitError(limitCheck);
+            return {
+              error: 'Usage limit exceeded',
+              message: errorMessage,
+              type: 'limit_exceeded'
+            };
+          }
+
+          // Additional check for video quality for active Pro users
+          if (toolType === 'video') {
+            const subscription = await subscriptionRepository.getUserActiveSubscription(userId);
+            if (subscription?.planType === 'pro' && isSubscriptionActive(subscription)) {
+              const resolution = input.resolution || input.quality || '720p';
+              if (!checkVideoQuality(resolution, 'pro')) {
+                return {
+                  error: 'Video quality not allowed',
+                  message: 'Pro plan only supports 480p video quality. Please use 480p instead of 720p.',
+                  type: 'quality_restricted'
+                };
+              }
+            }
+          }
+        }
+        
+        // Execute the original tool with proper parameters
+        try {
+          // Check if originalExecute expects options parameter
+          if (originalExecute.length > 1) {
+            return await originalExecute(input, options);
+          } else {
+            return await originalExecute(input);
+          }
+        } catch (error) {
+          return { error: 'Tool execution failed', details: error };
+        }
+      },
     });
   });
 }
@@ -114,7 +132,7 @@ export function mergeSystemPrompt(
 
 export function manualToolExecuteByLastMessage(
   part: ToolUIPart,
-  tools: Record<string, VercelAIMcpTool | VercelAIWorkflowTool | Tool>,
+  tools: Record<string, VercelAIWorkflowTool | Tool>,
   abortSignal?: AbortSignal,
 ) {
   const { input } = part;
@@ -136,12 +154,6 @@ export function manualToolExecuteByLastMessage(
           abortSignal: abortSignal ?? new AbortController().signal,
           messages: [],
         });
-      } else if (VercelAIMcpToolTag.isMaybe(tool)) {
-        return mcpClientsManager.toolCall(
-          tool._mcpServerId,
-          tool._originToolName,
-          input,
-        );
       }
       return tool.execute!(input, {
         toolCallId: part.toolCallId,
@@ -177,47 +189,6 @@ export function extractInProgressToolPart(message: UIMessage): ToolUIPart[] {
   ) as ToolUIPart[];
 }
 
-export function filterMcpServerCustomizations(
-  tools: Record<string, VercelAIMcpTool>,
-  mcpServerCustomization: Record<string, McpServerCustomizationsPrompt>,
-): Record<string, McpServerCustomizationsPrompt> {
-  const toolNamesByServerId = Object.values(tools).reduce(
-    (acc, tool) => {
-      if (!acc[tool._mcpServerId]) acc[tool._mcpServerId] = [];
-      acc[tool._mcpServerId].push(tool._originToolName);
-      return acc;
-    },
-    {} as Record<string, string[]>,
-  );
-
-  return Object.entries(mcpServerCustomization).reduce(
-    (acc, [serverId, mcpServerCustomization]) => {
-      if (!(serverId in toolNamesByServerId)) return acc;
-
-      if (
-        !mcpServerCustomization.prompt &&
-        !Object.keys(mcpServerCustomization.tools ?? {}).length
-      )
-        return acc;
-
-      const prompts: McpServerCustomizationsPrompt = {
-        id: serverId,
-        name: mcpServerCustomization.name,
-        prompt: mcpServerCustomization.prompt,
-        tools: mcpServerCustomization.tools
-          ? objectFlow(mcpServerCustomization.tools).filter((_, key) => {
-              return toolNamesByServerId[serverId].includes(key as string);
-            })
-          : {},
-      };
-
-      acc[serverId] = prompts;
-
-      return acc;
-    },
-    {} as Record<string, McpServerCustomizationsPrompt>,
-  );
-}
 
 export const workflowToVercelAITool = ({
   id,
@@ -393,18 +364,6 @@ export const workflowToVercelAITools = (
     );
 };
 
-export const loadMcpTools = (opt?: {
-  mentions?: ChatMention[];
-  allowedMcpServers?: Record<string, AllowedMCPServer>;
-}) =>
-  safe(() => mcpClientsManager.tools())
-    .map((tools) => {
-      if (opt?.mentions?.length) {
-        return filterMCPToolsByMentions(tools, opt.mentions);
-      }
-      return filterMCPToolsByAllowedMCPServers(tools, opt?.allowedMcpServers);
-    })
-    .orElse({} as Record<string, VercelAIMcpTool>);
 
 export const loadWorkFlowTools = (opt: {
   mentions?: ChatMention[];
@@ -425,6 +384,7 @@ export const loadWorkFlowTools = (opt: {
 export const loadAppDefaultTools = (opt?: {
   mentions?: ChatMention[];
   allowedAppDefaultToolkit?: string[];
+  userId?: string;
 }) =>
   safe(APP_DEFAULT_TOOL_KIT)
     .map((tools) => {
@@ -442,20 +402,23 @@ export const loadAppDefaultTools = (opt?: {
       const allowedAppDefaultToolkit =
         opt?.allowedAppDefaultToolkit ?? Object.values(AppDefaultToolkit);
 
-      // Always include ImageGeneration toolkit regardless of user settings
+      // Always include ImageGeneration, VideoGeneration, and WebSearch toolkits regardless of user settings
       const toolkitsToInclude = [
         ...allowedAppDefaultToolkit,
-        ...(allowedAppDefaultToolkit.includes(AppDefaultToolkit.ImageGeneration) ? [] : [AppDefaultToolkit.ImageGeneration])
+        ...(allowedAppDefaultToolkit.includes(AppDefaultToolkit.ImageGeneration) ? [] : [AppDefaultToolkit.ImageGeneration]),
+        ...(allowedAppDefaultToolkit.includes(AppDefaultToolkit.VideoGeneration) ? [] : [AppDefaultToolkit.VideoGeneration]),
+        ...(allowedAppDefaultToolkit.includes(AppDefaultToolkit.WebSearch) ? [] : [AppDefaultToolkit.WebSearch])
       ];
 
-      return (
-        toolkitsToInclude.reduce(
-          (acc, key) => {
-            return { ...acc, ...tools[key] };
-          },
-          {} as Record<string, Tool>,
-        ) || {}
-      );
+      const loadedTools = toolkitsToInclude.reduce(
+        (acc, key) => {
+          return { ...acc, ...tools[key] };
+        },
+        {} as Record<string, Tool>,
+      ) || {};
+
+      // Apply limit checking wrapper if userId is provided
+      return opt?.userId ? wrapToolsWithLimits(loadedTools, opt.userId) : loadedTools;
     })
     .ifFail((e) => {
       console.error(e);
