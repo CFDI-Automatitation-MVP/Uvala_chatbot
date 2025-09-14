@@ -36,6 +36,10 @@ export interface AppState {
     instructions: string;
     chatModel?: ChatModel;
   };
+  promptBuilder: {
+    isOpen: boolean;
+    chatModel?: ChatModel;
+  };
   voiceChat: {
     isOpen: boolean;
     agentId?: string;
@@ -75,6 +79,9 @@ const initialState: AppState = {
     isOpen: false,
     instructions: "",
   },
+  promptBuilder: {
+    isOpen: false,
+  },
   voiceChat: {
     isOpen: false,
     options: {
@@ -107,6 +114,10 @@ export const appStore = create<AppState & AppDispatch>()(
         temporaryChat: {
           ...initialState.temporaryChat,
           ...state.temporaryChat,
+          isOpen: false,
+        },
+        promptBuilder: {
+          chatModel: state.promptBuilder?.chatModel || state.chatModel,
           isOpen: false,
         },
         toolPresets: state.toolPresets || initialState.toolPresets,

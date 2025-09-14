@@ -182,6 +182,8 @@
   "Layout": {
     "toggleSidebar": "Basculer la Barre Latérale",
     "newChat": "Nouveau Chat",
+    "temporaryChat": "Chat Temporaire",
+    "promptBuilder": "Constructeur de Prompts",
     "mcpConfiguration": "Configuration MCP",
     "agents": "Agents",
     "newAgent": "Nouvel Agent",
@@ -449,5 +451,18 @@
     "arrangeNodes": "Auto Layout",
     "nodesArranged": "Layout appliqué avec succès",
     "visibilityUpdated": "Visibilité mise à jour avec succès"
+  },
+  "PromptBuilder": {
+    "title": "Constructeur de Prompts",
+    "copyLastResponse": "Copier la dernière réponse",
+    "resetChat": "Réinitialiser le chat",
+    "aiPromptBuilder": "Constructeur de Prompts IA",
+    "description": "Dites-moi ce que vous voulez accomplir et je créerai un prompt optimisé pour vous.",
+    "examples": "Exemples",
+    "example1": "\"Aidez-moi à écrire des emails professionnels\"",
+    "example2": "\"Créez un prompt pour la révision de code\"",
+    "example3": "\"J'ai besoin d'analyser les commentaires des clients\"",
+    "example4": "\"Générez des idées d'histoires créatives\"",
+    "placeholder": "Décrivez ce que vous voulez faire et je vous construirai un prompt..."
   }
 }

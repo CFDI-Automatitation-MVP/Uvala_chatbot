@@ -295,6 +295,7 @@
     "toggleSidebar": "Toggle Sidebar",
     "newChat": "New Chat",
     "temporaryChat": "Temporary Chat",
+    "promptBuilder": "Prompt Builder",
     "mcpConfiguration": "MCP Configuration",
     "agents": "Agents",
     "newAgent": "Create Agent",
@@ -463,5 +464,18 @@
     "mcpServerCustomizationDescription": "MCP server customization instructions will be added to the system prompt when the MCP server is available.",
     "toolCustomizationInstructionsPlaceholder": "Tool customization instructions are not available.",
     "mcpServerCustomizationPlaceholder": "eg. If the input value is email, always enter the email in the format example@example.com."
+  },
+  "PromptBuilder": {
+    "title": "Prompt Builder",
+    "copyLastResponse": "Copy last response",
+    "resetChat": "Reset chat",
+    "aiPromptBuilder": "AI Prompt Builder",
+    "description": "Tell me what you want to accomplish and I'll create an optimized prompt for you.",
+    "examples": "Examples",
+    "example1": "\"Help me write professional emails\"",
+    "example2": "\"Create a prompt for code review\"",
+    "example3": "\"I need to analyze customer feedback\"",
+    "example4": "\"Generate creative story ideas\"",
+    "placeholder": "Describe what you want to do and I'll build you a prompt..."
   }
 }

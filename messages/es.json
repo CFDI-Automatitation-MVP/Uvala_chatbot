@@ -182,6 +182,8 @@
   "Layout": {
     "toggleSidebar": "Alternar Barra Lateral",
     "newChat": "Nuevo Chat",
+    "temporaryChat": "Chat Temporal",
+    "promptBuilder": "Diseñador de Prompts",
     "mcpConfiguration": "Configuración MCP",
     "agents": "Agentes",
     "newAgent": "Nuevo Agente",
@@ -222,7 +224,7 @@
     "theme": "Tema",
     "signOut": "Cerrar sesión",
     "language": "Idioma",
-    "upgrade": "Mejorar",
+    "upgrade": "Mejora",
 
     "showAllChats": "Ver Todos los Chats",
     "showLessChats": "Mostrar menos",
@@ -449,5 +451,18 @@
     "arrangeNodes": "Auto Layout",
     "nodesArranged": "Layout aplicado exitosamente",
     "visibilityUpdated": "Visibilidad actualizada exitosamente"
+  },
+  "PromptBuilder": {
+    "title": "Diseñador de Prompts",
+    "copyLastResponse": "Copiar última respuesta",
+    "resetChat": "Reiniciar chat",
+    "aiPromptBuilder": "Diseñador de Prompts IA",
+    "description": "Dime qué quieres lograr y crearé un prompt optimizado para ti.",
+    "examples": "Ejemplos",
+    "example1": "\"Ayúdame a escribir correos profesionales\"",
+    "example2": "\"Crea un prompt para revisión de código\"",
+    "example3": "\"Necesito analizar comentarios de clientes\"",
+    "example4": "\"Genera ideas creativas para historias\"",
+    "placeholder": "Describe qué quieres hacer y te construiré un prompt..."
   }
 }

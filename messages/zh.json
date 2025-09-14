@@ -183,6 +183,8 @@
   "Layout": {
     "toggleSidebar": "切换侧边栏",
     "newChat": "新聊天",
+    "temporaryChat": "临时聊天",
+    "promptBuilder": "提示构建器",
     "mcpConfiguration": "MCP 配置",
     "agents": "代理",
     "newAgent": "新代理",
@@ -450,5 +452,18 @@
     "arrangeNodes": "自动布局",
     "nodesArranged": "布局已成功应用",
     "visibilityUpdated": "可见性已成功更新"
+  },
+  "PromptBuilder": {
+    "title": "提示构建器",
+    "copyLastResponse": "复制最后回复",
+    "resetChat": "重置聊天",
+    "aiPromptBuilder": "AI提示构建器",
+    "description": "告诉我您想要实现什么，我将为您创建一个优化的提示。",
+    "examples": "示例",
+    "example1": "\"帮我写专业邮件\"",
+    "example2": "\"为代码审查创建提示\"",
+    "example3": "\"我需要分析客户反馈\"",
+    "example4": "\"生成创意故事想法\"",
+    "placeholder": "描述您想要做什么，我会为您构建提示..."
   }
 }

@@ -39,6 +39,16 @@ const ChatBotTemporary = dynamic(
   },
 );
 
+const PromptBuilderPopup = dynamic(
+  () =>
+    import("@/components/prompt-builder-popup").then(
+      (mod) => mod.PromptBuilderPopup,
+    ),
+  {
+    ssr: false,
+  },
+);
+
 export function AppPopupProvider() {
   return (
     <>
@@ -47,6 +57,7 @@ export function AppPopupProvider() {
       {/* Voice chat functionality is hidden */}
       {false && <ChatBotVoice />}
       <ChatBotTemporary />
+      <PromptBuilderPopup />
     </>
   );
 }

@@ -23,6 +23,7 @@ import {
   PlusIcon,
   Waypoints,
   MessageCircleDashed,
+  Brain,
 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Skeleton } from "ui/skeleton";
@@ -54,8 +55,13 @@ export function AppSidebarMenus() {
                 onClick={(e) => {
                   e.preventDefault();
                   setOpenMobile(false);
-                  router.push(`/`);
-                  router.refresh();
+                  // Clear current thread state before navigating
+                  appStoreMutate((state) => ({
+                    currentThreadId: null,
+                    threadMentions: {},
+                  }));
+                  // Force navigation with window.location for reliable new chat
+                  window.location.href = '/';
                 }}
               >
                 <SidebarMenuButton
@@ -98,6 +104,28 @@ export function AppSidebarMenus() {
                 <MessageCircleDashed className="size-4 group-data-[collapsible=icon]:size-6 transition-all duration-200 flex-shrink-0" />
                 <span className="ml-2 whitespace-nowrap overflow-hidden transition-all duration-200 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:opacity-0">
                   {t("Layout.temporaryChat")}
+                </span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </Tooltip>
+          <Tooltip>
+            <SidebarMenuItem className="mb-1">
+              <SidebarMenuButton
+                className="font-semibold group-data-[collapsible=icon]:w-12 group-data-[collapsible=icon]:h-12 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:mx-auto transition-all duration-200"
+                tooltip={t("Layout.promptBuilder")}
+                onClick={() => {
+                  setOpenMobile(false);
+                  appStoreMutate((state) => ({
+                    promptBuilder: {
+                      ...state.promptBuilder,
+                      isOpen: !state.promptBuilder.isOpen,
+                    },
+                  }));
+                }}
+              >
+                <Brain className="size-4 group-data-[collapsible=icon]:size-6 transition-all duration-200 flex-shrink-0" />
+                <span className="ml-2 whitespace-nowrap overflow-hidden transition-all duration-200 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:opacity-0">
+                  {t("Layout.promptBuilder")}
                 </span>
               </SidebarMenuButton>
             </SidebarMenuItem>

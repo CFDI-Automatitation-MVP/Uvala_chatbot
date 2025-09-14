@@ -182,6 +182,8 @@
   "Layout": {
     "toggleSidebar": "サイドバーの切り替え",
     "newChat": "新しいチャット",
+    "temporaryChat": "一時的なチャット",
+    "promptBuilder": "プロンプトビルダー",
     "mcpConfiguration": "MCP設定",
     "agents": "エージェント",
     "newAgent": "新しいエージェント",
@@ -448,5 +450,18 @@
     "arrangeNodes": "自動レイアウト",
     "nodesArranged": "レイアウトが正常に適用されました",
     "visibilityUpdated": "公開設定が正常に更新されました"
+  },
+  "PromptBuilder": {
+    "title": "プロンプトビルダー",
+    "copyLastResponse": "最後の応答をコピー",
+    "resetChat": "チャットをリセット",
+    "aiPromptBuilder": "AIプロンプトビルダー",
+    "description": "何を達成したいかを教えてください。最適化されたプロンプトを作成します。",
+    "examples": "例",
+    "example1": "\"プロフェッショナルなメールの書き方を手伝って\"",
+    "example2": "\"コードレビュー用のプロンプトを作成して\"",
+    "example3": "\"顧客フィードバックを分析する必要がある\"",
+    "example4": "\"創造的なストーリーのアイデアを生成して\"",
+    "placeholder": "何をしたいかを説明してください。プロンプトを構築します..."
   }
 }

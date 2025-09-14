@@ -399,6 +399,8 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
             isLoading={isLoading || isPendingToolCall}
             onStop={stop}
             onFocus={isFirstTime ? undefined : handleFocus}
+            model={model}
+            setModel={(newModel) => appStoreMutate({ chatModel: newModel })}
           />
         </div>
         <DeleteThreadPopup

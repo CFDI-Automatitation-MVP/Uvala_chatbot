@@ -24,7 +24,7 @@ import {
   Sun,
   MoonStar,
   ChevronRight,
-  CreditCard,
+  ArrowUpRight,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { appStore } from "@/app/store";
@@ -79,13 +79,13 @@ export function AppSidebarUser({
 
   return (
     <SidebarMenu>
-      {/* Subscribe Button - Only show if user doesn't have active subscription */}
-      {!hasSubscription && (
+      {/* Upgrade Button - Only show if user doesn't have active subscription and sidebar is open */}
+      {!hasSubscription && (open || openMobile) && (
         <SidebarMenuItem className="mb-2">
           <Button asChild className="w-full" variant="default">
             <Link href="/pricing" className="flex items-center gap-2">
-              <CreditCard className="size-4" />
-              Subscribe
+              <ArrowUpRight className="size-4" />
+              {t("upgrade")}
             </Link>
           </Button>
         </SidebarMenuItem>

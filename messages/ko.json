@@ -184,6 +184,8 @@
     "workflow": "워크플로우",
     "toggleSidebar": "사이드바 토글",
     "newChat": "새 채팅",
+    "temporaryChat": "임시 채팅",
+    "promptBuilder": "프롬프트 빌더",
     "mcpConfiguration": "MCP 설정",
     "agents": "에이전트",
     "newAgent": "새 에이전트",
@@ -449,5 +451,18 @@
     "arrangeNodes": "자동 레이아웃",
     "nodesArranged": "레이아웃이 성공적으로 적용되었습니다",
     "visibilityUpdated": "가시성이 성공적으로 업데이트되었습니다"
+  },
+  "PromptBuilder": {
+    "title": "프롬프트 빌더",
+    "copyLastResponse": "마지막 응답 복사",
+    "resetChat": "채팅 초기화",
+    "aiPromptBuilder": "AI 프롬프트 빌더",
+    "description": "무엇을 달성하고 싶은지 말해주시면 최적화된 프롬프트를 만들어드릴게요.",
+    "examples": "예시",
+    "example1": "\"전문적인 이메일 작성을 도와주세요\"",
+    "example2": "\"코드 리뷰용 프롬프트를 만들어주세요\"",
+    "example3": "\"고객 피드백을 분석해야 합니다\"",
+    "example4": "\"창작 스토리 아이디어를 생성해주세요\"",
+    "placeholder": "무엇을 하고 싶은지 설명해주시면 프롬프트를 구축해드릴게요..."
   }
 }

@@ -14,6 +14,11 @@ const staticModels = {
   },
 };
 
+// Internal models - not exposed in UI
+const internalModels = {
+  "uvala-fuji-micro": openai("gpt-5-nano"),
+};
+
 const staticUnsupportedModels = new Set([
   // Uvala-Fuji supports tool calling
 ]);
@@ -28,6 +33,15 @@ const {
 } = createOpenAICompatibleModels(openaiCompatibleProviders);
 
 const allModels = { ...openaiCompatibleModels, ...staticModels };
+const allModelsWithInternal = { ...allModels };
+
+// Add internal models to a flat structure for getModel lookup
+Object.entries(internalModels).forEach(([name, model]) => {
+  if (!allModelsWithInternal["Internal"]) {
+    allModelsWithInternal["Internal"] = {};
+  }
+  allModelsWithInternal["Internal"][name] = model;
+});
 
 const allUnsupportedModels = new Set([
   ...openaiCompatibleUnsupportedModels,
@@ -41,6 +55,7 @@ export const isToolCallUnsupportedModel = (model: LanguageModel) => {
 const fallbackModel = staticModels["Great for all your tasks"]["uvala-fuji"];
 
 export const customModelProvider = {
+  // Only expose public models in UI
   modelsInfo: Object.entries(allModels).map(([provider, models]) => ({
     provider,
     models: Object.entries(models).map(([name, model]) => ({
@@ -48,8 +63,9 @@ export const customModelProvider = {
       isToolCallUnsupported: isToolCallUnsupportedModel(model),
     })),
   })),
+  // But allow access to internal models via getModel
   getModel: (model?: ChatModel): LanguageModel => {
     if (!model) return fallbackModel;
-    return allModels[model.provider]?.[model.model] || fallbackModel;
+    return allModelsWithInternal[model.provider]?.[model.model] || fallbackModel;
   },
 };

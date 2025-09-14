@@ -267,7 +267,7 @@ function normalizeModelId(modelId: string): string {
   const modelMappings: Record<string, string> = {
     "gpt-5": "openai/gpt-5",
     "gpt-5-mini": "openai/gpt-5-mini",
-    "gpt-5-nano": "openai/gpt-5-nano",
+    "uvala-fuji-micro": "openai/gpt-5-nano", // Internal mapping only
     "gpt-4.1": "openai/gpt-4.1",
     "gpt-4.1-mini": "openai/gpt-4.1-mini",
     "o3": "openai/o3",

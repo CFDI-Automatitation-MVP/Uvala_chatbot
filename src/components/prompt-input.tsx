@@ -366,6 +366,9 @@ export default function PromptInput({
 
   // Handle clipboard paste for images
   useEffect(() => {
+    // Skip paste handling if file uploads are disabled
+    if (fileUploadDisabled) return;
+
     const handlePaste = async (e: ClipboardEvent) => {
       if (!e.clipboardData) return;
 
@@ -399,7 +402,7 @@ export default function PromptInput({
 
     document.addEventListener("paste", handlePaste, true);
     return () => document.removeEventListener("paste", handlePaste, true);
-  }, []);
+  }, [fileUploadDisabled]);
 
   // Handle ESC key to clear mentions and files
   useEffect(() => {
@@ -531,10 +534,12 @@ export default function PromptInput({
                 />
               </div>
               <div className="flex w-full items-center z-30">
-                <FileAttachmentInput
-                  onFilesSelected={handleFilesSelected}
-                  disabled={fileUploadDisabled || isLoading}
-                />
+                {!fileUploadDisabled && (
+                  <FileAttachmentInput
+                    onFilesSelected={handleFilesSelected}
+                    disabled={isLoading}
+                  />
+                )}
 
                 {!toolDisabled && (
                   <>
@@ -554,7 +559,8 @@ export default function PromptInput({
 
                 <div className="flex-1" />
 
-                <SelectModel onSelect={setChatModel} currentModel={chatModel}>
+                {setModel && (
+                  <SelectModel onSelect={setChatModel} currentModel={chatModel}>
                   <Button
                     variant={"ghost"}
                     size={"sm"}
@@ -591,6 +597,7 @@ export default function PromptInput({
                     <ChevronDown className="size-3" />
                   </Button>
                 </SelectModel>
+                )}
                 {!isLoading &&
                 !input.length &&
                 fileAttachments.length === 0 &&
