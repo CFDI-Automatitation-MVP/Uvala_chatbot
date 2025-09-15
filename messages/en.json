@@ -207,6 +207,7 @@
       "temporaryChatInstructionsDescription": "You can set instructions for the temporary chat. This will be used as a system prompt for the temporary chat."
     },
     "placeholder": "Ask anything or @mention",
+    "disclaimer": "uvala can make mistakes. Check important information.",
     "Tool": {
       "webSearching": "Searching the Web...",
       "searchedTheWeb": "Searched the Web",
@@ -338,11 +339,35 @@
     "signOut": "Sign out",
     "language": "Language",
     "upgrade": "Upgrade",
+    "profile": "Profile",
 
     "showAllChats": "View All Chats",
     "showLessChats": "Show less",
     "reportAnIssue": "Report an issue",
     "joinCommunity": "Join Community"
+  },
+  "Profile": {
+    "title": "Profile",
+    "account": "Account",
+    "privacy": "Privacy",
+    "billing": "Billing",
+    "googleAccount": "Google Account",
+    "whatShouldWeCallYou": "What should we call you?",
+    "whatBestDescribesYourWork": "What best describes your work?",
+    "selectYourWorkFunction": "Select your work function",
+    "workFunctions": {
+      "productManagement": "Product Management",
+      "engineering": "Engineering",
+      "humanResources": "Human Resources",
+      "finance": "Finance",
+      "marketing": "Marketing",
+      "sales": "Sales",
+      "operations": "Operations",
+      "dataScience": "Data Science",
+      "design": "Design",
+      "legal": "Legal",
+      "other": "Other"
+    }
   },
   "Archive": {
     "title": "Archive",
@@ -477,5 +502,58 @@
     "example3": "\"I need to analyze customer feedback\"",
     "example4": "\"Generate creative story ideas\"",
     "placeholder": "Describe what you want to do and I'll build you a prompt..."
+  },
+  "Pricing": {
+    "title": "Choose Your Plan",
+    "description": "Unlock the full potential of AI-powered conversations with our flexible pricing plans.",
+    "currencyPesos": "MXN (Pesos)",
+    "currencyDollars": "USD (Dollars)",
+    "month": "month",
+    "year": "year",
+    "free": "Free",
+    "mostPopular": "Most Popular",
+    "currentPlan": "Current Plan",
+    "active": "Active",
+    "subscribed": "You're subscribed to this plan",
+    "getStarted": "Get Started",
+    "comingSoon": "Coming Soon",
+    "subscribeTo": "Subscribe to {plan}",
+    "loading": "Loading...",
+    "plans": {
+      "free": {
+        "name": "Free",
+        "description": "Perfect for getting started",
+        "features": [
+          "10 AI conversations per month",
+          "Basic chat features",
+          "Standard response time",
+          "Community support"
+        ]
+      },
+      "pro": {
+        "name": "Pro",
+        "description": "For regular users",
+        "features": [
+          "Unlimited AI conversations",
+          "Advanced chat features",
+          "Priority response time",
+          "File uploads",
+          "Email support"
+        ]
+      },
+      "max": {
+        "name": "Max",
+        "description": "For power users and professionals",
+        "features": [
+          "Everything in Pro",
+          "Custom AI models",
+          "API access",
+          "Priority support",
+          "Advanced integrations",
+          "Analytics dashboard",
+          "Higher usage limits"
+        ]
+      }
+    }
   }
 }

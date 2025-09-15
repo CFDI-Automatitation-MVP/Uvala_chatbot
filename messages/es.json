@@ -97,6 +97,7 @@
       "temporaryChatInstructionsDescription": "Puedes establecer instrucciones para el chat temporal. Esto se usará como prompt del sistema para el chat temporal."
     },
     "placeholder": "Pregunta cualquier cosa o @menciona",
+    "disclaimer": "uvala puede cometer errores. Verifica información importante.",
     "Tool": {
       "webSearching": "Buscando en la web...",
       "searchedTheWeb": "Buscado en la web",
@@ -225,12 +226,36 @@
     "signOut": "Cerrar sesión",
     "language": "Idioma",
     "upgrade": "Mejora",
+    "profile": "Perfil",
 
     "showAllChats": "Ver Todos los Chats",
     "showLessChats": "Mostrar menos",
     "reportAnIssue": "Reportar un problema",
     "joinCommunity": "Unirse a la Comunidad",
     "workflow": "Flujo de Trabajo"
+  },
+  "Profile": {
+    "title": "Perfil",
+    "account": "Cuenta",
+    "privacy": "Privacidad",
+    "billing": "Facturación",
+    "googleAccount": "Cuenta de Google",
+    "whatShouldWeCallYou": "¿Cómo deberíamos llamarte?",
+    "whatBestDescribesYourWork": "¿Qué describe mejor tu trabajo?",
+    "selectYourWorkFunction": "Selecciona tu función laboral",
+    "workFunctions": {
+      "productManagement": "Gestión de Productos",
+      "engineering": "Ingeniería",
+      "humanResources": "Recursos Humanos",
+      "finance": "Finanzas",
+      "marketing": "Marketing",
+      "sales": "Ventas",
+      "operations": "Operaciones",
+      "dataScience": "Ciencia de Datos",
+      "design": "Diseño",
+      "legal": "Legal",
+      "other": "Otro"
+    }
   },
   "Archive": {
     "title": "Archivo",
@@ -464,5 +489,58 @@
     "example3": "\"Necesito analizar comentarios de clientes\"",
     "example4": "\"Genera ideas creativas para historias\"",
     "placeholder": "Describe qué quieres hacer y te construiré un prompt..."
+  },
+  "Pricing": {
+    "title": "Elige tu Plan",
+    "description": "Desbloquea todo el potencial de las conversaciones con IA con nuestros planes de precios flexibles.",
+    "currencyPesos": "MXN (Pesos)",
+    "currencyDollars": "USD (Dólares)",
+    "month": "mes",
+    "year": "año",
+    "free": "Gratis",
+    "mostPopular": "Más Popular",
+    "currentPlan": "Plan Actual",
+    "active": "Activo",
+    "subscribed": "Estás suscrito a este plan",
+    "getStarted": "Comenzar",
+    "comingSoon": "Próximamente",
+    "subscribeTo": "Suscribirse a {plan}",
+    "loading": "Cargando...",
+    "plans": {
+      "free": {
+        "name": "Gratis",
+        "description": "Perfecto para comenzar",
+        "features": [
+          "10 conversaciones de IA por mes",
+          "Funciones básicas de chat",
+          "Tiempo de respuesta estándar",
+          "Soporte de la comunidad"
+        ]
+      },
+      "pro": {
+        "name": "Pro",
+        "description": "Para usuarios regulares",
+        "features": [
+          "Conversaciones de IA ilimitadas",
+          "Funciones avanzadas de chat",
+          "Tiempo de respuesta prioritario",
+          "Carga de archivos",
+          "Soporte por correo electrónico"
+        ]
+      },
+      "max": {
+        "name": "Max",
+        "description": "Para usuarios avanzados y profesionales",
+        "features": [
+          "Todo lo de Pro",
+          "Modelos de IA personalizados",
+          "Acceso a API",
+          "Soporte prioritario",
+          "Integraciones avanzadas",
+          "Panel de análisis",
+          "Límites de uso más altos"
+        ]
+      }
+    }
   }
 }

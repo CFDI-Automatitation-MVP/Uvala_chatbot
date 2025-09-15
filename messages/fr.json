@@ -97,6 +97,7 @@
       "temporaryChatInstructionsDescription": "Vous pouvez définir des instructions pour le chat temporaire. Cela sera utilisé comme prompt système pour le chat temporaire."
     },
     "placeholder": "Demandez n'importe quoi ou @mentionnez",
+    "disclaimer": "uvala peut faire des erreurs. Vérifiez les informations importantes.",
     "Tool": {
       "webSearching": "Recherche sur le web...",
       "searchedTheWeb": "Recherché sur le web",
@@ -225,12 +226,36 @@
     "signOut": "Se déconnecter",
     "language": "Langue",
     "upgrade": "Mettre à niveau",
+    "profile": "Profil",
 
     "showAllChats": "Voir Tous les Chats",
     "showLessChats": "Afficher moins",
     "reportAnIssue": "Signaler un problème",
     "joinCommunity": "Rejoindre la Communauté",
     "workflow": "Flux de Travail"
+  },
+  "Profile": {
+    "title": "Profil",
+    "account": "Compte",
+    "privacy": "Confidentialité",
+    "billing": "Facturation",
+    "googleAccount": "Compte Google",
+    "whatShouldWeCallYou": "Comment devons-nous vous appeler ?",
+    "whatBestDescribesYourWork": "Qu'est-ce qui décrit le mieux votre travail ?",
+    "selectYourWorkFunction": "Sélectionnez votre fonction",
+    "workFunctions": {
+      "productManagement": "Gestion de Produit",
+      "engineering": "Ingénierie",
+      "humanResources": "Ressources Humaines",
+      "finance": "Finance",
+      "marketing": "Marketing",
+      "sales": "Ventes",
+      "operations": "Opérations",
+      "dataScience": "Science des Données",
+      "design": "Design",
+      "legal": "Juridique",
+      "other": "Autre"
+    }
   },
   "Archive": {
     "title": "Archive",
@@ -464,5 +489,58 @@
     "example3": "\"J'ai besoin d'analyser les commentaires des clients\"",
     "example4": "\"Générez des idées d'histoires créatives\"",
     "placeholder": "Décrivez ce que vous voulez faire et je vous construirai un prompt..."
+  },
+  "Pricing": {
+    "title": "Choisissez Votre Plan",
+    "description": "Débloquez tout le potentiel des conversations alimentées par l'IA avec nos plans de tarification flexibles.",
+    "currencyPesos": "MXN (Pesos)",
+    "currencyDollars": "USD (Dollars)",
+    "month": "mois",
+    "year": "année",
+    "free": "Gratuit",
+    "mostPopular": "Plus Populaire",
+    "currentPlan": "Plan Actuel",
+    "active": "Actif",
+    "subscribed": "Vous êtes abonné à ce plan",
+    "getStarted": "Commencer",
+    "comingSoon": "Bientôt Disponible",
+    "subscribeTo": "S'abonner à {plan}",
+    "loading": "Chargement...",
+    "plans": {
+      "free": {
+        "name": "Gratuit",
+        "description": "Parfait pour commencer",
+        "features": [
+          "10 conversations IA par mois",
+          "Fonctionnalités de chat de base",
+          "Temps de réponse standard",
+          "Support communautaire"
+        ]
+      },
+      "pro": {
+        "name": "Pro",
+        "description": "Pour les utilisateurs réguliers",
+        "features": [
+          "Conversations IA illimitées",
+          "Fonctionnalités de chat avancées",
+          "Temps de réponse prioritaire",
+          "Téléchargement de fichiers",
+          "Support par email"
+        ]
+      },
+      "max": {
+        "name": "Max",
+        "description": "Pour les utilisateurs avancés et les professionnels",
+        "features": [
+          "Tout ce qui est dans Pro",
+          "Modèles IA personnalisés",
+          "Accès API",
+          "Support prioritaire",
+          "Intégrations avancées",
+          "Tableau de bord analytique",
+          "Limites d'utilisation plus élevées"
+        ]
+      }
+    }
   }
 }

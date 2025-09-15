@@ -68,6 +68,7 @@ firstTimeStorage.set(false);
 export default function ChatBot({ threadId, initialMessages }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
+  const t = useTranslations();
 
   const [
     appStoreMutate,
@@ -402,6 +403,15 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
             model={model}
             setModel={(newModel) => appStoreMutate({ chatModel: newModel })}
           />
+
+          {/* Disclaimer - Show only if there are messages */}
+          {messages.length > 0 && (
+            <div className="max-w-3xl mx-auto px-4 mt-2 mb-4">
+              <p className="text-xs text-muted-foreground text-center">
+                {t("Chat.disclaimer")}
+              </p>
+            </div>
+          )}
         </div>
         <DeleteThreadPopup
           threadId={threadId}

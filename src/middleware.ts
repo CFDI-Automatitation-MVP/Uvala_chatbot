@@ -12,12 +12,13 @@ export async function middleware(request: NextRequest) {
     return new Response("pong", { status: 200 });
   }
 
-  // Allow public routes
-  if (pathname.startsWith("/sign-in") || 
-      pathname.startsWith("/sign-up") || 
+  // Allow public routes and specific auth assets only
+  if (pathname.startsWith("/sign-in") ||
+      pathname.startsWith("/sign-up") ||
       pathname.startsWith("/auth/callback") ||
       pathname.startsWith("/_next") ||
-      pathname.startsWith("/favicon.ico")) {
+      pathname.startsWith("/uvala-white-log.svg") ||
+      pathname.startsWith("/auth/")) { // Only auth folder assets
     return NextResponse.next();
   }
 
@@ -62,6 +63,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|api|sign-in|sign-up|auth).*)",
+    "/((?!_next/static|_next/image|uvala-white-log.svg|sitemap.xml|robots.txt|api|sign-in|sign-up|auth).*)",
   ],
 };

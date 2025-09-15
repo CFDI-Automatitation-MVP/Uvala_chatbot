@@ -97,6 +97,7 @@
       "temporaryChatInstructionsDescription": "一時チャットの指示を設定できます。これは一時チャットのシステムプロンプトとして使用されます。"
     },
     "placeholder": "何でも聞くか @mention してください",
+    "disclaimer": "uvalaは間違いを犯す可能性があります。重要な情報を確認してください。",
     "Tool": {
       "webSearching": "ウェブを検索中...",
       "searchedTheWeb": "ウェブを検索しました",
@@ -225,11 +226,35 @@
     "signOut": "サインアウト",
     "language": "言語",
     "upgrade": "アップグレード",
+    "profile": "プロフィール",
     "showAllChats": "すべてのチャットを表示",
     "showLessChats": "少なく表示",
     "reportAnIssue": "問題を報告",
     "joinCommunity": "コミュニティに参加",
     "workflow": "ワークフロー"
+  },
+  "Profile": {
+    "title": "プロフィール",
+    "account": "アカウント",
+    "privacy": "プライバシー",
+    "billing": "請求",
+    "googleAccount": "Googleアカウント",
+    "whatShouldWeCallYou": "どのようにお呼びすればよろしいですか？",
+    "whatBestDescribesYourWork": "あなたの仕事を最もよく表すものは何ですか？",
+    "selectYourWorkFunction": "職種を選択してください",
+    "workFunctions": {
+      "productManagement": "プロダクトマネジメント",
+      "engineering": "エンジニアリング",
+      "humanResources": "人事",
+      "finance": "財務",
+      "marketing": "マーケティング",
+      "sales": "営業",
+      "operations": "オペレーション",
+      "dataScience": "データサイエンス",
+      "design": "デザイン",
+      "legal": "法務",
+      "other": "その他"
+    }
   },
   "Archive": {
     "title": "アーカイブ",
@@ -463,5 +488,58 @@
     "example3": "\"顧客フィードバックを分析する必要がある\"",
     "example4": "\"創造的なストーリーのアイデアを生成して\"",
     "placeholder": "何をしたいかを説明してください。プロンプトを構築します..."
+  },
+  "Pricing": {
+    "title": "プランを選択",
+    "description": "柔軟な料金プランでAI搭載会話の可能性を最大限に引き出しましょう。",
+    "currencyPesos": "MXN（ペソ）",
+    "currencyDollars": "USD（ドル）",
+    "month": "月",
+    "year": "年",
+    "free": "無料",
+    "mostPopular": "最も人気",
+    "currentPlan": "現在のプラン",
+    "active": "アクティブ",
+    "subscribed": "このプランに登録済みです",
+    "getStarted": "はじめる",
+    "comingSoon": "近日公開",
+    "subscribeTo": "{plan}に登録",
+    "loading": "読み込み中...",
+    "plans": {
+      "free": {
+        "name": "無料",
+        "description": "はじめるのに最適",
+        "features": [
+          "月10回のAI会話",
+          "基本的なチャット機能",
+          "標準的な応答時間",
+          "コミュニティサポート"
+        ]
+      },
+      "pro": {
+        "name": "プロ",
+        "description": "一般ユーザー向け",
+        "features": [
+          "AI会話無制限",
+          "高度なチャット機能",
+          "優先応答時間",
+          "ファイルアップロード",
+          "メールサポート"
+        ]
+      },
+      "max": {
+        "name": "マックス",
+        "description": "パワーユーザーと専門家向け",
+        "features": [
+          "プロのすべての機能",
+          "カスタムAIモデル",
+          "API アクセス",
+          "優先サポート",
+          "高度なインテグレーション",
+          "分析ダッシュボード",
+          "より高い使用制限"
+        ]
+      }
+    }
   }
 }

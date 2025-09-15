@@ -98,6 +98,7 @@
       "temporaryChatInstructionsDescription": "임시 채팅에 대한 지침을 설정할 수 있습니다. 이것은 임시 채팅에 대한 시스템 프롬프트로 사용됩니다."
     },
     "placeholder": "아무거나 물어보거나 @mention 하세요",
+    "disclaimer": "uvala는 실수를 할 수 있습니다. 중요한 정보를 확인하세요.",
     "Tool": {
       "webSearching": "웹에서 찾아보는 중...",
       "searchedTheWeb": "참고한 웹 사이트",
@@ -227,10 +228,34 @@
     "signOut": "로그아웃",
     "language": "언어",
     "upgrade": "업그레이드",
+    "profile": "프로필",
     "showAllChats": "모든 채팅",
     "showLessChats": "간략히 보기",
     "reportAnIssue": "도움 받기",
     "joinCommunity": "커뮤니티 가입"
+  },
+  "Profile": {
+    "title": "프로필",
+    "account": "계정",
+    "privacy": "개인정보",
+    "billing": "결제",
+    "googleAccount": "Google 계정",
+    "whatShouldWeCallYou": "어떻게 불러드릴까요?",
+    "whatBestDescribesYourWork": "귀하의 업무를 가장 잘 설명하는 것은 무엇입니까?",
+    "selectYourWorkFunction": "업무 기능을 선택하세요",
+    "workFunctions": {
+      "productManagement": "제품 관리",
+      "engineering": "엔지니어링",
+      "humanResources": "인사",
+      "finance": "재무",
+      "marketing": "마케팅",
+      "sales": "영업",
+      "operations": "운영",
+      "dataScience": "데이터 사이언스",
+      "design": "디자인",
+      "legal": "법무",
+      "other": "기타"
+    }
   },
   "Archive": {
     "title": "아카이브",
@@ -464,5 +489,58 @@
     "example3": "\"고객 피드백을 분석해야 합니다\"",
     "example4": "\"창작 스토리 아이디어를 생성해주세요\"",
     "placeholder": "무엇을 하고 싶은지 설명해주시면 프롬프트를 구축해드릴게요..."
+  },
+  "Pricing": {
+    "title": "플랜 선택",
+    "description": "유연한 요금제로 AI 기반 대화의 모든 잠재력을 활용하세요.",
+    "currencyPesos": "MXN (페소)",
+    "currencyDollars": "USD (달러)",
+    "month": "월",
+    "year": "년",
+    "free": "무료",
+    "mostPopular": "가장 인기",
+    "currentPlan": "현재 플랜",
+    "active": "활성화",
+    "subscribed": "이 플랜을 구독하고 계십니다",
+    "getStarted": "시작하기",
+    "comingSoon": "곧 출시",
+    "subscribeTo": "{plan} 구독하기",
+    "loading": "로딩 중...",
+    "plans": {
+      "free": {
+        "name": "무료",
+        "description": "시작하기에 완벽함",
+        "features": [
+          "월 10회 AI 대화",
+          "기본 채팅 기능",
+          "표준 응답 시간",
+          "커뮤니티 지원"
+        ]
+      },
+      "pro": {
+        "name": "프로",
+        "description": "일반 사용자용",
+        "features": [
+          "무제한 AI 대화",
+          "고급 채팅 기능",
+          "우선 응답 시간",
+          "파일 업로드",
+          "이메일 지원"
+        ]
+      },
+      "max": {
+        "name": "맥스",
+        "description": "파워 유저와 전문가용",
+        "features": [
+          "프로의 모든 기능",
+          "맞춤 AI 모델",
+          "API 액세스",
+          "우선 지원",
+          "고급 통합",
+          "분석 대시보드",
+          "더 높은 사용 한도"
+        ]
+      }
+    }
   }
 }

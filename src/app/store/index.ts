@@ -49,6 +49,7 @@ export interface AppState {
     };
   };
   pendingThreadMention?: ChatMention;
+  profileDropdownOpen: boolean;
 }
 
 export interface AppDispatch {
@@ -92,6 +93,7 @@ const initialState: AppState = {
     },
   },
   pendingThreadMention: undefined,
+  profileDropdownOpen: false,
 };
 
 export const appStore = create<AppState & AppDispatch>()(

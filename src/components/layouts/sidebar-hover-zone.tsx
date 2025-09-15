@@ -3,10 +3,12 @@
 import { useSidebar } from "ui/sidebar";
 import { useEffect, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { appStore } from "@/app/store";
 
 export function SidebarHoverZone() {
   const { open, setOpen, openMobile, setOpenMobile } = useSidebar();
   const isMobile = useIsMobile();
+  const profileDropdownOpen = appStore((state) => state.profileDropdownOpen);
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -38,12 +40,13 @@ export function SidebarHoverZone() {
       }
       
       // Close sidebar immediately when leaving sidebar area
-      if (isPastSidebar && currentlyOpen) {
+      // BUT don't close if the profile dropdown is open
+      if (isPastSidebar && currentlyOpen && !profileDropdownOpen) {
         // Clear any existing timeout
         if (closeTimeoutRef.current) {
           clearTimeout(closeTimeoutRef.current);
         }
-        
+
         // Immediate closing - no delay
         closeTimeoutRef.current = setTimeout(() => {
           if (isMobile) {
@@ -64,7 +67,7 @@ export function SidebarHoverZone() {
         clearTimeout(closeTimeoutRef.current);
       }
     };
-  }, [open, setOpen, openMobile, setOpenMobile, isMobile]);
+  }, [open, setOpen, openMobile, setOpenMobile, isMobile, profileDropdownOpen]);
 
   return null;
 }

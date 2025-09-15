@@ -270,7 +270,7 @@ export function AppSidebarThreads() {
         <SidebarMenu>
           <SidebarMenuItem>
             {/* TODO: Later implement a dedicated search/all chats page instead of this expand functionality */}
-            <div className="w-full flex px-4">
+            <div className="w-full flex px-4 group-data-[collapsible=icon]:hidden">
               <Button
                 variant="secondary"
                 size="sm"
@@ -281,6 +281,24 @@ export function AppSidebarThreads() {
                 {isExpanded ? t("showLessChats") : t("showAllChats")}
                 {isExpanded ? <ChevronUp /> : <ChevronDown />}
               </Button>
+            </div>
+            {/* Collapsed state: just show 3 dots when there are excess threads */}
+            <div className="w-full flex justify-center py-2 group-data-[collapsible=icon]:block hidden">
+              <Tooltip delayDuration={1000}>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-8"
+                    onClick={() => setIsExpanded(!isExpanded)}
+                  >
+                    <MoreHorizontal className="size-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  {isExpanded ? t("showLessChats") : t("showAllChats")}
+                </TooltipContent>
+              </Tooltip>
             </div>
           </SidebarMenuItem>
         </SidebarMenu>

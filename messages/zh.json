@@ -98,6 +98,7 @@
       "temporaryChatInstructionsDescription": "您可以为临时聊天设置说明。这将用作临时聊天的系统提示。"
     },
     "placeholder": "询问任何问题或 @mention",
+    "disclaimer": "uvala 可能会犯错误。请验证重要信息。",
     "Tool": {
       "webSearching": "正在搜索网络...",
       "searchedTheWeb": "搜索网络",
@@ -226,12 +227,36 @@
     "signOut": "登出",
     "language": "语言",
     "upgrade": "升级",
+    "profile": "个人资料",
 
     "showAllChats": "查看所有聊天",
     "showLessChats": "显示更少",
     "reportAnIssue": "报告问题",
     "joinCommunity": "加入社区",
     "workflow": "工作流"
+  },
+  "Profile": {
+    "title": "个人资料",
+    "account": "账户",
+    "privacy": "隐私",
+    "billing": "账单",
+    "googleAccount": "Google 账户",
+    "whatShouldWeCallYou": "我们应该怎么称呼您？",
+    "whatBestDescribesYourWork": "什么最能描述您的工作？",
+    "selectYourWorkFunction": "选择您的工作职能",
+    "workFunctions": {
+      "productManagement": "产品管理",
+      "engineering": "工程",
+      "humanResources": "人力资源",
+      "finance": "财务",
+      "marketing": "市场营销",
+      "sales": "销售",
+      "operations": "运营",
+      "dataScience": "数据科学",
+      "design": "设计",
+      "legal": "法务",
+      "other": "其他"
+    }
   },
   "Archive": {
     "title": "归档",
@@ -465,5 +490,58 @@
     "example3": "\"我需要分析客户反馈\"",
     "example4": "\"生成创意故事想法\"",
     "placeholder": "描述您想要做什么，我会为您构建提示..."
+  },
+  "Pricing": {
+    "title": "选择您的计划",
+    "description": "通过我们灵活的定价计划，释放AI驱动对话的全部潜力。",
+    "currencyPesos": "MXN（比索）",
+    "currencyDollars": "USD（美元）",
+    "month": "月",
+    "year": "年",
+    "free": "免费",
+    "mostPopular": "最受欢迎",
+    "currentPlan": "当前计划",
+    "active": "活跃",
+    "subscribed": "您已订阅此计划",
+    "getStarted": "开始使用",
+    "comingSoon": "即将推出",
+    "subscribeTo": "订阅{plan}",
+    "loading": "加载中...",
+    "plans": {
+      "free": {
+        "name": "免费",
+        "description": "入门的完美选择",
+        "features": [
+          "每月10次AI对话",
+          "基本聊天功能",
+          "标准响应时间",
+          "社区支持"
+        ]
+      },
+      "pro": {
+        "name": "专业版",
+        "description": "适合普通用户",
+        "features": [
+          "无限AI对话",
+          "高级聊天功能",
+          "优先响应时间",
+          "文件上传",
+          "邮件支持"
+        ]
+      },
+      "max": {
+        "name": "最高版",
+        "description": "适合高级用户和专业人士",
+        "features": [
+          "专业版的所有功能",
+          "自定义AI模型",
+          "API访问",
+          "优先支持",
+          "高级集成",
+          "分析仪表板",
+          "更高的使用限制"
+        ]
+      }
+    }
   }
 }

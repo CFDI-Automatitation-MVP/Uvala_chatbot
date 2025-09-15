@@ -21,6 +21,13 @@ export const metadata: Metadata = {
   title: "uvala",
   description:
     "uvala is an intelligent chatbot that uses advanced tools to answer questions.",
+  icons: {
+    icon: [
+      { url: "/uvala-white-log.svg", type: "image/svg+xml" }
+    ],
+    shortcut: "/uvala-white-log.svg",
+    apple: "/uvala-white-log.svg"
+  },
 };
 
 // const themes = BASE_THEMES.flatMap((t) => [t, `${t}-dark`]);

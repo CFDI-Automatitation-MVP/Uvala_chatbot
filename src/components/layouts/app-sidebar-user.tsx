@@ -25,6 +25,7 @@ import {
   MoonStar,
   ChevronRight,
   ArrowUpRight,
+  User,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { appStore } from "@/app/store";
@@ -35,11 +36,13 @@ import { useTranslations } from "next-intl";
 import useSWR from "swr";
 import { getLocaleAction } from "@/i18n/get-locale";
 import { useCallback, useState, useEffect } from "react";
+import { useShallow } from "zustand/shallow";
 import { useThemeStyle } from "@/hooks/use-theme-style";
 import { useSidebar } from "ui/sidebar";
 import { Button } from "ui/button";
 import Link from "next/link";
 import { useSubscription } from "@/hooks/useSubscription";
+import { HoverBorderGradient } from "ui/hover-border-gradient";
 type SessionUser = {
   id: string;
   email?: string;
@@ -50,11 +53,16 @@ type SessionUser = {
 export function AppSidebarUser({
   session,
 }: { session?: { user: SessionUser } }) {
-  const appStoreMutate = appStore((state) => state.mutate);
+  const [appStoreMutate, profileDropdownOpen] = appStore(
+    useShallow((state) => [state.mutate, state.profileDropdownOpen])
+  );
   const t = useTranslations("Layout");
   const { open, openMobile } = useSidebar();
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const { hasSubscription } = useSubscription();
+
+  const setDropdownOpen = (isOpen: boolean) => {
+    appStoreMutate({ profileDropdownOpen: isOpen });
+  };
 
   const user = session?.user;
 
@@ -82,17 +90,21 @@ export function AppSidebarUser({
       {/* Upgrade Button - Only show if user doesn't have active subscription and sidebar is open */}
       {!hasSubscription && (open || openMobile) && (
         <SidebarMenuItem className="mb-2">
-          <Button asChild className="w-full" variant="default">
-            <Link href="/pricing" className="flex items-center gap-2">
+          <HoverBorderGradient
+            containerClassName="rounded-lg w-full"
+            as="div"
+            className="bg-black dark:bg-white text-white dark:text-black flex items-center justify-center space-x-2 w-full py-2 px-4 font-medium"
+          >
+            <Link href="/pricing" className="flex items-center gap-2 w-full justify-center">
               <ArrowUpRight className="size-4" />
-              {t("upgrade")}
+              <span>{t("upgrade")}</span>
             </Link>
-          </Button>
+          </HoverBorderGradient>
         </SidebarMenuItem>
       )}
       
       <SidebarMenuItem>
-        <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+        <DropdownMenu open={profileDropdownOpen} onOpenChange={setDropdownOpen}>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               className="h-12 animate-shimmer border border-slate-700/50 dark:border-slate-700/50 border-slate-300/50 bg-[linear-gradient(110deg,rgba(0,1,3,0.2),45%,rgba(30,38,49,0.3),55%,rgba(0,1,3,0.2))] dark:bg-[linear-gradient(110deg,rgba(0,1,3,0.2),45%,rgba(30,38,49,0.3),55%,rgba(0,1,3,0.2))] bg-[linear-gradient(110deg,rgba(248,250,252,0.6),45%,rgba(226,232,240,0.7),55%,rgba(248,250,252,0.6))] bg-[length:200%_100%] text-slate-300 dark:text-slate-300 text-slate-600 hover:text-slate-200 dark:hover:text-slate-200 hover:text-slate-700 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:w-12 group-data-[collapsible=icon]:h-12 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:mx-auto focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
@@ -141,6 +153,12 @@ export function AppSidebarUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
 
+            <DropdownMenuItem asChild className="cursor-pointer">
+              <Link href="/profile">
+                <User className="size-4 text-foreground" />
+                <span>{t("profile")}</span>
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer"
               onClick={() => appStoreMutate({ openChatPreferences: true })}
@@ -188,7 +206,7 @@ function SelectTheme() {
         <span className="mr-auto">{t("theme")}</span>
       </DropdownMenuSubTrigger>
       <DropdownMenuPortal>
-        <DropdownMenuSubContent className="w-48">
+        <DropdownMenuSubContent className="bg-background/80 backdrop-blur-md border-border/20 w-48 rounded-lg">
           <DropdownMenuLabel className="text-muted-foreground w-full flex items-center">
             <span className="text-muted-foreground text-xs mr-2 select-none">
               {capitalizeFirstLetter(theme)}
@@ -259,7 +277,7 @@ function SelectLanguage() {
       </DropdownMenuSubTrigger>
       <DropdownMenuPortal>
         <DropdownMenuSubContent
-          className="w-48 max-h-96 overflow-y-auto"
+          className="bg-background/80 backdrop-blur-md border-border/20 w-48 max-h-96 overflow-y-auto rounded-lg"
         >
           <DropdownMenuLabel className="text-muted-foreground">
             {t("language")}
