@@ -1,16 +1,27 @@
-'use client'
+"use client";
 
-import { useUsage } from '@/hooks/useUsage'
-import { useSubscription } from '@/hooks/useSubscription'
-import { Card } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
-import { Badge } from '@/components/ui/badge'
-import { Loader2, AlertCircle, DollarSign, Image, Video, Search, Calendar } from 'lucide-react'
-import { formatDistanceToNow } from 'date-fns'
+import { useUsage } from "@/hooks/useUsage";
+import { useSubscription } from "@/hooks/useSubscription";
+import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import {
+  Loader2,
+  AlertCircle,
+  DollarSign,
+  Image as ImageIcon,
+  Video,
+  Search,
+} from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 
 export default function UsagePage() {
-  const { data: usageData, loading: usageLoading, error: usageError } = useUsage()
-  const { planType, subscription } = useSubscription()
+  const {
+    data: usageData,
+    loading: usageLoading,
+    error: usageError,
+  } = useUsage();
+  const { planType, subscription } = useSubscription();
 
   if (usageLoading) {
     return (
@@ -18,7 +29,7 @@ export default function UsagePage() {
         <Loader2 className="h-8 w-8 animate-spin" />
         <span className="ml-2">Loading usage data...</span>
       </div>
-    )
+    );
   }
 
   if (usageError) {
@@ -27,27 +38,29 @@ export default function UsagePage() {
         <AlertCircle className="h-8 w-8" />
         <span className="ml-2">Error loading usage data: {usageError}</span>
       </div>
-    )
+    );
   }
 
-  const isPaidPlan = ['plus', 'pro', 'max'].includes(planType) && subscription?.status === 'active'
+  const isPaidPlan =
+    ["plus", "pro", "max"].includes(planType) &&
+    subscription?.status === "active";
 
-  const UsageCard = ({ 
-    title, 
-    icon, 
-    current, 
-    limit, 
-    percentage, 
-    unit = '',
-    description 
+  const UsageCard = ({
+    title,
+    icon,
+    current,
+    limit,
+    percentage,
+    unit = "",
+    description,
   }: {
-    title: string
-    icon: React.ReactNode
-    current: number
-    limit: number | null
-    percentage: number
-    unit?: string
-    description: string
+    title: string;
+    icon: React.ReactNode;
+    current: number;
+    limit: number | null;
+    percentage: number;
+    unit?: string;
+    description: string;
   }) => (
     <Card className="p-6">
       <div className="flex items-center justify-between mb-4">
@@ -56,50 +69,76 @@ export default function UsagePage() {
           <h3 className="font-semibold">{title}</h3>
         </div>
         {limit && (
-          <Badge variant={percentage > 80 ? "destructive" : percentage > 60 ? "secondary" : "default"}>
-            {current}{unit} / {limit}{unit}
+          <Badge
+            variant={
+              percentage > 80
+                ? "destructive"
+                : percentage > 60
+                  ? "secondary"
+                  : "default"
+            }
+          >
+            {current}
+            {unit} / {limit}
+            {unit}
           </Badge>
         )}
       </div>
-      
+
       {limit ? (
         <>
           <Progress value={percentage} className="mb-2" />
           <p className="text-sm text-gray-600">
-            {Math.round(percentage)}% used • {limit - current}{unit} remaining
+            {Math.round(percentage)}% used • {limit - current}
+            {unit} remaining
           </p>
         </>
       ) : (
         <p className="text-sm text-gray-600">
-          {current}{unit} used {isPaidPlan ? '• Unlimited on Pro plan' : '• No limits on current plan'}
+          {current}
+          {unit} used{" "}
+          {isPaidPlan
+            ? "• Unlimited on Pro plan"
+            : "• No limits on current plan"}
         </p>
       )}
       <p className="text-xs text-gray-500 mt-2">{description}</p>
     </Card>
-  )
+  );
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Usage Dashboard</h1>
-          <p className="text-gray-600 mt-1">Monitor your Uvala usage and limits</p>
+          <p className="text-gray-600 mt-1">
+            Monitor your Uvala usage and limits
+          </p>
         </div>
         <div className="text-right">
-          <Badge variant={isPaidPlan ? "default" : "secondary"} className="mb-1">
+          <Badge
+            variant={isPaidPlan ? "default" : "secondary"}
+            className="mb-1"
+          >
             {planType.toUpperCase()} PLAN
-            {['plus', 'pro', 'max'].includes(planType) && subscription?.status !== 'active' && ' (INACTIVE)'}
+            {["plus", "pro", "max"].includes(planType) &&
+              subscription?.status !== "active" &&
+              " (INACTIVE)"}
           </Badge>
           {subscription?.currentPeriodEnd && (
             <p className="text-sm text-gray-500">
-              Resets {formatDistanceToNow(new Date(subscription.currentPeriodEnd), { addSuffix: true })}
+              Resets{" "}
+              {formatDistanceToNow(new Date(subscription.currentPeriodEnd), {
+                addSuffix: true,
+              })}
             </p>
           )}
-          {['plus', 'pro', 'max'].includes(planType) && subscription?.status !== 'active' && (
-            <p className="text-xs text-red-600">
-              Limits are not enforced on inactive subscriptions
-            </p>
-          )}
+          {["plus", "pro", "max"].includes(planType) &&
+            subscription?.status !== "active" && (
+              <p className="text-xs text-red-600">
+                Limits are not enforced on inactive subscriptions
+              </p>
+            )}
         </div>
       </div>
 
@@ -158,7 +197,7 @@ export default function UsagePage() {
         {/* Image Generations */}
         <UsageCard
           title="Image Generations"
-          icon={<Image className="h-5 w-5 text-purple-600" />}
+          icon={<ImageIcon className="h-5 w-5 text-purple-600" />}
           current={usageData?.limits.imageGenerations.used || 0}
           limit={usageData?.limits.imageGenerations.limit ?? null}
           percentage={usageData?.limits.imageGenerations.percentage || 0}
@@ -172,7 +211,9 @@ export default function UsagePage() {
           current={usageData?.limits.videoGenerations.used || 0}
           limit={usageData?.limits.videoGenerations.limit ?? null}
           percentage={usageData?.limits.videoGenerations.percentage || 0}
-          description={isPaidPlan ? "Monthly limit (480p only)" : "No limits on your plan"}
+          description={
+            isPaidPlan ? "Monthly limit (480p only)" : "No limits on your plan"
+          }
         />
 
         {/* Web Searches */}
@@ -189,11 +230,11 @@ export default function UsagePage() {
       {/* Detailed Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="p-6">
-          <h3 className="font-semibold mb-4">Today's Usage</h3>
+          <h3 className="font-semibold mb-4">Today&apos;s Usage</h3>
           <div className="space-y-2">
             <div className="flex justify-between">
               <span>Cost:</span>
-              <span>${usageData?.usage.today.cost.toFixed(4) || '0.0000'}</span>
+              <span>${usageData?.usage.today.cost.toFixed(4) || "0.0000"}</span>
             </div>
             <div className="flex justify-between">
               <span>API Calls:</span>
@@ -201,17 +242,21 @@ export default function UsagePage() {
             </div>
             <div className="flex justify-between">
               <span>Tokens:</span>
-              <span>{usageData?.usage.today.tokens?.toLocaleString() || 0}</span>
+              <span>
+                {usageData?.usage.today.tokens?.toLocaleString() || 0}
+              </span>
             </div>
           </div>
         </Card>
 
         <Card className="p-6">
-          <h3 className="font-semibold mb-4">This Month's Usage</h3>
+          <h3 className="font-semibold mb-4">This Month&apos;s Usage</h3>
           <div className="space-y-2">
             <div className="flex justify-between">
               <span>Total Cost:</span>
-              <span>${usageData?.usage.thisMonth.cost.toFixed(2) || '0.00'}</span>
+              <span>
+                ${usageData?.usage.thisMonth.cost.toFixed(2) || "0.00"}
+              </span>
             </div>
             <div className="flex justify-between">
               <span>API Calls:</span>
@@ -219,7 +264,9 @@ export default function UsagePage() {
             </div>
             <div className="flex justify-between">
               <span>Tokens:</span>
-              <span>{usageData?.usage.thisMonth.tokens?.toLocaleString() || 0}</span>
+              <span>
+                {usageData?.usage.thisMonth.tokens?.toLocaleString() || 0}
+              </span>
             </div>
             <div className="flex justify-between">
               <span>Images Generated:</span>
@@ -237,5 +284,5 @@ export default function UsagePage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

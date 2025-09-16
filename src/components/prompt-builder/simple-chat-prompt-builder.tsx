@@ -15,7 +15,7 @@ import { useTranslations } from "next-intl";
 
 export function SimpleChatPromptBuilder() {
   const t = useTranslations("PromptBuilder");
-  const [promptBuilder, appStoreMutate] = appStore(
+  const [_promptBuilder, appStoreMutate] = appStore(
     useShallow((state) => [state.promptBuilder, state.mutate]),
   );
 
@@ -99,7 +99,7 @@ export function SimpleChatPromptBuilder() {
         ...state.promptBuilder,
         chatModel: {
           provider: "Internal",
-          model: "uvala-fuji-micro"
+          model: "uvala-fuji-micro",
         },
       },
     }));
@@ -129,10 +129,20 @@ export function SimpleChatPromptBuilder() {
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">{t("title")}</h2>
           <div className="flex gap-2">
-            <Button size="sm" variant="ghost" onClick={copyLastAssistantMessage} title={t("copyLastResponse")}>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={copyLastAssistantMessage}
+              title={t("copyLastResponse")}
+            >
               <Copy className="w-4 h-4" />
             </Button>
-            <Button size="sm" variant="ghost" onClick={resetChat} title={t("resetChat")}>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={resetChat}
+              title={t("resetChat")}
+            >
               <RotateCcw className="w-4 h-4" />
             </Button>
           </div>
@@ -140,7 +150,9 @@ export function SimpleChatPromptBuilder() {
       </div>
 
       {/* Chat Area */}
-      <div className={cn("flex flex-col min-w-0 h-full flex-1 overflow-y-hidden")}>
+      <div
+        className={cn("flex flex-col min-w-0 h-full flex-1 overflow-y-hidden")}
+      >
         {!messages.length && !error && (
           <div className="flex-1 items-center flex">
             <div className="max-w-3xl mx-auto my-4 p-6">
@@ -151,9 +163,7 @@ export function SimpleChatPromptBuilder() {
                 <h1 className="text-2xl font-semibold">
                   {t("aiPromptBuilder")}
                 </h1>
-                <p className="text-muted-foreground mb-4">
-                  {t("description")}
-                </p>
+                <p className="text-muted-foreground mb-4">{t("description")}</p>
                 <div className="text-left space-y-2 text-sm">
                   <p className="font-medium">{t("examples")}:</p>
                   <div className="bg-muted rounded-lg p-3 space-y-1">

@@ -2,13 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 import { supabase } from "@/lib/supabase/client";
 import { toast } from "sonner";
@@ -24,8 +18,8 @@ export default function SignIn() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
-        }
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
       });
 
       if (error) {
@@ -44,9 +38,11 @@ export default function SignIn() {
         <CardHeader className="py-6 px-6 text-center">
           <div className="flex flex-col items-center mb-2">
             <div className="mb-4">
-              <img
+              <Image
                 src="/auth/uvala-white-log.svg"
                 alt="Uvala Logo"
+                width={96}
+                height={96}
                 className="w-24 h-24 object-contain mx-auto"
               />
             </div>

@@ -56,12 +56,12 @@ export function AppSidebarMenus() {
                   e.preventDefault();
                   setOpenMobile(false);
                   // Clear current thread state before navigating
-                  appStoreMutate((state) => ({
+                  appStoreMutate((_state) => ({
                     currentThreadId: null,
                     threadMentions: {},
                   }));
                   // Force navigation with window.location for reliable new chat
-                  window.location.href = '/';
+                  window.location.href = "/";
                 }}
               >
                 <SidebarMenuButton

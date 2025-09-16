@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Download, Copy, Music, Play, Pause } from "lucide-react";
 import { JsonViewPopup } from "../json-view-popup";
 import { toast } from "sonner";
+import Image from "next/image";
 
 // Music generation component props interface
 export interface MusicGenerationProps {
@@ -33,36 +34,51 @@ export interface MusicGenerationProps {
 }
 
 export function MusicGeneration(props: MusicGenerationProps) {
-  const { success, audioUrl, spectrogramUrl, prompt, negativePrompt, modelVersion, steps, guidanceScale, seed, model, predictionId, message, error, solution } = props;
+  const {
+    success,
+    audioUrl,
+    spectrogramUrl,
+    prompt,
+    negativePrompt,
+    modelVersion,
+    steps,
+    guidanceScale,
+    seed,
+    model,
+    predictionId,
+    message,
+    error,
+    solution,
+  } = props;
   const [isPlaying, setIsPlaying] = React.useState(false);
   const audioRef = React.useRef<HTMLAudioElement>(null);
 
   const handleDownload = React.useCallback(() => {
     if (!audioUrl) return;
-    
-    const link = document.createElement('a');
+
+    const link = document.createElement("a");
     link.href = audioUrl;
     link.download = `generated-music-${Date.now()}.mp3`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success('Music file downloaded successfully');
+    toast.success("Music file downloaded successfully");
   }, [audioUrl]);
 
   const handleCopyUrl = React.useCallback(async () => {
     if (!audioUrl) return;
-    
+
     try {
       await navigator.clipboard.writeText(audioUrl);
-      toast.success('Music URL copied to clipboard');
+      toast.success("Music URL copied to clipboard");
     } catch (_err) {
-      toast.error('Failed to copy URL');
+      toast.error("Failed to copy URL");
     }
   }, [audioUrl]);
 
   const togglePlayback = React.useCallback(() => {
     if (!audioRef.current) return;
-    
+
     if (isPlaying) {
       audioRef.current.pause();
     } else {
@@ -77,7 +93,7 @@ export function MusicGeneration(props: MusicGenerationProps) {
 
   const handleAudioError = React.useCallback(() => {
     setIsPlaying(false);
-    toast.error('Failed to play audio file');
+    toast.error("Failed to play audio file");
   }, []);
 
   if (!success || !audioUrl) {
@@ -92,7 +108,8 @@ export function MusicGeneration(props: MusicGenerationProps) {
             </div>
           </CardTitle>
           <CardDescription className="text-center">
-            Prompt: &ldquo;{prompt.substring(0, 100)}{prompt.length > 100 ? '...' : ''}&rdquo;
+            Prompt: &ldquo;{prompt.substring(0, 100)}
+            {prompt.length > 100 ? "..." : ""}&rdquo;
           </CardDescription>
         </CardHeader>
         <CardContent className="flex-1 pb-6">
@@ -120,11 +137,13 @@ export function MusicGeneration(props: MusicGenerationProps) {
           </div>
         </CardTitle>
         <CardDescription className="text-center">
-          &ldquo;{prompt.substring(0, 150)}{prompt.length > 150 ? '...' : ''}&rdquo;
+          &ldquo;{prompt.substring(0, 150)}
+          {prompt.length > 150 ? "..." : ""}&rdquo;
         </CardDescription>
         {model && (
           <div className="text-xs text-muted-foreground text-center">
-            Model: {model} ({modelVersion}) • Steps: {steps} • Guidance: {guidanceScale} {seed && `• Seed: ${seed}`}
+            Model: {model} ({modelVersion}) • Steps: {steps} • Guidance:{" "}
+            {guidanceScale} {seed && `• Seed: ${seed}`}
           </div>
         )}
       </CardHeader>
@@ -132,7 +151,7 @@ export function MusicGeneration(props: MusicGenerationProps) {
         <div className="flex flex-col items-center space-y-4">
           {/* Audio Player */}
           <div className="w-full max-w-md">
-            <audio 
+            <audio
               ref={audioRef}
               src={audioUrl}
               onEnded={handleAudioEnded}
@@ -141,7 +160,7 @@ export function MusicGeneration(props: MusicGenerationProps) {
               controls
             />
           </div>
-          
+
           {/* Play/Pause Button */}
           <Button
             variant="default"
@@ -183,31 +202,37 @@ export function MusicGeneration(props: MusicGenerationProps) {
               Copy URL
             </Button>
           </div>
-          
+
           {/* Spectrogram Display */}
           {spectrogramUrl && (
             <div className="w-full max-w-md">
               <div className="bg-muted/50 rounded-lg p-4 text-center">
-                <div className="text-sm font-medium text-muted-foreground mb-2">Visual Spectrogram</div>
-                <img 
-                  src={spectrogramUrl} 
-                  alt="Music spectrogram visualization" 
+                <div className="text-sm font-medium text-muted-foreground mb-2">
+                  Visual Spectrogram
+                </div>
+                <Image
+                  src={spectrogramUrl}
+                  alt="Music spectrogram visualization"
+                  width={400}
+                  height={200}
                   className="w-full h-auto rounded-md border"
                 />
               </div>
             </div>
           )}
-          
+
           {/* Prompt Display */}
           <div className="w-full max-w-md">
             <div className="bg-muted/50 rounded-lg p-4 text-center">
-              <div className="text-sm font-medium text-muted-foreground mb-2">Music Description</div>
-              <div className="text-sm leading-relaxed">
-                {prompt}
+              <div className="text-sm font-medium text-muted-foreground mb-2">
+                Music Description
               </div>
+              <div className="text-sm leading-relaxed">{prompt}</div>
               {negativePrompt && negativePrompt !== "low quality, gentle" && (
                 <>
-                  <div className="text-sm font-medium text-muted-foreground mb-1 mt-3">Avoided</div>
+                  <div className="text-sm font-medium text-muted-foreground mb-1 mt-3">
+                    Avoided
+                  </div>
                   <div className="text-xs text-muted-foreground italic">
                     {negativePrompt}
                   </div>
@@ -216,13 +241,13 @@ export function MusicGeneration(props: MusicGenerationProps) {
             </div>
           </div>
         </div>
-        
+
         {message && (
           <div className="text-sm text-muted-foreground mt-4 text-center">
             {message}
           </div>
         )}
-        
+
         {predictionId && (
           <div className="text-xs text-muted-foreground mt-2 text-center">
             Prediction ID: {predictionId}

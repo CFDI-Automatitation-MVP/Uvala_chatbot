@@ -74,6 +74,7 @@ import { useTranslations } from "next-intl";
 import { Editor } from "@tiptap/react";
 import { WorkflowSummary } from "app-types/workflow";
 import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
+import Image from "next/image";
 import equal from "lib/equal";
 import { DefaultToolName } from "lib/ai/tools";
 import { DefaultToolIcon } from "./default-tool-icon";
@@ -175,9 +176,7 @@ export default function PromptInput({
           if ((event.results[i] as any).isFinal) {
             const transcript = event.results[i][0].transcript.trim();
             if (transcript) {
-              const newInput = input
-                ? `${input} ${transcript}`
-                : transcript;
+              const newInput = input ? `${input} ${transcript}` : transcript;
               setInput(newInput);
               processedCount = i + 1;
             }
@@ -573,42 +572,44 @@ export default function PromptInput({
 
                 {setModel && (
                   <SelectModel onSelect={setChatModel} currentModel={chatModel}>
-                  <Button
-                    variant={"ghost"}
-                    size={"sm"}
-                    className="rounded-full group data-[state=open]:bg-input! hover:bg-input! mr-1"
-                    data-testid="model-selector-button"
-                  >
-                    <img
-                      src="/uvala-white-log.svg"
-                      alt="Uvala"
-                      className="size-4 opacity-100 group-data-[state=open]:opacity-50 group-hover:opacity-50 mr-1"
-                    />
-                    {chatModel?.model ? (
-                      <>
-                        {chatModel.provider === "openai" ? (
-                          <OpenAIIcon className="size-3 opacity-0 group-data-[state=open]:opacity-100 group-hover:opacity-100" />
-                        ) : chatModel.provider === "xai" ? (
-                          <GrokIcon className="size-3 opacity-0 group-data-[state=open]:opacity-100 group-hover:opacity-100" />
-                        ) : chatModel.provider === "anthropic" ? (
-                          <ClaudeIcon className="size-3 opacity-0 group-data-[state=open]:opacity-100 group-hover:opacity-100" />
-                        ) : chatModel.provider === "google" ? (
-                          <GeminiIcon className="size-3 opacity-0 group-data-[state=open]:opacity-100 group-hover:opacity-100" />
-                        ) : null}
-                        <span
-                          className="text-foreground group-data-[state=open]:text-foreground  "
-                          data-testid="selected-model-name"
-                        >
-                          {chatModel.model}
-                        </span>
-                      </>
-                    ) : (
-                      <span className="text-muted-foreground">model</span>
-                    )}
+                    <Button
+                      variant={"ghost"}
+                      size={"sm"}
+                      className="rounded-full group data-[state=open]:bg-input! hover:bg-input! mr-1"
+                      data-testid="model-selector-button"
+                    >
+                      <Image
+                        src="/uvala-white-log.svg"
+                        alt="Uvala"
+                        width={16}
+                        height={16}
+                        className="size-4 opacity-100 group-data-[state=open]:opacity-50 group-hover:opacity-50 mr-1"
+                      />
+                      {chatModel?.model ? (
+                        <>
+                          {chatModel.provider === "openai" ? (
+                            <OpenAIIcon className="size-3 opacity-0 group-data-[state=open]:opacity-100 group-hover:opacity-100" />
+                          ) : chatModel.provider === "xai" ? (
+                            <GrokIcon className="size-3 opacity-0 group-data-[state=open]:opacity-100 group-hover:opacity-100" />
+                          ) : chatModel.provider === "anthropic" ? (
+                            <ClaudeIcon className="size-3 opacity-0 group-data-[state=open]:opacity-100 group-hover:opacity-100" />
+                          ) : chatModel.provider === "google" ? (
+                            <GeminiIcon className="size-3 opacity-0 group-data-[state=open]:opacity-100 group-hover:opacity-100" />
+                          ) : null}
+                          <span
+                            className="text-foreground group-data-[state=open]:text-foreground  "
+                            data-testid="selected-model-name"
+                          >
+                            {chatModel.model}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-muted-foreground">model</span>
+                      )}
 
-                    <ChevronDown className="size-3" />
-                  </Button>
-                </SelectModel>
+                      <ChevronDown className="size-3" />
+                    </Button>
+                  </SelectModel>
                 )}
                 {!isLoading &&
                 !input.length &&

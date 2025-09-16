@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { FileIcon, Download, ExternalLink } from "lucide-react";
+import { FileIcon, Download } from "lucide-react";
 import { Button } from "ui/button";
 import { cn } from "lib/utils";
 import { UIMessage } from "@ai-sdk/react";
@@ -83,9 +83,11 @@ export const MessagePartRenderer = memo(function MessagePartRenderer({
           )}
         >
           <div className="flex-shrink-0">
-            <img
+            <Image
               src={fileUrl}
               alt={fileName}
+              width={48}
+              height={48}
               className="w-12 h-12 object-cover rounded border"
             />
           </div>

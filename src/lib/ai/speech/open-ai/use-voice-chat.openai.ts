@@ -205,7 +205,7 @@ export function useOpenAIVoiceChat(
       args,
       id,
     }: { callId: string; toolName: string; args: string; id: string }) => {
-      let toolResult: any = "success";
+      const toolResult: any = "success";
       stopListening();
       const toolArgs = JSON.parse(args);
       if (DEFAULT_VOICE_TOOLS.some((t) => t.name === toolName)) {

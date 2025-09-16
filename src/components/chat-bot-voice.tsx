@@ -53,7 +53,7 @@ import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "ui/dialog";
 import JsonView from "ui/json-view";
 import { isShortcutEvent, Shortcuts } from "lib/keyboard-shortcuts";
 
-const prependTools = [
+const _prependTools = [
   {
     id: "Browser",
     name: "Browser",
@@ -233,7 +233,6 @@ export function ChatBotVoice() {
                 </Tooltip>
               </div>
               <DrawerTitle className="flex items-center gap-2 w-full">
-
                 <div className="flex-1" />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

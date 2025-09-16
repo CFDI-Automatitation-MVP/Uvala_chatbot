@@ -2,7 +2,8 @@
 
 import { useRef, useState } from "react";
 import { Button } from "ui/button";
-import { PlusIcon, Loader, FileIcon, ImageIcon, X } from "lucide-react";
+import Image from "next/image";
+import { PlusIcon, Loader, FileIcon, X } from "lucide-react";
 import { toast } from "sonner";
 import { validateFile, getFileValidation } from "@/lib/file-upload";
 import { cn } from "lib/utils";
@@ -193,10 +194,12 @@ export function AttachmentPreview({
     // Simple image preview - just thumbnail with remove button
     return (
       <div className={cn("relative flex-shrink-0", className)}>
-        <img
+        <Image
           src={attachment.url}
           alt="Preview"
-          className="w-16 h-16 object-cover rounded-lg border"
+          width={64}
+          height={64}
+          className="object-cover rounded-lg border"
         />
         <Button
           variant="ghost"

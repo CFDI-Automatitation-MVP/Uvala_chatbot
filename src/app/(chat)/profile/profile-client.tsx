@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { User, Shield, CreditCard, Settings, X, LogOut } from "lucide-react";
 import { cn } from "lib/utils";
 import { Label } from "ui/label";
@@ -15,7 +16,6 @@ const profileSections = [
   { id: "privacy", icon: Shield, key: "privacy" },
   { id: "billing", icon: CreditCard, key: "billing" },
 ] as const;
-
 
 interface Props {
   session?: {
@@ -84,7 +84,7 @@ export function ProfilePageClient({ session }: Props) {
                       "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-left",
                       isActive
                         ? "bg-primary text-primary-foreground shadow-md"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
                     )}
                   >
                     <Icon className="size-5 flex-shrink-0" />
@@ -114,10 +114,12 @@ export function ProfilePageClient({ session }: Props) {
                     {user ? (
                       <div className="flex items-center gap-3">
                         {user.image ? (
-                          <img
+                          <Image
                             src={user.image}
                             alt={user.name || "User"}
-                            className="w-10 h-10 rounded-full object-cover"
+                            width={40}
+                            height={40}
+                            className="rounded-full object-cover"
                           />
                         ) : (
                           <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white font-semibold text-sm">
@@ -125,8 +127,12 @@ export function ProfilePageClient({ session }: Props) {
                           </div>
                         )}
                         <div className="flex-1">
-                          <div className="font-medium text-foreground">{user.name || "User"}</div>
-                          <div className="text-sm text-muted-foreground">{user.email || "No email"}</div>
+                          <div className="font-medium text-foreground">
+                            {user.name || "User"}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {user.email || "No email"}
+                          </div>
                         </div>
                       </div>
                     ) : (
@@ -156,7 +162,8 @@ export function ProfilePageClient({ session }: Props) {
                     {t("Profile.account")}
                   </h2>
                   <div className="text-muted-foreground">
-                    Account settings and security options will be displayed here.
+                    Account settings and security options will be displayed
+                    here.
                   </div>
                 </div>
               )}
@@ -167,7 +174,8 @@ export function ProfilePageClient({ session }: Props) {
                     {t("Profile.privacy")}
                   </h2>
                   <div className="text-muted-foreground">
-                    Privacy settings and data management options will be displayed here.
+                    Privacy settings and data management options will be
+                    displayed here.
                   </div>
                 </div>
               )}
@@ -178,7 +186,8 @@ export function ProfilePageClient({ session }: Props) {
                     {t("Profile.billing")}
                   </h2>
                   <div className="text-muted-foreground">
-                    Billing information and subscription details will be displayed here.
+                    Billing information and subscription details will be
+                    displayed here.
                   </div>
                 </div>
               )}

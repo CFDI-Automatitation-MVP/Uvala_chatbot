@@ -23,6 +23,7 @@ import { PanelLeft } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "ui/button";
 import { useTheme } from "next-themes";
+import Image from "next/image";
 type SessionUser = {
   id: string;
   email?: string;
@@ -67,13 +68,15 @@ export function AppSidebar({ session }: { session?: { user: SessionUser } }) {
         {/* Logo Container - Bigger than menu icons */}
         <div className="flex items-center justify-center p-2 group-data-[collapsible=icon]:p-1">
           <div className="flex items-center justify-center group-data-[collapsible=icon]:w-16 group-data-[collapsible=icon]:h-16 group-data-[collapsible=icon]:bg-accent/10 group-data-[collapsible=icon]:rounded-lg">
-            <img
+            <Image
               src={
                 theme === "dark"
                   ? "/uvala-white-log.svg"
                   : "/uvala-black-log.svg"
               }
               alt="Uvala"
+              width={32}
+              height={32}
               className="size-8 group-data-[collapsible=icon]:size-12"
             />
             <span className="ml-2 font-bold text-lg group-data-[collapsible=icon]:sr-only">
