@@ -353,7 +353,7 @@ export const SubscriptionSchema = pgTable("subscription", {
   stripeSubscriptionId: text("stripe_subscription_id").notNull().unique(),
   stripePriceId: text("stripe_price_id").notNull(),
   planType: varchar("plan_type", {
-    enum: ["free", "pro", "max"],
+    enum: ["free", "plus", "pro", "max"],
   }).notNull().default("free"),
   status: varchar("status", {
     enum: ["active", "canceled", "incomplete", "incomplete_expired", "past_due", "trialing", "unpaid"],
@@ -376,7 +376,7 @@ export const SubscriptionSchema = pgTable("subscription", {
 export const SubscriptionLimitsSchema = pgTable("subscription_limits", {
   id: uuid("id").primaryKey().notNull().defaultRandom(),
   planType: varchar("plan_type", {
-    enum: ["free", "pro", "max"],
+    enum: ["free", "plus", "pro", "max"],
   }).notNull().unique(),
   maxTokensPerMonth: integer("max_tokens_per_month").notNull().default(0),
   maxApiCallsPerMonth: integer("max_api_calls_per_month").notNull().default(0),

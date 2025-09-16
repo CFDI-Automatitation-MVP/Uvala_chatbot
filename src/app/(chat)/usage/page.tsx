@@ -30,7 +30,7 @@ export default function UsagePage() {
     )
   }
 
-  const isPro = planType === 'pro' && subscription?.status === 'active'
+  const isPaidPlan = ['plus', 'pro', 'max'].includes(planType) && subscription?.status === 'active'
 
   const UsageCard = ({ 
     title, 
@@ -71,7 +71,7 @@ export default function UsagePage() {
         </>
       ) : (
         <p className="text-sm text-gray-600">
-          {current}{unit} used {isPro ? '• Unlimited on Pro plan' : '• No limits on current plan'}
+          {current}{unit} used {isPaidPlan ? '• Unlimited on Pro plan' : '• No limits on current plan'}
         </p>
       )}
       <p className="text-xs text-gray-500 mt-2">{description}</p>
@@ -86,16 +86,16 @@ export default function UsagePage() {
           <p className="text-gray-600 mt-1">Monitor your Uvala usage and limits</p>
         </div>
         <div className="text-right">
-          <Badge variant={isPro ? "default" : "secondary"} className="mb-1">
+          <Badge variant={isPaidPlan ? "default" : "secondary"} className="mb-1">
             {planType.toUpperCase()} PLAN
-            {planType === 'pro' && subscription?.status !== 'active' && ' (INACTIVE)'}
+            {['plus', 'pro', 'max'].includes(planType) && subscription?.status !== 'active' && ' (INACTIVE)'}
           </Badge>
           {subscription?.currentPeriodEnd && (
             <p className="text-sm text-gray-500">
               Resets {formatDistanceToNow(new Date(subscription.currentPeriodEnd), { addSuffix: true })}
             </p>
           )}
-          {planType === 'pro' && subscription?.status !== 'active' && (
+          {['plus', 'pro', 'max'].includes(planType) && subscription?.status !== 'active' && (
             <p className="text-xs text-red-600">
               Limits are not enforced on inactive subscriptions
             </p>
@@ -104,7 +104,7 @@ export default function UsagePage() {
       </div>
 
       {/* Plan-specific information */}
-      {isPro && (
+      {isPaidPlan && (
         <Card className="p-6 bg-blue-50 border-blue-200">
           <h2 className="font-semibold mb-2 text-blue-900">Pro Plan Limits</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -130,7 +130,7 @@ export default function UsagePage() {
       {/* Usage Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Daily Cost */}
-        {isPro && (
+        {isPaidPlan && (
           <UsageCard
             title="Daily LLM Cost"
             icon={<DollarSign className="h-5 w-5 text-green-600" />}
@@ -143,7 +143,7 @@ export default function UsagePage() {
         )}
 
         {/* Monthly Cost */}
-        {isPro && (
+        {isPaidPlan && (
           <UsageCard
             title="Monthly LLM Cost"
             icon={<DollarSign className="h-5 w-5 text-blue-600" />}
@@ -162,7 +162,7 @@ export default function UsagePage() {
           current={usageData?.limits.imageGenerations.used || 0}
           limit={usageData?.limits.imageGenerations.limit ?? null}
           percentage={usageData?.limits.imageGenerations.percentage || 0}
-          description={isPro ? "Monthly limit" : "No limits on your plan"}
+          description={isPaidPlan ? "Monthly limit" : "No limits on your plan"}
         />
 
         {/* Video Generations */}
@@ -172,7 +172,7 @@ export default function UsagePage() {
           current={usageData?.limits.videoGenerations.used || 0}
           limit={usageData?.limits.videoGenerations.limit ?? null}
           percentage={usageData?.limits.videoGenerations.percentage || 0}
-          description={isPro ? "Monthly limit (480p only)" : "No limits on your plan"}
+          description={isPaidPlan ? "Monthly limit (480p only)" : "No limits on your plan"}
         />
 
         {/* Web Searches */}
@@ -182,7 +182,7 @@ export default function UsagePage() {
           current={usageData?.limits.webSearches.used || 0}
           limit={usageData?.limits.webSearches.limit ?? null}
           percentage={usageData?.limits.webSearches.percentage || 0}
-          description={isPro ? "Monthly limit" : "No limits on your plan"}
+          description={isPaidPlan ? "Monthly limit" : "No limits on your plan"}
         />
       </div>
 

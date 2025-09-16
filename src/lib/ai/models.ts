@@ -10,6 +10,9 @@ import { ChatModel } from "app-types/chat";
 
 const staticModels = {
   "Great for all your tasks": {
+    "uvala-everest": openai("gpt-5-mini-2025-08-07"),
+  },
+  "Fast & Direct": {
     "uvala-fuji": openai("gpt-5-mini-2025-08-07"),
   },
 };
@@ -52,7 +55,7 @@ export const isToolCallUnsupportedModel = (model: LanguageModel) => {
   return allUnsupportedModels.has(model);
 };
 
-const fallbackModel = staticModels["Great for all your tasks"]["uvala-fuji"];
+const fallbackModel = staticModels["Great for all your tasks"]["uvala-everest"];
 
 export const customModelProvider = {
   // Only expose public models in UI

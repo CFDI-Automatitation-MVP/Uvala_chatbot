@@ -52,7 +52,7 @@ export const generateVideoTool = createTool({
       .default(false)
       .describe("Disable safety checker (use with caution)")
   }),
-  execute: async ({ 
+  execute: async ({
     prompt,
     image,
     negative_prompt,

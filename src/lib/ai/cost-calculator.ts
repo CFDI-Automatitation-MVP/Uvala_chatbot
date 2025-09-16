@@ -16,10 +16,10 @@ export const MODEL_PRICING = {
     reasoning: 2.00,
   },
   "openai/gpt-5-nano": {
-    input: 0.25,
-    output: 2.00,
-    cachedInput: 0.025,
-    reasoning: 2.00,
+    input: 0.05,
+    output: 0.40,
+    cachedInput: 0.005,
+    reasoning: 0.40,
   },
   
   // OpenAI GPT-4.1 models
@@ -267,6 +267,8 @@ function normalizeModelId(modelId: string): string {
   const modelMappings: Record<string, string> = {
     "gpt-5": "openai/gpt-5",
     "gpt-5-mini": "openai/gpt-5-mini",
+    "uvala-fuji": "openai/gpt-5-mini", // Fast model using mini pricing  
+    "uvala-everest": "openai/gpt-5-mini", // Main Uvala model using mini pricing
     "uvala-fuji-micro": "openai/gpt-5-nano", // Internal mapping only
     "gpt-4.1": "openai/gpt-4.1",
     "gpt-4.1-mini": "openai/gpt-4.1-mini",

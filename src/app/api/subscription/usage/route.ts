@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     // Get user's subscription
     const subscription = await subscriptionRepository.getUserActiveSubscription(session.user.id)
     const planType = subscription?.planType || 'free'
-    const isActivePro = subscription?.planType === 'pro' && isSubscriptionActive(subscription)
+    const isActivePaidPlan = subscription && ['plus', 'pro', 'max'].includes(subscription.planType) && isSubscriptionActive(subscription)
     const limits = PLAN_LIMITS[planType]
 
     // Get current usage data
@@ -39,37 +39,37 @@ export async function GET(request: NextRequest) {
         currentPeriodEnd: subscription?.currentPeriodEnd,
       },
       limits: {
-        // LLM Usage (cost-based for Pro)
+        // LLM Usage (cost-based for paid plans)
         dailyCost: {
           used: currentDaily,
-          limit: isActivePro ? 0.05 : null,
-          remaining: isActivePro ? Math.max(0, 0.05 - currentDaily) : null,
-          percentage: isActivePro ? Math.min(100, (currentDaily / 0.05) * 100) : 0,
+          limit: isActivePaidPlan ? limits.maxDailyCostUSD : null,
+          remaining: isActivePaidPlan ? Math.max(0, limits.maxDailyCostUSD - currentDaily) : null,
+          percentage: isActivePaidPlan ? Math.min(100, (currentDaily / limits.maxDailyCostUSD) * 100) : 0,
         },
         monthlyCost: {
           used: currentMonthly,
-          limit: isActivePro ? 1.50 : null,
-          remaining: isActivePro ? Math.max(0, 1.50 - currentMonthly) : null,
-          percentage: isActivePro ? Math.min(100, (currentMonthly / 1.50) * 100) : 0,
+          limit: isActivePaidPlan ? limits.maxMonthlyCostUSD : null,
+          remaining: isActivePaidPlan ? Math.max(0, limits.maxMonthlyCostUSD - currentMonthly) : null,
+          percentage: isActivePaidPlan ? Math.min(100, (currentMonthly / limits.maxMonthlyCostUSD) * 100) : 0,
         },
-        // Tool Usage (count-based for active Pro users only)
+        // Tool Usage (count-based for active paid users)
         imageGenerations: {
           used: monthlyUsage?.imageGenerationsCount || 0,
-          limit: isActivePro ? 10 : null,
-          remaining: isActivePro ? Math.max(0, 10 - (monthlyUsage?.imageGenerationsCount || 0)) : null,
-          percentage: isActivePro ? Math.min(100, ((monthlyUsage?.imageGenerationsCount || 0) / 10) * 100) : 0,
+          limit: isActivePaidPlan ? limits.maxImageGenerationsPerMonth : null,
+          remaining: isActivePaidPlan ? Math.max(0, limits.maxImageGenerationsPerMonth - (monthlyUsage?.imageGenerationsCount || 0)) : null,
+          percentage: isActivePaidPlan ? Math.min(100, ((monthlyUsage?.imageGenerationsCount || 0) / limits.maxImageGenerationsPerMonth) * 100) : 0,
         },
         videoGenerations: {
           used: monthlyUsage?.videoGenerationsCount || 0,
-          limit: isActivePro ? 2 : null,
-          remaining: isActivePro ? Math.max(0, 2 - (monthlyUsage?.videoGenerationsCount || 0)) : null,
-          percentage: isActivePro ? Math.min(100, ((monthlyUsage?.videoGenerationsCount || 0) / 2) * 100) : 0,
+          limit: isActivePaidPlan ? limits.maxVideoGenerationsPerMonth : null,
+          remaining: isActivePaidPlan ? Math.max(0, limits.maxVideoGenerationsPerMonth - (monthlyUsage?.videoGenerationsCount || 0)) : null,
+          percentage: isActivePaidPlan ? Math.min(100, ((monthlyUsage?.videoGenerationsCount || 0) / limits.maxVideoGenerationsPerMonth) * 100) : 0,
         },
         webSearches: {
           used: monthlyUsage?.webSearchesCount || 0,
-          limit: isActivePro ? 40 : null,
-          remaining: isActivePro ? Math.max(0, 40 - (monthlyUsage?.webSearchesCount || 0)) : null,
-          percentage: isActivePro ? Math.min(100, ((monthlyUsage?.webSearchesCount || 0) / 40) * 100) : 0,
+          limit: isActivePaidPlan ? limits.maxWebSearchesPerMonth : null,
+          remaining: isActivePaidPlan ? Math.max(0, limits.maxWebSearchesPerMonth - (monthlyUsage?.webSearchesCount || 0)) : null,
+          percentage: isActivePaidPlan ? Math.min(100, ((monthlyUsage?.webSearchesCount || 0) / limits.maxWebSearchesPerMonth) * 100) : 0,
         },
       },
       usage: {

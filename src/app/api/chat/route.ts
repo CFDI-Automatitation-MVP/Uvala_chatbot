@@ -24,7 +24,6 @@ import {
   excludeToolExecution,
   handleError,
   manualToolExecuteByLastMessage,
-  mergeSystemPrompt,
   extractInProgressToolPart,
   loadWorkFlowTools,
   loadAppDefaultTools,
@@ -38,10 +37,7 @@ import { colorize } from "consola/utils";
 import { generateUUID } from "lib/utils";
 import { trackUsage } from "lib/ai/usage-tracker";
 import { truncateConversation, logTruncationResult } from "lib/ai/context-manager";
-import { checkProUserLimits, formatLimitError } from "@/lib/subscription-limits";
-import { estimateMessageCost } from "@/lib/cost-calculator";
-import { subscriptionRepository } from "@/lib/db/repository";
-import { isSubscriptionActive } from "@/lib/subscription";
+import { checkUserLimits, formatLimitError } from "@/lib/subscription-limits";
 
 const logger = globalLogger.withDefaults({
   message: colorize("blackBright", `Chat API: `),
@@ -163,7 +159,6 @@ export async function POST(request: Request) {
 
         const userPreferences = thread?.userPreferences || undefined;
 
-
         const systemPrompt = buildUserSystemPrompt(session.user, userPreferences, agent);
 
         const vercelAITooles = safe({ ...WORKFLOW_TOOLS })
@@ -205,28 +200,24 @@ export async function POST(request: Request) {
         logger.info(`Messages before conversion (last message parts):`, 
           JSON.stringify(optimizedMessages.slice(-1)[0]?.parts, null, 2));
 
-        // Check Pro user limits before making the API call (only for active Pro subscribers)
-        const subscription = await subscriptionRepository.getUserActiveSubscription(session.user.id);
-        if (subscription?.planType === 'pro' && isSubscriptionActive(subscription)) {
-          // Estimate tokens for this message to check if it would exceed limits
-          const lastUserMessage = optimizedMessages.slice().reverse().find(m => m.role === 'user');
-          if (lastUserMessage) {
-            // Rough token estimation: ~4 chars per token
-            const estimatedInputTokens = Math.ceil(JSON.stringify(lastUserMessage.parts).length / 4);
-            const estimatedOutputTokens = 150; // Conservative estimate for response
-            
-            const limitCheck = await checkProUserLimits(session.user.id, {
-              inputTokens: estimatedInputTokens,
-              outputTokens: estimatedOutputTokens,
-            });
+        // Basic token limit check (without tool predictions)
+        const lastUserMessage = optimizedMessages.slice().reverse().find(m => m.role === 'user');
+        if (lastUserMessage) {
+          // Rough token estimation: ~4 chars per token
+          const estimatedInputTokens = Math.ceil(JSON.stringify(lastUserMessage.parts).length / 4);
+          const estimatedOutputTokens = 150; // Conservative estimate for response
 
-            if (!limitCheck.canProceed) {
-              const errorMessage = formatLimitError(limitCheck);
-              logger.warn(`Pro user ${session.user.id} exceeded limits: ${errorMessage}`);
-              
-              // Throw an error that will be handled by the onError handler
-              throw new Error(`Usage limit exceeded: ${errorMessage}`);
-            }
+          const limitCheck = await checkUserLimits(session.user.id, {
+            inputTokens: estimatedInputTokens,
+            outputTokens: estimatedOutputTokens,
+          });
+
+          if (!limitCheck.canProceed) {
+            const errorMessage = formatLimitError(limitCheck);
+            logger.warn(`User ${session.user.id} exceeded limits: ${errorMessage}`);
+
+            // Throw an error that will be handled by the onError handler
+            throw new Error(`Usage limit exceeded: ${errorMessage}`);
           }
         }
         
@@ -240,6 +231,20 @@ export async function POST(request: Request) {
           stopWhen: stepCountIs(10),
           toolChoice: "auto",
           abortSignal: request.signal,
+          // AI SDK 5 token limit
+          maxOutputTokens: chatModel?.model === "uvala-fuji" ? 2000 : 4000,
+          // GPT-5 optimization settings
+          providerOptions: chatModel?.model === "uvala-fuji" ? {
+            openai: {
+              reasoningEffort: "low",
+              textVerbosity: "medium",
+            },
+          } : {
+            openai: {
+              reasoningEffort: "medium",
+              textVerbosity: "medium",
+            },
+          },
         });
         result.consumeStream();
         dataStream.merge(
@@ -292,15 +297,26 @@ export async function POST(request: Request) {
           let webSearches = 0;
 
           responseMessage.parts.forEach(part => {
-            if (part.type === 'tool-call' && 'toolName' in part) {
-              const toolName = (part as any).toolName || '';
-              // Use exact tool names from DefaultToolName enum
-              if (toolName === 'generateImage' || toolName.toLowerCase().includes('image')) {
-                imageGenerations++;
-              } else if (toolName === 'generateVideo' || toolName.toLowerCase().includes('video')) {
-                videoGenerations++;
-              } else if (toolName === 'webSearch' || toolName === 'webContent' || toolName.toLowerCase().includes('search') || toolName.toLowerCase().includes('web')) {
-                webSearches++;
+            // Check for tool execution parts (type starts with 'tool-')
+            if (part.type && typeof part.type === 'string' && part.type.startsWith('tool-')) {
+              const toolType = part.type;
+              const toolState = (part as any).state;
+              const toolOutput = (part as any).output;
+
+              // Only count successfully executed tools (output-available state)
+              // AND make sure it's not a limit error
+              if (toolState === 'output-available' &&
+                  toolOutput &&
+                  toolOutput.type !== 'limit_exceeded' &&
+                  !toolOutput.error?.includes?.('Usage limit exceeded')) {
+
+                if (toolType === 'tool-generateImage') {
+                  imageGenerations++;
+                } else if (toolType === 'tool-generateVideo') {
+                  videoGenerations++;
+                } else if (toolType === 'tool-webSearch' || toolType === 'tool-webContent') {
+                  webSearches++;
+                }
               }
             }
           });

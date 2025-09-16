@@ -3,15 +3,20 @@ import { ChatModel } from "app-types/chat";
 
 // Context limits for your current model
 const MODEL_CONTEXT_LIMITS = {
-  "Great for all your tasks/uvala-fuji": 128000, // Advanced language model
+  "Great for all your tasks/uvala-everest": 128000, // Advanced language model (GPT-5 Mini)
+  "Fast & Direct/uvala-fuji": 128000, // Fast reasoning model (GPT-5 Mini)
   default: 128000, // Default fallback
 } as const;
 
 // Research-based configuration per model
 const MODEL_CONFIGS = {
-  "Great for all your tasks/uvala-fuji": {
+  "Great for all your tasks/uvala-everest": {
     maxContextRatio: 0.68, // 68% - optimal for large context windows
     reserveTokensForResponse: 6000, // More room for complex responses
+  },
+  "Fast & Direct/uvala-fuji": {
+    maxContextRatio: 0.75, // Higher ratio for faster responses
+    reserveTokensForResponse: 3000, // Less room needed for concise responses
   },
   default: {
     maxContextRatio: 0.7,

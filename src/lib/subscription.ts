@@ -1,6 +1,6 @@
 import { SubscriptionEntity, UserSubscriptionUsageEntity } from '@/lib/db/pg/schema.pg'
 
-export type PlanType = 'free' | 'pro' | 'max'
+export type PlanType = 'free' | 'plus' | 'pro' | 'max'
 export type SubscriptionStatus = 'active' | 'canceled' | 'incomplete' | 'incomplete_expired' | 'past_due' | 'trialing' | 'unpaid'
 
 export interface PlanLimits {
@@ -27,38 +27,78 @@ export interface PlanLimits {
 
 export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
   free: {
-    maxTokensPerMonth: 50000, // 50K tokens per month
-    maxApiCallsPerMonth: 100,
+    maxTokensPerMonth: 135000, // 4,500 tokens/day * 30 days
+    maxTokensPerDay: 4500, // From tier image
+    maxApiCallsPerMonth: 300, // Estimated based on token usage
     maxToolCallsPerMonth: 50,
+    // Tool-specific limits from tier image
+    maxImageGenerationsPerMonth: 2, // Flux images
+    maxVideoGenerationsPerMonth: 1, // Wan videos  
+    maxWebSearchesPerMonth: 10, // Exa web searches
+    // Cost limits
+    maxDailyCostUSD: 0.01, // Conservative for free tier
+    maxMonthlyCostUSD: 0.30,
+    allowedVideoQualities: ['480p', '720p', '1080p'],
+    // Features
     hasFileUploads: false,
     hasAdvancedFeatures: false,
     hasApiAccess: false,
     hasPrioritySupport: false,
   },
-  pro: {
-    maxTokensPerMonth: 1100000, // 1.1M tokens per month (based on $1.50 budget)
-    maxTokensPerDay: 37000, // ~37K tokens per day (based on $0.05 budget)
-    maxApiCallsPerMonth: 850, // ~850 messages per month
-    maxApiCallsPerDay: 28, // ~28 messages per day
+  plus: {
+    maxTokensPerMonth: 1110000, // 37,000 tokens/day * 30 days  
+    maxTokensPerDay: 37000, // From tier image
+    maxApiCallsPerMonth: 850, // Estimated based on token usage
+    maxApiCallsPerDay: 28,
     maxToolCallsPerMonth: 1000,
-    // Cost limits - LLM usage based on cost only
-    maxDailyCostUSD: 0.05, // $0.05 per day
-    maxMonthlyCostUSD: 1.50, // $1.50 per month
-    // Tool-specific limits
-    maxImageGenerationsPerMonth: 10, // 10 images
-    maxVideoGenerationsPerMonth: 2, // 2 videos
-    maxWebSearchesPerMonth: 40, // 40 EXA searches
-    allowedVideoQualities: ['480p'], // Only 480p quality, no 720p
+    // Tool-specific limits from tier image
+    maxImageGenerationsPerMonth: 15, // Flux images
+    maxVideoGenerationsPerMonth: 2, // Wan videos
+    maxWebSearchesPerMonth: 80, // Exa web searches
+    // Cost limits
+    maxDailyCostUSD: 0.05,
+    maxMonthlyCostUSD: 1.50,
+    allowedVideoQualities: ['480p', '720p', '1080p'],
     // Features
     hasFileUploads: true,
     hasAdvancedFeatures: true,
     hasApiAccess: false,
     hasPrioritySupport: false,
   },
+  pro: {
+    maxTokensPerMonth: 1350000, // 45,000 tokens/day * 30 days
+    maxTokensPerDay: 45000, // From tier image
+    maxApiCallsPerMonth: 1200, // Estimated based on token usage
+    maxApiCallsPerDay: 40,
+    maxToolCallsPerMonth: 2000,
+    // Tool-specific limits from tier image  
+    maxImageGenerationsPerMonth: 25, // Flux images
+    maxVideoGenerationsPerMonth: 8, // Wan videos
+    maxWebSearchesPerMonth: 120, // Exa web searches
+    // Cost limits
+    maxDailyCostUSD: 0.10,
+    maxMonthlyCostUSD: 3.00,
+    allowedVideoQualities: ['480p', '720p'],
+    // Features
+    hasFileUploads: true,
+    hasAdvancedFeatures: true,
+    hasApiAccess: true,
+    hasPrioritySupport: true,
+  },
   max: {
-    maxTokensPerMonth: 5000000, // 5M tokens per month
+    maxTokensPerMonth: 1830000, // 61,000 tokens/day * 30 days
+    maxTokensPerDay: 61000, // From tier image
     maxApiCallsPerMonth: 10000,
     maxToolCallsPerMonth: 5000,
+    // Tool-specific limits from tier image
+    maxImageGenerationsPerMonth: 40, // Flux images
+    maxVideoGenerationsPerMonth: 20, // Wan videos
+    maxWebSearchesPerMonth: 250, // Exa web searches
+    // Cost limits
+    maxDailyCostUSD: 0.20,
+    maxMonthlyCostUSD: 6.00,
+    allowedVideoQualities: ['480p', '720p', '1080p'],
+    // Features
     hasFileUploads: true,
     hasAdvancedFeatures: true,
     hasApiAccess: true,
@@ -68,10 +108,15 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
 
 export function getPlanTypeFromPriceId(priceId: string): PlanType {
   const priceIdMap: Record<string, PlanType> = {
-    'price_1S4o7A1pY9V37Up5u2I6dxIL': 'pro', // Pro USD
-    'price_1S4o7G1pY9V37Up5qN2yNxCt': 'pro', // Pro MXN
+    // Current "pro" price IDs now map to "plus"
+    'price_1S4o7A1pY9V37Up5u2I6dxIL': 'plus', // Plus USD (formerly Pro)
+    'price_1S4o7G1pY9V37Up5qN2yNxCt': 'plus', // Plus MXN (formerly Pro)
+    // Max tier price IDs remain the same
     'price_1S4o7U1pY9V37Up5PUtup870': 'max', // Max USD
     'price_1S4o7a1pY9V37Up5AeSbRFSs': 'max', // Max MXN
+    // New Pro tier price IDs (to be created in Stripe)
+    // 'price_NEW_PRO_USD': 'pro', // New Pro USD (to be added)
+    // 'price_NEW_PRO_MXN': 'pro', // New Pro MXN (to be added)
   }
   
   return priceIdMap[priceId] || 'free'

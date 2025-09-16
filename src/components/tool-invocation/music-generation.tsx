@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
 
 import {
   Card,
@@ -11,23 +10,20 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, Copy, Video, Play, Pause } from "lucide-react";
+import { Download, Copy, Music, Play, Pause } from "lucide-react";
 import { JsonViewPopup } from "../json-view-popup";
 import { toast } from "sonner";
 
-// Video generation component props interface
-export interface VideoGenerationProps {
+// Music generation component props interface
+export interface MusicGenerationProps {
   success: boolean;
-  videoUrl?: string;
-  inputImage?: string;
+  audioUrl?: string;
+  spectrogramUrl?: string;
   prompt: string;
   negativePrompt?: string;
-  resolution?: string;
-  aspectRatio?: string;
-  numFrames?: number;
-  frameRate?: number;
-  duration?: string;
-  sampleShift?: number;
+  modelVersion?: string;
+  steps?: number;
+  guidanceScale?: number;
   seed?: number;
   model?: string;
   predictionId?: string;
@@ -36,75 +32,67 @@ export interface VideoGenerationProps {
   solution?: string;
 }
 
-export function VideoGeneration(props: VideoGenerationProps) {
-  const { success, videoUrl, inputImage, prompt, negativePrompt, resolution, aspectRatio, numFrames, frameRate, duration, sampleShift, seed, model, predictionId, message, error, solution } = props;
+export function MusicGeneration(props: MusicGenerationProps) {
+  const { success, audioUrl, spectrogramUrl, prompt, negativePrompt, modelVersion, steps, guidanceScale, seed, model, predictionId, message, error, solution } = props;
   const [isPlaying, setIsPlaying] = React.useState(false);
-  const videoRef = React.useRef<HTMLVideoElement>(null);
+  const audioRef = React.useRef<HTMLAudioElement>(null);
 
   const handleDownload = React.useCallback(() => {
-    if (!videoUrl) return;
+    if (!audioUrl) return;
     
     const link = document.createElement('a');
-    link.href = videoUrl;
-    link.download = `generated-video-${Date.now()}.mp4`;
+    link.href = audioUrl;
+    link.download = `generated-music-${Date.now()}.mp3`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success('Video downloaded successfully');
-  }, [videoUrl]);
+    toast.success('Music file downloaded successfully');
+  }, [audioUrl]);
 
   const handleCopyUrl = React.useCallback(async () => {
-    if (!videoUrl) return;
+    if (!audioUrl) return;
     
     try {
-      await navigator.clipboard.writeText(videoUrl);
-      toast.success('Video URL copied to clipboard');
+      await navigator.clipboard.writeText(audioUrl);
+      toast.success('Music URL copied to clipboard');
     } catch (_err) {
       toast.error('Failed to copy URL');
     }
-  }, [videoUrl]);
+  }, [audioUrl]);
 
   const togglePlayback = React.useCallback(() => {
-    if (!videoRef.current) return;
+    if (!audioRef.current) return;
     
     if (isPlaying) {
-      videoRef.current.pause();
+      audioRef.current.pause();
     } else {
-      videoRef.current.play();
+      audioRef.current.play();
     }
     setIsPlaying(!isPlaying);
   }, [isPlaying]);
 
-  const handleVideoPlay = React.useCallback(() => {
-    setIsPlaying(true);
-  }, []);
-
-  const handleVideoPause = React.useCallback(() => {
+  const handleAudioEnded = React.useCallback(() => {
     setIsPlaying(false);
   }, []);
 
-  const handleVideoEnded = React.useCallback(() => {
+  const handleAudioError = React.useCallback(() => {
     setIsPlaying(false);
+    toast.error('Failed to play audio file');
   }, []);
 
-  const handleVideoError = React.useCallback(() => {
-    setIsPlaying(false);
-    toast.error('Failed to play video file');
-  }, []);
-
-  if (!success || !videoUrl) {
+  if (!success || !audioUrl) {
     return (
       <Card className="flex flex-col bg-destructive/10 border-destructive">
         <CardHeader className="items-center pb-0 flex flex-col gap-2 relative">
           <CardTitle className="flex items-center text-destructive">
-            <Video className="w-5 h-5 mr-2" />
-            Video Generation Failed
+            <Music className="w-5 h-5 mr-2" />
+            Music Generation Failed
             <div className="absolute right-4 top-4">
               <JsonViewPopup data={props} />
             </div>
           </CardTitle>
           <CardDescription className="text-center">
-            Prompt: &ldquo;{prompt ? prompt.substring(0, 100) : 'No prompt provided'}{prompt && prompt.length > 100 ? '...' : ''}&rdquo;
+            Prompt: &ldquo;{prompt.substring(0, 100)}{prompt.length > 100 ? '...' : ''}&rdquo;
           </CardDescription>
         </CardHeader>
         <CardContent className="flex-1 pb-6">
@@ -125,36 +113,32 @@ export function VideoGeneration(props: VideoGenerationProps) {
     <Card className="flex flex-col bg-card">
       <CardHeader className="items-center pb-0 flex flex-col gap-2 relative">
         <CardTitle className="flex items-center">
-          <Video className="w-5 h-5 mr-2" />
-          Generated Video
+          <Music className="w-5 h-5 mr-2" />
+          Generated Music
           <div className="absolute right-4 top-4">
             <JsonViewPopup data={props} />
           </div>
         </CardTitle>
         <CardDescription className="text-center">
-          &ldquo;{prompt ? prompt.substring(0, 150) : 'No prompt provided'}{prompt && prompt.length > 150 ? '...' : ''}&rdquo;
+          &ldquo;{prompt.substring(0, 150)}{prompt.length > 150 ? '...' : ''}&rdquo;
         </CardDescription>
         {model && (
           <div className="text-xs text-muted-foreground text-center">
-            Model: {model} • {resolution} {aspectRatio} • {numFrames} frames @ {frameRate}fps • Duration: {duration} {seed && `• Seed: ${seed}`}
+            Model: {model} ({modelVersion}) • Steps: {steps} • Guidance: {guidanceScale} {seed && `• Seed: ${seed}`}
           </div>
         )}
       </CardHeader>
       <CardContent className="flex-1 pb-6">
         <div className="flex flex-col items-center space-y-4">
-          {/* Video Player */}
-          <div className="w-full max-w-2xl">
-            <video 
-              ref={videoRef}
-              src={videoUrl}
-              onPlay={handleVideoPlay}
-              onPause={handleVideoPause}
-              onEnded={handleVideoEnded}
-              onError={handleVideoError}
-              className="w-full h-auto rounded-lg border shadow-sm"
+          {/* Audio Player */}
+          <div className="w-full max-w-md">
+            <audio 
+              ref={audioRef}
+              src={audioUrl}
+              onEnded={handleAudioEnded}
+              onError={handleAudioError}
+              className="w-full"
               controls
-              playsInline
-              preload="metadata"
             />
           </div>
           
@@ -200,18 +184,15 @@ export function VideoGeneration(props: VideoGenerationProps) {
             </Button>
           </div>
           
-          {/* Input Image Display (if provided) */}
-          {inputImage && (
+          {/* Spectrogram Display */}
+          {spectrogramUrl && (
             <div className="w-full max-w-md">
               <div className="bg-muted/50 rounded-lg p-4 text-center">
-                <div className="text-sm font-medium text-muted-foreground mb-2">Input Image</div>
-                <Image
-                  src={inputImage}
-                  alt="Input image used for video generation"
-                  width={300}
-                  height={200}
-                  className="w-full h-auto rounded-md border object-contain max-h-48"
-                  unoptimized
+                <div className="text-sm font-medium text-muted-foreground mb-2">Visual Spectrogram</div>
+                <img 
+                  src={spectrogramUrl} 
+                  alt="Music spectrogram visualization" 
+                  className="w-full h-auto rounded-md border"
                 />
               </div>
             </div>
@@ -220,11 +201,11 @@ export function VideoGeneration(props: VideoGenerationProps) {
           {/* Prompt Display */}
           <div className="w-full max-w-md">
             <div className="bg-muted/50 rounded-lg p-4 text-center">
-              <div className="text-sm font-medium text-muted-foreground mb-2">Video Description</div>
+              <div className="text-sm font-medium text-muted-foreground mb-2">Music Description</div>
               <div className="text-sm leading-relaxed">
-                {prompt || 'No prompt provided'}
+                {prompt}
               </div>
-              {negativePrompt && (
+              {negativePrompt && negativePrompt !== "low quality, gentle" && (
                 <>
                   <div className="text-sm font-medium text-muted-foreground mb-1 mt-3">Avoided</div>
                   <div className="text-xs text-muted-foreground italic">
@@ -232,21 +213,6 @@ export function VideoGeneration(props: VideoGenerationProps) {
                   </div>
                 </>
               )}
-            </div>
-          </div>
-
-          {/* Technical Details */}
-          <div className="w-full max-w-md">
-            <div className="bg-muted/50 rounded-lg p-4">
-              <div className="text-sm font-medium text-muted-foreground mb-2 text-center">Technical Details</div>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div><span className="font-medium">Resolution:</span> {resolution}</div>
-                <div><span className="font-medium">Aspect Ratio:</span> {aspectRatio}</div>
-                <div><span className="font-medium">Frames:</span> {numFrames}</div>
-                <div><span className="font-medium">Frame Rate:</span> {frameRate}fps</div>
-                <div><span className="font-medium">Duration:</span> {duration}</div>
-                <div><span className="font-medium">Sample Shift:</span> {sampleShift}</div>
-              </div>
             </div>
           </div>
         </div>

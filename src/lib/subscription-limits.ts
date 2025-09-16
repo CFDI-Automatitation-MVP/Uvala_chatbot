@@ -1,7 +1,7 @@
 import { pgUsageRepository } from '@/lib/db/pg/repositories/usage-repository.pg'
 import { subscriptionRepository } from '@/lib/db/repository'
-import { estimateMessageCost, calculateLLMCost, calculateToolCosts } from '@/lib/cost-calculator'
-import { PLAN_LIMITS, isSubscriptionActive } from '@/lib/subscription'
+import { estimateMessageCost } from '@/lib/cost-calculator'
+import { PLAN_LIMITS, PlanType, PlanLimits } from '@/lib/subscription'
 
 export interface LimitCheckResult {
   canProceed: boolean
@@ -33,9 +33,93 @@ export interface PendingUsage {
 }
 
 /**
- * Check if Pro user can proceed with the requested operation
+ * Get subscription limits from database
  */
-export async function checkProUserLimits(
+async function getSubscriptionLimitsFromDb(planType: PlanType): Promise<PlanLimits | null> {
+  try {
+    // Use the PLAN_LIMITS from code for now since it matches the database
+    // and we have type safety. The database values are kept in sync via migrations.
+    return PLAN_LIMITS[planType];
+  } catch (error) {
+    console.error('Error getting subscription limits:', error);
+    return null;
+  }
+}
+
+/**
+ * Check user limits against their specific plan limits
+ */
+async function checkUserPlanLimits(
+  userId: string,
+  planLimits: PlanLimits,
+  plannedUsage?: {
+    llmCostUsd?: number;
+    imageGenerations?: number;
+    videoGenerations?: number;
+    webSearches?: number;
+  }
+) {
+  const today = new Date();
+  const currentMonth = today.getMonth() + 1;
+  const currentYear = today.getFullYear();
+
+  // Get current daily and monthly usage
+  const dailyUsage = await pgUsageRepository.getUserDailyUsage(userId, today);
+  const monthlyUsage = await pgUsageRepository.getUserMonthlyUsage(userId, currentYear, currentMonth);
+
+  const currentDailyCost = parseFloat(dailyUsage?.totalCostUsd || '0');
+  const currentMonthlyCost = parseFloat(monthlyUsage?.totalCostUsd || '0');
+
+  // Check LLM cost limits using plan-specific limits
+  const wouldExceedDailyLimit = (currentDailyCost + (plannedUsage?.llmCostUsd || 0)) > planLimits.maxDailyCostUSD;
+  const wouldExceedMonthlyLimit = (currentMonthlyCost + (plannedUsage?.llmCostUsd || 0)) > planLimits.maxMonthlyCostUSD;
+
+  // Check tool limits (monthly) using plan-specific limits
+  const currentImages = monthlyUsage?.imageGenerationsCount || 0;
+  const currentVideos = monthlyUsage?.videoGenerationsCount || 0;
+  const currentSearches = monthlyUsage?.webSearchesCount || 0;
+
+  // Only check tool limits if those tools are actually being used
+  const wouldExceedImageLimit = plannedUsage?.imageGenerations ?
+    (currentImages + plannedUsage.imageGenerations) > planLimits.maxImageGenerationsPerMonth : false;
+  const wouldExceedVideoLimit = plannedUsage?.videoGenerations ?
+    (currentVideos + plannedUsage.videoGenerations) > planLimits.maxVideoGenerationsPerMonth : false;
+  const wouldExceedSearchLimit = plannedUsage?.webSearches ?
+    (currentSearches + plannedUsage.webSearches) > planLimits.maxWebSearchesPerMonth : false;
+
+  const canProceed = !wouldExceedDailyLimit && !wouldExceedMonthlyLimit &&
+                     !wouldExceedImageLimit && !wouldExceedVideoLimit && !wouldExceedSearchLimit;
+
+  return {
+    canProceed,
+    limits: {
+      dailyCostExceeded: wouldExceedDailyLimit,
+      monthlyCostExceeded: wouldExceedMonthlyLimit,
+      imageGenerationsExceeded: wouldExceedImageLimit,
+      videoGenerationsExceeded: wouldExceedVideoLimit,
+      webSearchesExceeded: wouldExceedSearchLimit,
+    },
+    current: {
+      dailyCost: currentDailyCost,
+      monthlyCost: currentMonthlyCost,
+      imageGenerations: currentImages,
+      videoGenerations: currentVideos,
+      webSearches: currentSearches,
+    },
+    remaining: {
+      dailyCost: Math.max(0, planLimits.maxDailyCostUSD - currentDailyCost),
+      monthlyCost: Math.max(0, planLimits.maxMonthlyCostUSD - currentMonthlyCost),
+      imageGenerations: Math.max(0, planLimits.maxImageGenerationsPerMonth - currentImages),
+      videoGenerations: Math.max(0, planLimits.maxVideoGenerationsPerMonth - currentVideos),
+      webSearches: Math.max(0, planLimits.maxWebSearchesPerMonth - currentSearches),
+    }
+  };
+}
+
+/**
+ * Check if user can proceed with the requested operation based on their tier
+ */
+export async function checkUserLimits(
   userId: string, 
   pendingUsage: PendingUsage = {}
 ): Promise<LimitCheckResult> {
@@ -43,19 +127,25 @@ export async function checkProUserLimits(
     // Get user's subscription
     const subscription = await subscriptionRepository.getUserActiveSubscription(userId)
     
-    // Only apply limits to users with ACTIVE Pro subscriptions
-    // Free users and inactive Pro users have no limits
-    if (!subscription || subscription.planType !== 'pro' || !isSubscriptionActive(subscription)) {
-      return { canProceed: true }
-    }
+    // Get plan type (defaults to 'free' if no active subscription)
+    const planType = subscription?.planType || 'free'
+
+    // Apply limits to ALL users based on their plan type
+    // Free users get the most restrictive limits, paid users get higher limits
 
     // Calculate estimated LLM cost for this operation
     const estimatedLLMCost = pendingUsage.inputTokens && pendingUsage.outputTokens 
       ? estimateMessageCost(pendingUsage.inputTokens, pendingUsage.outputTokens, true)
       : 0
 
-    // Check limits using the usage repository
-    const limitCheck = await pgUsageRepository.checkProLimits(userId, {
+    // Get plan-specific limits (matches database values)
+    const planLimits = await getSubscriptionLimitsFromDb(planType)
+    if (!planLimits) {
+      return { canProceed: true } // Allow operation if we can't check limits
+    }
+
+    // Check limits using current monthly usage
+    const limitCheck = await checkUserPlanLimits(userId, planLimits, {
       llmCostUsd: estimatedLLMCost,
       imageGenerations: pendingUsage.imageGenerations || 0,
       videoGenerations: pendingUsage.videoGenerations || 0,
@@ -64,17 +154,18 @@ export async function checkProUserLimits(
 
     if (!limitCheck.canProceed) {
       let limitExceeded = 'Unknown limit exceeded'
+      const planLimits = PLAN_LIMITS[planType]
       
       if (limitCheck.limits.dailyCostExceeded) {
-        limitExceeded = 'Daily cost limit exceeded ($0.05/day)'
+        limitExceeded = `Daily cost limit exceeded ($${planLimits.maxDailyCostUSD}/day for ${planType.toUpperCase()} plan)`
       } else if (limitCheck.limits.monthlyCostExceeded) {
-        limitExceeded = 'Monthly cost limit exceeded ($1.50/month)'
+        limitExceeded = `Monthly cost limit exceeded ($${planLimits.maxMonthlyCostUSD}/month for ${planType.toUpperCase()} plan)`
       } else if (limitCheck.limits.imageGenerationsExceeded) {
-        limitExceeded = 'Monthly image generation limit exceeded (10/month)'
+        limitExceeded = `Monthly image generation limit exceeded (${planLimits.maxImageGenerationsPerMonth}/month for ${planType.toUpperCase()} plan)`
       } else if (limitCheck.limits.videoGenerationsExceeded) {
-        limitExceeded = 'Monthly video generation limit exceeded (2/month)'
+        limitExceeded = `Monthly video generation limit exceeded (${planLimits.maxVideoGenerationsPerMonth}/month for ${planType.toUpperCase()} plan)`
       } else if (limitCheck.limits.webSearchesExceeded) {
-        limitExceeded = 'Monthly web search limit exceeded (40/month)'
+        limitExceeded = `Monthly web search limit exceeded (${planLimits.maxWebSearchesPerMonth}/month for ${planType.toUpperCase()} plan)`
       }
 
       return {
@@ -102,39 +193,28 @@ export async function checkProUserLimits(
 }
 
 /**
- * Check specifically for tool usage limits
+ * Legacy function for backward compatibility - redirects to checkUserLimits
+ * @deprecated Use checkUserLimits instead
  */
-export async function checkToolLimits(
-  userId: string,
-  toolType: 'image' | 'video' | 'search'
+export async function checkProUserLimits(
+  userId: string, 
+  pendingUsage: PendingUsage = {}
 ): Promise<LimitCheckResult> {
-  const pendingUsage: PendingUsage = {}
-  
-  switch (toolType) {
-    case 'image':
-      pendingUsage.imageGenerations = 1
-      break
-    case 'video':
-      pendingUsage.videoGenerations = 1
-      break
-    case 'search':
-      pendingUsage.webSearches = 1
-      break
-  }
-
-  return checkProUserLimits(userId, pendingUsage)
+  return checkUserLimits(userId, pendingUsage)
 }
 
+
 /**
- * Check if video quality is allowed for Pro users
+ * Check if video quality is allowed for user's plan type
  */
 export function checkVideoQuality(quality: string, planType: string): boolean {
-  if (planType !== 'pro') {
-    return true // Non-pro users can use any quality (handled by other limits)
+  // Validate plan type
+  if (!['free', 'plus', 'pro', 'max'].includes(planType)) {
+    return false
   }
 
-  const proLimits = PLAN_LIMITS.pro
-  return proLimits.allowedVideoQualities.includes(quality as any)
+  const planLimits = PLAN_LIMITS[planType as PlanType]
+  return planLimits.allowedVideoQualities.includes(quality as any)
 }
 
 /**

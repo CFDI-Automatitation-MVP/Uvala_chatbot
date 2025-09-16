@@ -34,11 +34,10 @@ import { createWorkflowExecutor } from "lib/ai/workflow/executor/workflow-execut
 import { NodeKind } from "lib/ai/workflow/workflow.interface";
 import { APP_DEFAULT_TOOL_KIT } from "lib/ai/tools/tool-kit";
 import { AppDefaultToolkit } from "lib/ai/tools";
-import { checkToolLimits, formatLimitError, checkVideoQuality } from "@/lib/subscription-limits";
-import { subscriptionRepository } from "@/lib/db/repository";
-import { isSubscriptionActive } from "@/lib/subscription";
-
-
+import {
+  checkUserLimits,
+  formatLimitError,
+} from "@/lib/subscription-limits";
 
 export function excludeToolExecution(
   tool: Record<string, Tool>,
@@ -56,65 +55,100 @@ export function excludeToolExecution(
  */
 export function wrapToolsWithLimits(
   tools: Record<string, Tool>,
-  userId: string
+  userId: string,
 ): Record<string, Tool> {
   return objectFlow(tools).map((tool, toolName) => {
     const originalExecute = tool.execute;
-    
+
     return createTool({
       inputSchema: tool.inputSchema,
       description: tool.description,
       execute: async (input: any, options: any) => {
         // Check limits based on tool type - using exact tool names from DefaultToolName enum
-        let toolType: 'image' | 'video' | 'search' | null = null;
-        
-        if (toolName === 'generateImage' || toolName.toLowerCase().includes('image')) {
-          toolType = 'image';
-        } else if (toolName === 'generateVideo' || toolName.toLowerCase().includes('video')) {
-          toolType = 'video';
-        } else if (toolName === 'webSearch' || toolName === 'webContent' || toolName.toLowerCase().includes('search') || toolName.toLowerCase().includes('web')) {
-          toolType = 'search';
+        let toolType: "image" | "video" | "search" | null = null;
+
+        if (
+          toolName === "generateImage" ||
+          toolName.toLowerCase().includes("image")
+        ) {
+          toolType = "image";
+        } else if (
+          toolName === "generateVideo" ||
+          toolName.toLowerCase().includes("video")
+        ) {
+          toolType = "video";
+        } else if (
+          toolName === "webSearch" ||
+          toolName === "webContent" ||
+          toolName.toLowerCase().includes("search") ||
+          toolName.toLowerCase().includes("web")
+        ) {
+          toolType = "search";
         }
-        
+
         // If it's a tool with limits, check them
         if (toolType && userId) {
-          const limitCheck = await checkToolLimits(userId, toolType);
-          
-          if (!limitCheck.canProceed) {
-            const errorMessage = formatLimitError(limitCheck);
-            return {
-              error: 'Usage limit exceeded',
-              message: errorMessage,
-              type: 'limit_exceeded'
-            };
+          const pendingUsage: any = {};
+
+          if (toolType === "image") {
+            pendingUsage.imageGenerations = 1;
+          } else if (toolType === "video") {
+            pendingUsage.videoGenerations = 1;
+          } else if (toolType === "search") {
+            pendingUsage.webSearches = 1;
           }
 
-          // Additional check for video quality for active Pro users
-          if (toolType === 'video') {
-            const subscription = await subscriptionRepository.getUserActiveSubscription(userId);
-            if (subscription?.planType === 'pro' && isSubscriptionActive(subscription)) {
-              const resolution = input.resolution || input.quality || '720p';
-              if (!checkVideoQuality(resolution, 'pro')) {
-                return {
-                  error: 'Video quality not allowed',
-                  message: 'Pro plan only supports 480p video quality. Please use 480p instead of 720p.',
-                  type: 'quality_restricted'
-                };
-              }
+          const limitCheck = await checkUserLimits(userId, pendingUsage);
+
+          if (!limitCheck.canProceed) {
+            const errorMessage = formatLimitError(limitCheck);
+
+            // Return properly formatted error that won't be counted in usage tracking
+            if (toolType === "video") {
+              return {
+                success: false,
+                prompt: input?.prompt || "Video generation request",
+                error: "Usage limit exceeded",
+                solution: errorMessage,
+                type: "limit_exceeded",
+              };
+            } else if (toolType === "image") {
+              return {
+                success: false,
+                prompt: input?.prompt || "Image generation request",
+                error: "Usage limit exceeded",
+                solution: errorMessage,
+                type: "limit_exceeded",
+              };
+            } else if (toolType === "search") {
+              return {
+                isError: true,
+                error: "Usage limit exceeded",
+                solution: errorMessage,
+                type: "limit_exceeded",
+              };
             }
+
+            // Fallback for other tools
+            return {
+              error: "Usage limit exceeded",
+              message: errorMessage,
+              type: "limit_exceeded",
+            };
           }
         }
-        
+
         // Execute the original tool with proper parameters
         try {
-          // Check if originalExecute expects options parameter
-          if (originalExecute.length > 1) {
-            return await originalExecute(input, options);
-          } else {
-            return await originalExecute(input);
+          // Check if originalExecute exists and handle parameter requirements
+          if (!originalExecute) {
+            return { error: "Tool execute function not found" };
           }
+
+          // Always pass both input and options parameters
+          return await originalExecute(input, options);
         } catch (error) {
-          return { error: 'Tool execution failed', details: error };
+          return { error: "Tool execution failed", details: error };
         }
       },
     });
@@ -188,7 +222,6 @@ export function extractInProgressToolPart(message: UIMessage): ToolUIPart[] {
       ManualToolConfirmTag.isMaybe(part.output),
   ) as ToolUIPart[];
 }
-
 
 export const workflowToVercelAITool = ({
   id,
@@ -364,7 +397,6 @@ export const workflowToVercelAITools = (
     );
 };
 
-
 export const loadWorkFlowTools = (opt: {
   mentions?: ChatMention[];
   dataStream: UIMessageStreamWriter;
@@ -405,20 +437,29 @@ export const loadAppDefaultTools = (opt?: {
       // Always include ImageGeneration, VideoGeneration, and WebSearch toolkits regardless of user settings
       const toolkitsToInclude = [
         ...allowedAppDefaultToolkit,
-        ...(allowedAppDefaultToolkit.includes(AppDefaultToolkit.ImageGeneration) ? [] : [AppDefaultToolkit.ImageGeneration]),
-        ...(allowedAppDefaultToolkit.includes(AppDefaultToolkit.VideoGeneration) ? [] : [AppDefaultToolkit.VideoGeneration]),
-        ...(allowedAppDefaultToolkit.includes(AppDefaultToolkit.WebSearch) ? [] : [AppDefaultToolkit.WebSearch])
+        ...(allowedAppDefaultToolkit.includes(AppDefaultToolkit.ImageGeneration)
+          ? []
+          : [AppDefaultToolkit.ImageGeneration]),
+        ...(allowedAppDefaultToolkit.includes(AppDefaultToolkit.VideoGeneration)
+          ? []
+          : [AppDefaultToolkit.VideoGeneration]),
+        ...(allowedAppDefaultToolkit.includes(AppDefaultToolkit.WebSearch)
+          ? []
+          : [AppDefaultToolkit.WebSearch]),
       ];
 
-      const loadedTools = toolkitsToInclude.reduce(
-        (acc, key) => {
-          return { ...acc, ...tools[key] };
-        },
-        {} as Record<string, Tool>,
-      ) || {};
+      const loadedTools =
+        toolkitsToInclude.reduce(
+          (acc, key) => {
+            return { ...acc, ...tools[key] };
+          },
+          {} as Record<string, Tool>,
+        ) || {};
 
       // Apply limit checking wrapper if userId is provided
-      return opt?.userId ? wrapToolsWithLimits(loadedTools, opt.userId) : loadedTools;
+      return opt?.userId
+        ? wrapToolsWithLimits(loadedTools, opt.userId)
+        : loadedTools;
     })
     .ifFail((e) => {
       console.error(e);
