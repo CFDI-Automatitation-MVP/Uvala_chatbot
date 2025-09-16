@@ -105,6 +105,9 @@ interface PromptInputProps {
   disabledMention?: boolean;
   onFocus?: () => void;
   fileUploadDisabled?: boolean;
+  fileAttachments?: AttachmentFile[];
+  setFileAttachments?: (files: AttachmentFile[] | ((prev: AttachmentFile[]) => AttachmentFile[])) => void;
+  isDragOver?: boolean;
 }
 
 const ChatMentionInput = dynamic(() => import("./chat-mention-input"), {
@@ -129,6 +132,9 @@ export default function PromptInput({
   threadId,
   disabledMention,
   fileUploadDisabled,
+  fileAttachments: externalFileAttachments,
+  setFileAttachments: externalSetFileAttachments,
+  isDragOver: externalIsDragOver,
 }: PromptInputProps) {
   const t = useTranslations("Chat");
 
@@ -140,11 +146,16 @@ export default function PromptInput({
     ]),
   );
 
-  const [fileAttachments, setFileAttachments] = useState<AttachmentFile[]>([]);
+  const [internalFileAttachments, setInternalFileAttachments] = useState<AttachmentFile[]>([]);
   const [isDictating, setIsDictating] = useState(false);
   const [recognition, setRecognition] = useState<SpeechRecognition | null>(
     null,
   );
+
+  // Use external props if provided, otherwise use internal state
+  const fileAttachments = externalFileAttachments ?? internalFileAttachments;
+  const setFileAttachments = externalSetFileAttachments ?? setInternalFileAttachments;
+  const isDragOver = externalIsDragOver ?? false;
 
   // Initialize speech recognition
   useEffect(() => {
@@ -364,6 +375,7 @@ export default function PromptInput({
     setFileAttachments((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
+
   // Handle clipboard paste for images
   useEffect(() => {
     // Skip paste handling if file uploads are disabled
@@ -444,7 +456,7 @@ export default function PromptInput({
         <div className="mb-4 px-4">
           <div className="bg-background/80 backdrop-blur-md rounded-xl p-4 border shadow-lg">
             <div className="text-sm font-medium text-foreground mb-3">
-              Attached Images ({fileAttachments.length})
+              Attached Files ({fileAttachments.length})
             </div>
             <div className="flex flex-wrap gap-3">
               {fileAttachments.map((attachment, i) => (

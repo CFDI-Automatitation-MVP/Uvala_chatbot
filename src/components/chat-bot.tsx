@@ -17,6 +17,7 @@ import {
   lastAssistantMessageIsCompleteWithToolCalls,
   UIMessage,
 } from "ai";
+import type { AttachmentFile } from "./file-attachment";
 
 import { safe } from "ts-safe";
 import { mutate } from "swr";
@@ -97,6 +98,8 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
   });
 
   const [_showParticles, _setShowParticles] = useState(true);
+  const [fileAttachments, setFileAttachments] = useState<AttachmentFile[]>([]);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const onFinish = useCallback(() => {
     const messages = latestRef.current.messages;
@@ -257,6 +260,73 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     });
   }, []);
 
+  // Handle file drop functionality
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragOver(false);
+
+      if (isLoading) return;
+
+      const files = Array.from(e.dataTransfer.files);
+      if (files.length === 0) return;
+
+      files.forEach((file) => {
+        // Allow images and PDFs
+        const isImage = file.type.startsWith("image/");
+        const isPDF = file.type === "application/pdf";
+
+        if (!isImage && !isPDF) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const dataUrl = event.target?.result as string;
+          if (dataUrl) {
+            const attachmentFile: AttachmentFile = {
+              type: "file",
+              name: file.name,
+              url: dataUrl,
+              mediaType: file.type,
+            };
+
+            setFileAttachments((prev) => [...prev, attachmentFile]);
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    },
+    [isLoading],
+  );
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Ensure we set the correct dropEffect for macOS compatibility
+    e.dataTransfer.dropEffect = "copy";
+    if (!isLoading) {
+      setIsDragOver(true);
+    }
+  }, [isLoading]);
+
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Check if we have files being dragged
+    if (e.dataTransfer.types.includes("Files") && !isLoading) {
+      setIsDragOver(true);
+    }
+  }, [isLoading]);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only set isDragOver to false if we're leaving the main container
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsDragOver(false);
+    }
+  }, []);
+
   useEffect(() => {
     appStoreMutate({ currentThreadId: threadId });
     return () => {
@@ -326,7 +396,20 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           emptyMessage && "justify-center pb-24",
           "flex flex-col min-w-0 relative h-full z-40",
         )}
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
       >
+        {/* Drag and drop overlay for the entire chat area */}
+        {isDragOver && !isLoading && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/5 backdrop-blur-sm">
+            <div className="text-center p-4 bg-muted/10 backdrop-blur-md rounded-lg border border-dashed border-muted-foreground/30">
+              <div className="text-2xl mb-2 opacity-50">📄</div>
+              <div className="text-sm text-muted-foreground">Drop files</div>
+            </div>
+          </div>
+        )}
         {emptyMessage ? (
           <ChatGreeting />
         ) : (
@@ -402,6 +485,9 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
             onFocus={isFirstTime ? undefined : handleFocus}
             model={model}
             setModel={(newModel) => appStoreMutate({ chatModel: newModel })}
+            fileAttachments={fileAttachments}
+            setFileAttachments={setFileAttachments}
+            isDragOver={isDragOver}
           />
 
           {/* Disclaimer - Show only if there are messages */}
