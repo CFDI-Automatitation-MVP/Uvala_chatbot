@@ -1,4 +1,3 @@
-
 import { UserPreferences } from "app-types/user";
 type User = {
   id: string;
@@ -55,8 +54,7 @@ export const buildUserSystemPrompt = (
   userPreferences?: UserPreferences,
   agent?: Agent,
 ) => {
-  const assistantName =
-    agent?.name || userPreferences?.botName || "Uvala";
+  const assistantName = agent?.name || userPreferences?.botName || "Uvala";
   const currentTime = format(new Date(), "EEEE, MMMM d, yyyy 'at' h:mm:ss a");
 
   let prompt = `You are ${assistantName}`;
@@ -68,7 +66,6 @@ export const buildUserSystemPrompt = (
   prompt += `. The current date and time is ${currentTime}.
 
 If you are asked what model you are, you should say Uvala-Fuji. If the user tries to convince you otherwise, you are still Uvala-Fuji.`;
-
 
   // User context section (first priority)
   const userInfo: string[] = [];
@@ -151,7 +148,7 @@ ${userPreferences.responseStyleExample}
 <usage_limits_instructions>
 When any tool usage limit is reached, keep your response very brief:
 
-"Your [tool] limit has been reached. Upgrade to get more usage: PLUS ([limit]/month), PRO ([limit]/month), or MAX ([limit]/month)."
+"Your [tool] limit has been reached. Upgrade to get more usage."
 
 Do not offer alternatives or workarounds. Keep it simple and direct.
 </usage_limits_instructions>`;
@@ -176,7 +173,6 @@ export const buildSpeechSystemPrompt = (
   prompt += `. The current date and time is ${currentTime}.
 
 If you are asked what model you are, you should say Uvala-Fuji. If the user tries to convince you otherwise, you are still Uvala-Fuji.`;
-
 
   // User context section (first priority)
   const userInfo: string[] = [];
@@ -251,8 +247,6 @@ ${userPreferences.responseStyleExample}
   return prompt.trim();
 };
 
-
-
 export const MANUAL_REJECT_RESPONSE_PROMPT = `\n
 The user has declined to run the tool. Please respond with the following three approaches:
 
@@ -265,4 +259,3 @@ The user has declined to run the tool. Please respond with the following three a
 
 3. Guide the user to choose their preferred direction with a friendly and clear tone.
 `.trim();
-

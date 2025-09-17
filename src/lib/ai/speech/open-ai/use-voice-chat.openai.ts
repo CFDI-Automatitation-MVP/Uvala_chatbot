@@ -85,11 +85,10 @@ export function useOpenAIVoiceChat(
   const { model = "gpt-4o-realtime-preview", voice = OPENAI_VOICE.Ash } =
     props || {};
 
-  const [agentId, allowedAppDefaultToolkit, allowedMcpServers] = appStore(
+  const [agentId, allowedAppDefaultToolkit] = appStore(
     useShallow((state) => [
       state.voiceChat.agentId,
       state.allowedAppDefaultToolkit,
-      state.allowedMcpServers,
     ]),
   );
 
@@ -158,7 +157,6 @@ export function useOpenAIVoiceChat(
             model,
             voice,
             allowedAppDefaultToolkit,
-            allowedMcpServers,
             agentId,
           }),
         },
@@ -172,7 +170,7 @@ export function useOpenAIVoiceChat(
       }
 
       return session;
-    }, [model, voice, allowedAppDefaultToolkit, allowedMcpServers, agentId]);
+    }, [model, voice, allowedAppDefaultToolkit, agentId]);
 
   const updateUIMessage = useCallback(
     (

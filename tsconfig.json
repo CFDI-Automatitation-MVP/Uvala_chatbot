@@ -32,6 +32,8 @@
       "logger": ["./src/lib/logger.ts"],
       "lib/*": ["./src/lib/*"],
       "load-env": ["./src/lib/load-env.ts"],
+      "theme-provider": ["./src/components/layouts/theme-provider.tsx"],
+      "sidebar": ["./src/components/ui/sidebar.tsx"],
       "@/*": ["./src/*"]
     }
   },

@@ -76,7 +76,6 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     model,
     toolChoice,
     allowedAppDefaultToolkit,
-    allowedMcpServers,
     threadList,
     threadMentions,
     pendingThreadMention,
@@ -86,7 +85,6 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
       state.chatModel,
       state.toolChoice,
       state.allowedAppDefaultToolkit,
-      state.allowedMcpServers,
       state.threadList,
       state.threadMentions,
       state.pendingThreadMention,
@@ -156,9 +154,6 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           allowedAppDefaultToolkit: latestRef.current.mentions?.length
             ? []
             : latestRef.current.allowedAppDefaultToolkit,
-          allowedMcpServers: latestRef.current.mentions?.length
-            ? {}
-            : latestRef.current.allowedMcpServers,
           mentions: latestRef.current.mentions,
           message: lastMessage,
         };
@@ -186,7 +181,6 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     toolChoice,
     model,
     allowedAppDefaultToolkit,
-    allowedMcpServers,
     messages,
     threadList,
     threadId,
@@ -214,11 +208,15 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     if (status != "ready") return false;
     const lastMessage = messages.at(-1);
     if (lastMessage?.role != "assistant") return false;
-    const lastPart = lastMessage.parts.at(-1);
-    if (!lastPart) return false;
-    if (!isToolUIPart(lastPart)) return false;
-    if (lastPart.state.startsWith("output")) return false;
-    return true;
+
+    // Check if there are any pending tool calls in the entire last message
+    const hasPendingToolCall = lastMessage.parts.some((part) => {
+      if (!isToolUIPart(part)) return false;
+      // Tool is pending if it's not in an output state
+      return !part.state.startsWith("output");
+    });
+
+    return hasPendingToolCall;
   }, [status, messages]);
 
   const space = useMemo(() => {
@@ -299,24 +297,30 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     [isLoading],
   );
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    // Ensure we set the correct dropEffect for macOS compatibility
-    e.dataTransfer.dropEffect = "copy";
-    if (!isLoading) {
-      setIsDragOver(true);
-    }
-  }, [isLoading]);
+  const handleDragOver = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      // Ensure we set the correct dropEffect for macOS compatibility
+      e.dataTransfer.dropEffect = "copy";
+      if (!isLoading) {
+        setIsDragOver(true);
+      }
+    },
+    [isLoading],
+  );
 
-  const handleDragEnter = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    // Check if we have files being dragged
-    if (e.dataTransfer.types.includes("Files") && !isLoading) {
-      setIsDragOver(true);
-    }
-  }, [isLoading]);
+  const handleDragEnter = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      // Check if we have files being dragged
+      if (e.dataTransfer.types.includes("Files") && !isLoading) {
+        setIsDragOver(true);
+      }
+    },
+    [isLoading],
+  );
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
     e.preventDefault();

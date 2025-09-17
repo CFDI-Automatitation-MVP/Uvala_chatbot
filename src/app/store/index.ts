@@ -1,7 +1,10 @@
-import { create } from "zustand";
+import { create, StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
+
+type Mutate<T> = (
+  partial: T | Partial<T> | ((state: T) => T | Partial<T>),
+) => void;
 import { ChatMention, ChatModel, ChatThread } from "app-types/chat";
-import { AllowedMCPServer, MCPServerInfo } from "app-types/mcp";
 import { OPENAI_VOICE } from "lib/ai/speech/open-ai/use-voice-chat.openai";
 import { WorkflowSummary } from "app-types/workflow";
 import { AppDefaultToolkit } from "lib/ai/tools";
@@ -10,12 +13,10 @@ import { ArchiveWithItemCount } from "app-types/archive";
 
 export interface AppState {
   threadList: ChatThread[];
-  mcpList: (MCPServerInfo & { id: string })[];
   agentList: AgentSummary[];
   workflowToolList: WorkflowSummary[];
   currentThreadId: ChatThread["id"] | null;
   toolChoice: "auto" | "none" | "manual";
-  allowedMcpServers?: Record<string, AllowedMCPServer>;
   allowedAppDefaultToolkit?: AppDefaultToolkit[];
   generatingTitleThreadIds: string[];
   archiveList: ArchiveWithItemCount[];
@@ -23,14 +24,12 @@ export interface AppState {
     [threadId: string]: ChatMention[];
   };
   toolPresets: {
-    allowedMcpServers?: Record<string, AllowedMCPServer>;
     allowedAppDefaultToolkit?: AppDefaultToolkit[];
     name: string;
   }[];
   chatModel?: ChatModel;
   openShortcutsPopup: boolean;
   openChatPreferences: boolean;
-  mcpCustomizationPopup?: MCPServerInfo & { id: string };
   temporaryChat: {
     isOpen: boolean;
     instructions: string;
@@ -61,12 +60,10 @@ const initialState: AppState = {
   archiveList: [],
   generatingTitleThreadIds: [],
   threadMentions: {},
-  mcpList: [],
   agentList: [],
   workflowToolList: [],
   currentThreadId: null,
   toolChoice: "auto",
-  allowedMcpServers: undefined,
   allowedAppDefaultToolkit: [
     AppDefaultToolkit.Code,
     AppDefaultToolkit.Visualization,
@@ -75,7 +72,6 @@ const initialState: AppState = {
   chatModel: undefined,
   openShortcutsPopup: false,
   openChatPreferences: false,
-  mcpCustomizationPopup: undefined,
   temporaryChat: {
     isOpen: false,
     instructions: "",
@@ -107,8 +103,6 @@ export const appStore = create<AppState & AppDispatch>()(
       partialize: (state) => ({
         chatModel: state.chatModel || initialState.chatModel,
         toolChoice: state.toolChoice || initialState.toolChoice,
-        allowedMcpServers:
-          state.allowedMcpServers || initialState.allowedMcpServers,
         allowedAppDefaultToolkit: (
           state.allowedAppDefaultToolkit ??
           initialState.allowedAppDefaultToolkit

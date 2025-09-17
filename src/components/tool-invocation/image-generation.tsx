@@ -21,35 +21,59 @@ export interface ImageGenerationProps {
   imageUrl?: string;
   prompt: string;
   aspectRatio?: string;
-  steps?: number;
+  outputFormat?: string;
+  safetyFilterLevel?: string;
   model?: string;
+  predictionId?: string;
   message?: string;
   error?: string;
   solution?: string;
 }
 
 export function ImageGeneration(props: ImageGenerationProps) {
-  const { success, imageUrl, prompt, aspectRatio, error, solution } = props;
+  const {
+    success,
+    imageUrl,
+    prompt,
+    aspectRatio,
+    outputFormat,
+    safetyFilterLevel,
+    predictionId,
+    error,
+    solution,
+  } = props;
   const [showPrompt, setShowPrompt] = React.useState(false);
-  
-  // Filter out imageUrl and steps from JSON data
+
+  // Filter out imageUrl from JSON data to avoid displaying large URLs
   const filteredProps = React.useMemo(() => {
-    const { imageUrl: _, steps: __, ...filtered } = props;
+    const { imageUrl: _, ...filtered } = props;
     return filtered;
   }, [props]);
 
-  const handleDownload = React.useCallback(() => {
+  const handleDownload = React.useCallback(async () => {
     if (!imageUrl) return;
-    
-    const link = document.createElement('a');
-    link.href = imageUrl;
-    link.download = `generated-image-${Date.now()}.jpg`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success('Image downloaded successfully');
-  }, [imageUrl]);
 
+    try {
+      // For remote URLs, we need to fetch and create a blob
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `generated-image-${Date.now()}.${outputFormat || "jpg"}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Clean up the blob URL
+      window.URL.revokeObjectURL(url);
+      toast.success("Image downloaded successfully");
+    } catch (error) {
+      console.error("Download failed:", error);
+      toast.error("Failed to download image");
+    }
+  }, [imageUrl, outputFormat]);
 
   if (!success || !imageUrl) {
     return (
@@ -85,9 +109,7 @@ export function ImageGeneration(props: ImageGenerationProps) {
         <JsonViewPopup data={filteredProps} />
       </div>
       <CardHeader className="items-center pb-0 flex flex-col gap-2">
-        <CardTitle className="flex items-center">
-          Generated Image
-        </CardTitle>
+        <CardTitle className="flex items-center">Generated Image</CardTitle>
         <div className="w-full max-w-2xl">
           <Button
             variant="ghost"
@@ -96,7 +118,11 @@ export function ImageGeneration(props: ImageGenerationProps) {
             className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground p-2 h-auto"
           >
             See more
-            {showPrompt ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            {showPrompt ? (
+              <ChevronUp className="w-3 h-3" />
+            ) : (
+              <ChevronDown className="w-3 h-3" />
+            )}
           </Button>
           {showPrompt && (
             <CardDescription className="text-center text-sm mt-2 px-4">
@@ -104,8 +130,14 @@ export function ImageGeneration(props: ImageGenerationProps) {
             </CardDescription>
           )}
         </div>
-        <div className="text-xs text-muted-foreground">
-          Aspect Ratio: {aspectRatio}
+        <div className="text-xs text-muted-foreground text-center space-y-1">
+          <div>
+            Aspect Ratio: {aspectRatio} • Format: {outputFormat?.toUpperCase()}
+          </div>
+          {safetyFilterLevel && (
+            <div>Safety Filter: {safetyFilterLevel.replace("_", " ")}</div>
+          )}
+          {predictionId && <div>Prediction ID: {predictionId}</div>}
         </div>
       </CardHeader>
       <CardContent className="flex-1 pb-6">

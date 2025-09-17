@@ -24,21 +24,71 @@ const MODEL_CONFIGS = {
   },
 } as const;
 
-// Estimate tokens in a message (1 token ≈ 4 characters)
+// Estimate tokens in a message with proper image handling
 export function estimateMessageTokens(message: UIMessage): number {
   let tokenCount = 0;
 
   for (const part of message.parts) {
     if (part.type === "text") {
       tokenCount += Math.ceil(part.text.length / 4);
-    } else {
-      // For all other part types (tool-call, tool-result, file, etc.)
-      // Convert to JSON string and estimate tokens
-      tokenCount += Math.ceil(JSON.stringify(part).length / 4);
+    } else if (part.type === "file") {
+      // Handle file parts (especially images) more accurately
+      const partData = part as any;
 
-      // Add extra tokens for image/file processing
-      if (part.type === "file" || part.type.includes("image")) {
-        tokenCount += 500; // Additional estimate for media processing
+      if (partData.file?.type?.startsWith("image/")) {
+        // For images, estimate based on actual size
+        // Base64 images: roughly 1.33x the original size
+        // Vision models typically use ~765 tokens per image regardless of size
+        // But we need to account for the base64 data in context
+
+        if (partData.file.data && typeof partData.file.data === "string") {
+          const base64Size = partData.file.data.length;
+          // Base64 data is extremely heavy in context - use very aggressive estimation
+          // Large images (>50KB base64) should be estimated at nearly 1:1 token ratio
+          if (base64Size > 50000) {
+            tokenCount += Math.ceil(base64Size / 1.2); // Very aggressive for large images
+          } else {
+            tokenCount += Math.ceil(base64Size / 2); // Aggressive for smaller images
+          }
+        } else {
+          tokenCount += 765; // Standard vision processing tokens
+        }
+      } else {
+        // Other file types
+        tokenCount += Math.ceil(JSON.stringify(part).length / 4);
+      }
+    } else {
+      // For tool-call, tool-result, etc.
+      const partJson = JSON.stringify(part);
+
+      // Check if this contains base64 image data
+      if (partJson.includes("data:image/") && partJson.includes("base64,")) {
+        // Extract and estimate base64 data more aggressively
+        const base64Matches = partJson.match(
+          /data:image\/[^;]+;base64,([A-Za-z0-9+/=]+)/g,
+        );
+        if (base64Matches) {
+          let base64TokenCount = 0;
+          base64Matches.forEach((match) => {
+            const base64Data = match.split("base64,")[1];
+            if (base64Data) {
+              // Extremely aggressive estimation for large base64 images in tool outputs
+              if (base64Data.length > 50000) {
+                base64TokenCount += Math.ceil(base64Data.length / 1.1); // Nearly 1:1 for large images
+              } else {
+                base64TokenCount += Math.ceil(base64Data.length / 1.5); // Very aggressive for smaller
+              }
+            }
+          });
+
+          // Use the larger of JSON estimation or base64 estimation
+          const jsonTokenCount = Math.ceil(partJson.length / 4);
+          tokenCount += Math.max(base64TokenCount, jsonTokenCount);
+        } else {
+          tokenCount += Math.ceil(partJson.length / 4);
+        }
+      } else {
+        tokenCount += Math.ceil(partJson.length / 4);
       }
     }
   }
@@ -170,7 +220,33 @@ export function truncateConversation(
   };
 }
 
-// Smart message selection algorithm
+// Helper to check if message contains large images
+function hasLargeImages(message: UIMessage): boolean {
+  return message.parts.some((part) => {
+    if (part.type === "file") {
+      const partData = part as any;
+      if (partData.file?.type?.startsWith("image/") && partData.file?.data) {
+        return partData.file.data.length > 50000; // 50KB+ base64 images
+      }
+    } else if (part.type !== "text") {
+      const partJson = JSON.stringify(part);
+      if (partJson.includes("data:image/") && partJson.includes("base64,")) {
+        const base64Matches = partJson.match(
+          /data:image\/[^;]+;base64,([A-Za-z0-9+/=]+)/g,
+        );
+        if (base64Matches) {
+          return base64Matches.some((match) => {
+            const base64Data = match.split("base64,")[1];
+            return base64Data && base64Data.length > 50000; // 50KB+ base64
+          });
+        }
+      }
+    }
+    return false;
+  });
+}
+
+// Smart message selection algorithm with aggressive image management
 function selectMessagesForContext(
   messages: UIMessage[],
   availableTokens: number,
@@ -178,44 +254,108 @@ function selectMessagesForContext(
 ): UIMessage[] {
   if (messages.length === 0) return [];
 
+  // Step 1: Separate messages by type and recency
+  const olderMessages = messages.slice(0, -10);
+
   // Always include the last message (current user input)
   const lastMessage = messages[messages.length - 1];
   const selectedMessages: UIMessage[] = [lastMessage];
   let usedTokens = estimateMessageTokens(lastMessage);
 
-  // Work backwards through messages, prioritizing recent ones
-  for (let i = messages.length - 2; i >= 0; i--) {
+  // If the last message itself exceeds available tokens, only include it
+  if (usedTokens > availableTokens * 0.9) {
+    return selectedMessages;
+  }
+
+  // Step 2: Count images in recent conversation and remove excess
+  let imageCount = 0;
+  const maxImagesInContext = 3; // Only keep 3 most recent images max
+
+  // Work backwards through recent messages first
+  for (
+    let i = messages.length - 2;
+    i >= Math.max(0, messages.length - 10);
+    i--
+  ) {
     const message = messages[i];
     const messageTokens = estimateMessageTokens(message);
+    const hasLargeImage = hasLargeImages(message);
+
+    // If this message has a large image
+    if (hasLargeImage) {
+      imageCount++;
+      // Skip this image if we already have too many or if it would use too many tokens
+      if (
+        imageCount > maxImagesInContext ||
+        usedTokens + messageTokens > availableTokens * 0.8
+      ) {
+        continue; // Skip this message entirely
+      }
+    }
 
     // Check if we can fit this message
     if (
       usedTokens + messageTokens <= availableTokens &&
       selectedMessages.length < config.maxMessages
     ) {
-      selectedMessages.unshift(message); // Add to beginning to maintain order
+      selectedMessages.unshift(message);
       usedTokens += messageTokens;
-    } else {
-      break; // Stop if we exceed limits
+    } else if (!hasLargeImage && messageTokens < 1000) {
+      // For small text messages, be more lenient
+      if (usedTokens + messageTokens <= availableTokens * 1.1) {
+        selectedMessages.unshift(message);
+        usedTokens += messageTokens;
+      }
     }
   }
 
-  // Ensure we have minimum messages if possible
+  // Step 3: Add older text-only messages if we have room
+  if (usedTokens < availableTokens * 0.6 && selectedMessages.length < 8) {
+    for (let i = olderMessages.length - 1; i >= 0; i--) {
+      const message = olderMessages[i];
+      const messageTokens = estimateMessageTokens(message);
+      const hasLargeImage = hasLargeImages(message);
+
+      // Only include older messages without large images
+      if (
+        !hasLargeImage &&
+        usedTokens + messageTokens <= availableTokens * 0.7
+      ) {
+        selectedMessages.unshift(message);
+        usedTokens += messageTokens;
+
+        if (selectedMessages.length >= 12) break; // Reasonable limit
+      }
+    }
+  }
+
+  // Step 4: Ensure minimum messages but prioritize text over images
   if (
     selectedMessages.length < config.minMessages &&
     messages.length >= config.minMessages
   ) {
-    // Force include more recent messages even if slightly over token limit
-    for (
-      let i = messages.length - config.minMessages;
-      i < messages.length;
-      i++
-    ) {
-      const message = messages[i];
+    const candidateMessages = messages.slice(-6); // Last 6 messages
+
+    for (const message of candidateMessages) {
       if (!selectedMessages.some((sm) => sm.id === message.id)) {
-        selectedMessages.push(message);
+        const messageTokens = estimateMessageTokens(message);
+        const hasLargeImage = hasLargeImages(message);
+
+        // Be very strict with images, lenient with text
+        if (!hasLargeImage) {
+          selectedMessages.push(message);
+          usedTokens += messageTokens;
+        } else if (
+          imageCount <= 1 &&
+          usedTokens + messageTokens <= availableTokens * 0.9
+        ) {
+          selectedMessages.push(message);
+          usedTokens += messageTokens;
+          imageCount++;
+        }
       }
     }
+
     // Re-sort to maintain chronological order
     selectedMessages.sort((a, b) => {
       const indexA = messages.findIndex((m) => m.id === a.id);

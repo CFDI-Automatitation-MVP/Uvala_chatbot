@@ -10,12 +10,9 @@ import {
 
 import { customModelProvider, isToolCallUnsupportedModel } from "lib/ai/models";
 
-
 import { agentRepository, chatRepository } from "lib/db/repository";
 import globalLogger from "logger";
-import {
-  buildUserSystemPrompt,
-} from "lib/ai/prompts";
+import { buildUserSystemPrompt } from "lib/ai/prompts";
 import { chatApiSchemaRequestBodySchema, ChatMetadata } from "app-types/chat";
 
 import { errorIf, safe } from "ts-safe";
@@ -29,14 +26,15 @@ import {
   loadAppDefaultTools,
   convertToSavePart,
 } from "./shared.chat";
-import {
-  rememberAgentAction,
-} from "./actions";
+import { rememberAgentAction } from "./actions";
 import { getSession } from "@/lib/auth/supabase-auth";
 import { colorize } from "consola/utils";
 import { generateUUID } from "lib/utils";
 import { trackUsage } from "lib/ai/usage-tracker";
-import { truncateConversation, logTruncationResult } from "lib/ai/context-manager";
+import {
+  truncateConversation,
+  logTruncationResult,
+} from "lib/ai/context-manager";
 import { checkUserLimits, formatLimitError } from "@/lib/subscription-limits";
 
 const logger = globalLogger.withDefaults({
@@ -116,7 +114,6 @@ export async function POST(request: Request) {
 
     const stream = createUIMessageStream({
       execute: async ({ writer: dataStream }) => {
-
         const WORKFLOW_TOOLS = await safe()
           .map(errorIf(() => !isToolCallAllowed && "Not allowed"))
           .map(() =>
@@ -159,7 +156,11 @@ export async function POST(request: Request) {
 
         const userPreferences = thread?.userPreferences || undefined;
 
-        const systemPrompt = buildUserSystemPrompt(session.user, userPreferences, agent);
+        const systemPrompt = buildUserSystemPrompt(
+          session.user,
+          userPreferences,
+          agent,
+        );
 
         const vercelAITooles = safe({ ...WORKFLOW_TOOLS })
           .map((t) => {
@@ -176,7 +177,6 @@ export async function POST(request: Request) {
           .unwrap();
         metadata.toolCount = Object.keys(vercelAITooles).length;
 
-
         logger.info(
           `${agent ? `agent: ${agent.name}, ` : ""}tool mode: ${toolChoice}, mentions: ${mentions.length}`,
         );
@@ -192,19 +192,26 @@ export async function POST(request: Request) {
         // Context truncation optimization
         const truncationResult = truncateConversation(messages, chatModel!);
         logTruncationResult(truncationResult, logger);
-        
+
         // Use truncated messages for the API call
         const optimizedMessages = truncationResult.messages;
 
         // Log messages before conversion for debugging
-        logger.info(`Messages before conversion (last message parts):`, 
-          JSON.stringify(optimizedMessages.slice(-1)[0]?.parts, null, 2));
+        logger.info(
+          `Messages before conversion (last message parts):`,
+          JSON.stringify(optimizedMessages.slice(-1)[0]?.parts, null, 2),
+        );
 
         // Basic token limit check (without tool predictions)
-        const lastUserMessage = optimizedMessages.slice().reverse().find(m => m.role === 'user');
+        const lastUserMessage = optimizedMessages
+          .slice()
+          .reverse()
+          .find((m) => m.role === "user");
         if (lastUserMessage) {
           // Rough token estimation: ~4 chars per token
-          const estimatedInputTokens = Math.ceil(JSON.stringify(lastUserMessage.parts).length / 4);
+          const estimatedInputTokens = Math.ceil(
+            JSON.stringify(lastUserMessage.parts).length / 4,
+          );
           const estimatedOutputTokens = 150; // Conservative estimate for response
 
           const limitCheck = await checkUserLimits(session.user.id, {
@@ -214,13 +221,15 @@ export async function POST(request: Request) {
 
           if (!limitCheck.canProceed) {
             const errorMessage = formatLimitError(limitCheck);
-            logger.warn(`User ${session.user.id} exceeded limits: ${errorMessage}`);
+            logger.warn(
+              `User ${session.user.id} exceeded limits: ${errorMessage}`,
+            );
 
             // Throw an error that will be handled by the onError handler
-            throw new Error(`Usage limit exceeded: ${errorMessage}`);
+            throw new Error(errorMessage);
           }
         }
-        
+
         const result = streamText({
           model,
           system: systemPrompt,
@@ -234,17 +243,20 @@ export async function POST(request: Request) {
           // AI SDK 5 token limit
           maxOutputTokens: chatModel?.model === "uvala-fuji" ? 2000 : 4000,
           // GPT-5 optimization settings
-          providerOptions: chatModel?.model === "uvala-fuji" ? {
-            openai: {
-              reasoningEffort: "low",
-              textVerbosity: "medium",
-            },
-          } : {
-            openai: {
-              reasoningEffort: "medium",
-              textVerbosity: "medium",
-            },
-          },
+          providerOptions:
+            chatModel?.model === "uvala-fuji"
+              ? {
+                  openai: {
+                    reasoningEffort: "low",
+                    textVerbosity: "medium",
+                  },
+                }
+              : {
+                  openai: {
+                    reasoningEffort: "medium",
+                    textVerbosity: "medium",
+                  },
+                },
         });
         result.consumeStream();
         dataStream.merge(
@@ -284,43 +296,63 @@ export async function POST(request: Request) {
           });
         }
 
-        // Track usage and costs
-        if (metadata.usage && metadata.chatModel && session?.user?.id) {
+        // Track usage and costs - only for the assistant's response message to avoid duplicates
+        if (
+          metadata.usage &&
+          metadata.chatModel &&
+          session?.user?.id &&
+          responseMessage.id !== message.id
+        ) {
           // Count tool calls from response message
-          const toolCallsCount = responseMessage.parts.filter(part => 
-            part.type === 'tool-call'
+          const toolCallsCount = responseMessage.parts.filter(
+            (part) => part.type === "tool-call",
           ).length;
-          
+
           // Count specific tool types used in this conversation
           let imageGenerations = 0;
           let videoGenerations = 0;
           let webSearches = 0;
 
-          responseMessage.parts.forEach(part => {
+          responseMessage.parts.forEach((part) => {
             // Check for tool execution parts (type starts with 'tool-')
-            if (part.type && typeof part.type === 'string' && part.type.startsWith('tool-')) {
+            if (
+              part.type &&
+              typeof part.type === "string" &&
+              part.type.startsWith("tool-")
+            ) {
               const toolType = part.type;
               const toolState = (part as any).state;
               const toolOutput = (part as any).output;
 
               // Only count successfully executed tools (output-available state)
-              // AND make sure it's not a limit error
-              if (toolState === 'output-available' &&
-                  toolOutput &&
-                  toolOutput.type !== 'limit_exceeded' &&
-                  !toolOutput.error?.includes?.('Usage limit exceeded')) {
+              // AND make sure it's not a limit error AND that it was successful
+              if (
+                toolState === "output-available" &&
+                toolOutput &&
+                toolOutput.type !== "limit_exceeded" &&
+                !toolOutput.error?.includes?.("Usage limit exceeded")
+              ) {
+                // Check if the tool execution was successful
+                const isToolSuccessful =
+                  toolOutput.success === true ||
+                  (toolOutput.success !== false && !toolOutput.error);
 
-                if (toolType === 'tool-generateImage') {
-                  imageGenerations++;
-                } else if (toolType === 'tool-generateVideo') {
-                  videoGenerations++;
-                } else if (toolType === 'tool-webSearch' || toolType === 'tool-webContent') {
-                  webSearches++;
+                if (isToolSuccessful) {
+                  if (toolType === "tool-generateImage") {
+                    imageGenerations++;
+                  } else if (toolType === "tool-generateVideo") {
+                    videoGenerations++;
+                  } else if (
+                    toolType === "tool-webSearch" ||
+                    toolType === "tool-webContent"
+                  ) {
+                    webSearches++;
+                  }
                 }
               }
             }
           });
-          
+
           await trackUsage({
             usage: metadata.usage,
             userId: session.user.id,

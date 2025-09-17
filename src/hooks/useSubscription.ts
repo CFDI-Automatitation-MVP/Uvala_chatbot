@@ -1,150 +1,109 @@
-import { useState, useEffect } from 'react'
-import { createBrowserClient } from '@supabase/ssr'
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { createBrowserClient } from "@supabase/ssr";
 
 interface SubscriptionData {
-  id: string
-  planType: 'free' | 'pro' | 'max'
-  status: string
-  currentPeriodStart: string
-  currentPeriodEnd: string
-  cancelAtPeriodEnd: boolean
-  createdAt: string
+  id: string;
+  planType: "free" | "pro" | "max";
+  status: string;
+  currentPeriodStart: string;
+  currentPeriodEnd: string;
+  cancelAtPeriodEnd: boolean;
+  createdAt: string;
 }
 
 interface SubscriptionStatus {
-  hasSubscription: boolean
-  planType: 'free' | 'pro' | 'max'
-  subscription: SubscriptionData | null
-  loading: boolean
-  error: string | null
-  refetch: () => Promise<void>
+  hasSubscription: boolean;
+  planType: "free" | "pro" | "max";
+  subscription: SubscriptionData | null;
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
 }
 
 export function useSubscription(): SubscriptionStatus {
   const [data, setData] = useState<SubscriptionStatus>({
     hasSubscription: false,
-    planType: 'free',
+    planType: "free",
     subscription: null,
     loading: true,
     error: null,
-    refetch: async () => {}
-  })
+    refetch: async () => {},
+  });
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const supabase = useMemo(
+    () =>
+      createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      ),
+    [],
+  );
 
-  const fetchSubscription = async () => {
+  const fetchSubscription = useCallback(async () => {
     try {
-      setData(prev => ({ ...prev, loading: true, error: null }))
+      setData((prev) => ({ ...prev, loading: true, error: null }));
 
-      const { data: { user } } = await supabase.auth.getUser()
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (!user) {
-        setData(prev => ({
+        setData((prev) => ({
           ...prev,
           hasSubscription: false,
-          planType: 'free',
+          planType: "free",
           subscription: null,
-          loading: false
-        }))
-        return
+          loading: false,
+        }));
+        return;
       }
 
-      const response = await fetch('/api/subscription/status')
-      
+      const response = await fetch("/api/subscription/status");
+
       if (!response.ok) {
-        throw new Error('Failed to fetch subscription status')
+        throw new Error("Failed to fetch subscription status");
       }
 
-      const subscriptionData = await response.json()
-      
-      setData(prev => ({
+      const subscriptionData = await response.json();
+
+      setData((prev) => ({
         ...prev,
         ...subscriptionData,
-        loading: false
-      }))
+        loading: false,
+      }));
     } catch (error) {
-      console.error('Error fetching subscription:', error)
-      setData(prev => ({
+      console.error("Error fetching subscription:", error);
+      setData((prev) => ({
         ...prev,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        loading: false
-      }))
+        error: error instanceof Error ? error.message : "Unknown error",
+        loading: false,
+      }));
     }
-  }
+  }, [supabase]);
 
   useEffect(() => {
-    let mounted = true
+    let mounted = true;
 
-    const fetchData = async () => {
-      try {
-        setData(prev => ({ ...prev, loading: true, error: null }))
-
-        const { data: { user } } = await supabase.auth.getUser()
-        
-        if (!mounted) return
-
-        if (!user) {
-          setData(prev => ({
-            ...prev,
-            hasSubscription: false,
-            planType: 'free',
-            subscription: null,
-            loading: false
-          }))
-          return
-        }
-
-        const response = await fetch('/api/subscription/status')
-        
-        if (!mounted) return
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch subscription status')
-        }
-
-        const subscriptionData = await response.json()
-        
-        if (mounted) {
-          setData(prev => ({
-            ...prev,
-            ...subscriptionData,
-            loading: false
-          }))
-        }
-      } catch (error) {
-        if (mounted) {
-          console.error('Error fetching subscription:', error)
-          setData(prev => ({
-            ...prev,
-            error: error instanceof Error ? error.message : 'Unknown error',
-            loading: false
-          }))
-        }
-      }
-    }
-
-    fetchData()
+    // Initial fetch
+    fetchSubscription();
 
     // Listen for auth state changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
-        fetchData()
+      if ((event === "SIGNED_IN" || event === "SIGNED_OUT") && mounted) {
+        fetchSubscription();
       }
-    })
+    });
 
     return () => {
-      mounted = false
-      subscription.unsubscribe()
-    }
-  }, []) // Empty dependency array - only run once
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []); // Remove fetchSubscription from dependencies to avoid infinite loop
 
   return {
     ...data,
-    refetch: fetchSubscription
-  }
+    refetch: fetchSubscription,
+  };
 }

@@ -14,43 +14,74 @@ import { TokenCost } from "@/lib/ai/cost-calculator";
 
 export interface UsageRepository {
   // API Usage tracking
-  recordApiUsage(usage: {
-    userId: string;
-    threadId?: string;
-    messageId?: string;
-    modelProvider: string;
-    modelName: string;
-  } & TokenCost): Promise<ApiUsageEntity>;
-  
+  recordApiUsage(
+    usage: {
+      userId: string;
+      threadId?: string;
+      messageId?: string;
+      modelProvider: string;
+      modelName: string;
+    } & TokenCost,
+  ): Promise<ApiUsageEntity>;
+
   getApiUsageByUser(userId: string, limit?: number): Promise<ApiUsageEntity[]>;
   getApiUsageByThread(threadId: string): Promise<ApiUsageEntity[]>;
-  
+
   // Daily usage aggregation
   updateDailyUsage(
-    userId: string, 
-    date: Date, 
-    usage: TokenCost, 
-    toolUsage?: { imageGenerations?: number; videoGenerations?: number; webSearches?: number }
+    userId: string,
+    date: Date,
+    usage: TokenCost,
+    toolUsage?: {
+      imageGenerations?: number;
+      videoGenerations?: number;
+      webSearches?: number;
+    },
   ): Promise<UserDailyUsageEntity>;
-  getUserDailyUsage(userId: string, date: Date): Promise<UserDailyUsageEntity | null>;
-  getUserDailyUsageRange(userId: string, startDate: Date, endDate: Date): Promise<UserDailyUsageEntity[]>;
-  
+  getUserDailyUsage(
+    userId: string,
+    date: Date,
+  ): Promise<UserDailyUsageEntity | null>;
+  getUserDailyUsageRange(
+    userId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<UserDailyUsageEntity[]>;
+
   // Monthly usage aggregation
   updateMonthlyUsage(
-    userId: string, 
-    year: number, 
-    month: number, 
-    usage: TokenCost, 
-    toolUsage?: { imageGenerations?: number; videoGenerations?: number; webSearches?: number }
+    userId: string,
+    year: number,
+    month: number,
+    usage: TokenCost,
+    toolUsage?: {
+      imageGenerations?: number;
+      videoGenerations?: number;
+      webSearches?: number;
+    },
   ): Promise<UserMonthlyUsageEntity>;
-  getUserMonthlyUsage(userId: string, year: number, month: number): Promise<UserMonthlyUsageEntity | null>;
-  getUserMonthlyUsageHistory(userId: string, limit?: number): Promise<UserMonthlyUsageEntity[]>;
-  
+  getUserMonthlyUsage(
+    userId: string,
+    year: number,
+    month: number,
+  ): Promise<UserMonthlyUsageEntity | null>;
+  getUserMonthlyUsageHistory(
+    userId: string,
+    limit?: number,
+  ): Promise<UserMonthlyUsageEntity[]>;
+
   // Thread usage aggregation
-  updateThreadUsage(threadId: string, userId: string, usage: TokenCost): Promise<ThreadUsageEntity>;
+  updateThreadUsage(
+    threadId: string,
+    userId: string,
+    usage: TokenCost,
+  ): Promise<ThreadUsageEntity>;
   getThreadUsage(threadId: string): Promise<ThreadUsageEntity | null>;
-  getUserThreadUsage(userId: string, limit?: number): Promise<ThreadUsageEntity[]>;
-  
+  getUserThreadUsage(
+    userId: string,
+    limit?: number,
+  ): Promise<ThreadUsageEntity[]>;
+
   // Analytics and reporting
   getUserTotalUsage(userId: string): Promise<{
     totalTokens: number;
@@ -58,8 +89,11 @@ export interface UsageRepository {
     apiCalls: number;
     toolCalls: number;
   }>;
-  
-  getSystemUsageStats(startDate?: Date, endDate?: Date): Promise<{
+
+  getSystemUsageStats(
+    startDate?: Date,
+    endDate?: Date,
+  ): Promise<{
     totalUsers: number;
     totalTokens: number;
     totalCost: number;
@@ -69,13 +103,16 @@ export interface UsageRepository {
     avgTokensPerUser: number;
   }>;
 
-  // Pro user limit checking
-  checkProLimits(userId: string, plannedUsage?: {
-    llmCostUsd?: number;
-    imageGenerations?: number;
-    videoGenerations?: number;
-    webSearches?: number;
-  }): Promise<{
+  // Legacy Pro user limit checking - DEPRECATED - Use checkUserLimits from subscription-limits.ts instead
+  checkProLimits(
+    userId: string,
+    plannedUsage?: {
+      llmCostUsd?: number;
+      imageGenerations?: number;
+      videoGenerations?: number;
+      webSearches?: number;
+    },
+  ): Promise<{
     canProceed: boolean;
     limits: {
       dailyCostExceeded: boolean;
@@ -125,11 +162,14 @@ export const pgUsageRepository: UsageRepository = {
         toolCallsCostUsd: usage.toolCallsCostUsd.toString(),
       })
       .returning();
-    
+
     return result;
   },
 
-  async getApiUsageByUser(userId: string, limit = 100): Promise<ApiUsageEntity[]> {
+  async getApiUsageByUser(
+    userId: string,
+    limit = 100,
+  ): Promise<ApiUsageEntity[]> {
     return await db
       .select()
       .from(ApiUsageSchema)
@@ -147,13 +187,17 @@ export const pgUsageRepository: UsageRepository = {
   },
 
   async updateDailyUsage(
-    userId: string, 
-    date: Date, 
-    usage: TokenCost, 
-    toolUsage?: { imageGenerations?: number; videoGenerations?: number; webSearches?: number }
+    userId: string,
+    date: Date,
+    usage: TokenCost,
+    toolUsage?: {
+      imageGenerations?: number;
+      videoGenerations?: number;
+      webSearches?: number;
+    },
   ): Promise<UserDailyUsageEntity> {
-    const usageDate = date.toISOString().split('T')[0]; // YYYY-MM-DD format
-    
+    const usageDate = date.toISOString().split("T")[0]; // YYYY-MM-DD format
+
     const [result] = await db
       .insert(UserDailyUsageSchema)
       .values({
@@ -192,45 +236,60 @@ export const pgUsageRepository: UsageRepository = {
         },
       })
       .returning();
-    
+
     return result;
   },
 
-  async getUserDailyUsage(userId: string, date: Date): Promise<UserDailyUsageEntity | null> {
-    const usageDate = date.toISOString().split('T')[0];
-    
+  async getUserDailyUsage(
+    userId: string,
+    date: Date,
+  ): Promise<UserDailyUsageEntity | null> {
+    const usageDate = date.toISOString().split("T")[0];
+
     const [result] = await db
       .select()
       .from(UserDailyUsageSchema)
-      .where(and(
-        eq(UserDailyUsageSchema.userId, userId),
-        eq(UserDailyUsageSchema.usageDate, usageDate)
-      ));
-    
+      .where(
+        and(
+          eq(UserDailyUsageSchema.userId, userId),
+          eq(UserDailyUsageSchema.usageDate, usageDate),
+        ),
+      );
+
     return result || null;
   },
 
-  async getUserDailyUsageRange(userId: string, startDate: Date, endDate: Date): Promise<UserDailyUsageEntity[]> {
-    const startDateStr = startDate.toISOString().split('T')[0];
-    const endDateStr = endDate.toISOString().split('T')[0];
-    
+  async getUserDailyUsageRange(
+    userId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<UserDailyUsageEntity[]> {
+    const startDateStr = startDate.toISOString().split("T")[0];
+    const endDateStr = endDate.toISOString().split("T")[0];
+
     return await db
       .select()
       .from(UserDailyUsageSchema)
-      .where(and(
-        eq(UserDailyUsageSchema.userId, userId),
-        gte(UserDailyUsageSchema.usageDate, startDateStr),
-        lte(UserDailyUsageSchema.usageDate, endDateStr)
-      ))
+      .where(
+        and(
+          eq(UserDailyUsageSchema.userId, userId),
+          gte(UserDailyUsageSchema.usageDate, startDateStr),
+          lte(UserDailyUsageSchema.usageDate, endDateStr),
+        ),
+      )
       .orderBy(desc(UserDailyUsageSchema.usageDate));
   },
 
   async updateMonthlyUsage(
-    userId: string, 
-    year: number, 
-    month: number, 
-    usage: TokenCost, 
-    toolUsage?: { imageGenerations?: number; videoGenerations?: number; webSearches?: number }
+    userId: string,
+    year: number,
+    month: number,
+    usage: TokenCost,
+    toolUsage?: {
+      imageGenerations?: number;
+      videoGenerations?: number;
+      webSearches?: number;
+    },
   ): Promise<UserMonthlyUsageEntity> {
     const [result] = await db
       .insert(UserMonthlyUsageSchema)
@@ -253,7 +312,11 @@ export const pgUsageRepository: UsageRepository = {
         updatedAt: new Date(),
       })
       .onConflictDoUpdate({
-        target: [UserMonthlyUsageSchema.userId, UserMonthlyUsageSchema.usageMonth, UserMonthlyUsageSchema.usageYear],
+        target: [
+          UserMonthlyUsageSchema.userId,
+          UserMonthlyUsageSchema.usageMonth,
+          UserMonthlyUsageSchema.usageYear,
+        ],
         set: {
           totalTokens: sql`${UserMonthlyUsageSchema.totalTokens} + ${usage.totalTokens}`,
           inputTokens: sql`${UserMonthlyUsageSchema.inputTokens} + ${usage.inputTokens}`,
@@ -271,33 +334,49 @@ export const pgUsageRepository: UsageRepository = {
         },
       })
       .returning();
-    
+
     return result;
   },
 
-  async getUserMonthlyUsage(userId: string, year: number, month: number): Promise<UserMonthlyUsageEntity | null> {
+  async getUserMonthlyUsage(
+    userId: string,
+    year: number,
+    month: number,
+  ): Promise<UserMonthlyUsageEntity | null> {
     const [result] = await db
       .select()
       .from(UserMonthlyUsageSchema)
-      .where(and(
-        eq(UserMonthlyUsageSchema.userId, userId),
-        eq(UserMonthlyUsageSchema.usageYear, year),
-        eq(UserMonthlyUsageSchema.usageMonth, month)
-      ));
-    
+      .where(
+        and(
+          eq(UserMonthlyUsageSchema.userId, userId),
+          eq(UserMonthlyUsageSchema.usageYear, year),
+          eq(UserMonthlyUsageSchema.usageMonth, month),
+        ),
+      );
+
     return result || null;
   },
 
-  async getUserMonthlyUsageHistory(userId: string, limit = 12): Promise<UserMonthlyUsageEntity[]> {
+  async getUserMonthlyUsageHistory(
+    userId: string,
+    limit = 12,
+  ): Promise<UserMonthlyUsageEntity[]> {
     return await db
       .select()
       .from(UserMonthlyUsageSchema)
       .where(eq(UserMonthlyUsageSchema.userId, userId))
-      .orderBy(desc(UserMonthlyUsageSchema.usageYear), desc(UserMonthlyUsageSchema.usageMonth))
+      .orderBy(
+        desc(UserMonthlyUsageSchema.usageYear),
+        desc(UserMonthlyUsageSchema.usageMonth),
+      )
       .limit(limit);
   },
 
-  async updateThreadUsage(threadId: string, userId: string, usage: TokenCost): Promise<ThreadUsageEntity> {
+  async updateThreadUsage(
+    threadId: string,
+    userId: string,
+    usage: TokenCost,
+  ): Promise<ThreadUsageEntity> {
     const [result] = await db
       .insert(ThreadUsageSchema)
       .values({
@@ -330,7 +409,7 @@ export const pgUsageRepository: UsageRepository = {
         },
       })
       .returning();
-    
+
     return result;
   },
 
@@ -339,11 +418,14 @@ export const pgUsageRepository: UsageRepository = {
       .select()
       .from(ThreadUsageSchema)
       .where(eq(ThreadUsageSchema.threadId, threadId));
-    
+
     return result || null;
   },
 
-  async getUserThreadUsage(userId: string, limit = 50): Promise<ThreadUsageEntity[]> {
+  async getUserThreadUsage(
+    userId: string,
+    limit = 50,
+  ): Promise<ThreadUsageEntity[]> {
     return await db
       .select()
       .from(ThreadUsageSchema)
@@ -362,7 +444,7 @@ export const pgUsageRepository: UsageRepository = {
       })
       .from(UserDailyUsageSchema)
       .where(eq(UserDailyUsageSchema.userId, userId));
-    
+
     const stats = result[0];
     return {
       totalTokens: Number(stats.totalTokens || 0),
@@ -382,21 +464,30 @@ export const pgUsageRepository: UsageRepository = {
         totalUsers: sql<number>`COUNT(DISTINCT ${UserDailyUsageSchema.userId})`,
       })
       .from(UserDailyUsageSchema);
-    
-    const result = startDate && endDate 
-      ? await baseQuery.where(and(
-          gte(UserDailyUsageSchema.usageDate, startDate.toISOString().split('T')[0]),
-          lte(UserDailyUsageSchema.usageDate, endDate.toISOString().split('T')[0])
-        ))
-      : await baseQuery;
+
+    const result =
+      startDate && endDate
+        ? await baseQuery.where(
+            and(
+              gte(
+                UserDailyUsageSchema.usageDate,
+                startDate.toISOString().split("T")[0],
+              ),
+              lte(
+                UserDailyUsageSchema.usageDate,
+                endDate.toISOString().split("T")[0],
+              ),
+            ),
+          )
+        : await baseQuery;
     const stats = result[0];
-    
+
     const totalUsers = Number(stats.totalUsers || 0);
     const totalTokens = Number(stats.totalTokens || 0);
     const totalCost = Number(stats.totalCost || 0);
     const totalApiCalls = Number(stats.totalApiCalls || 0);
     const totalToolCalls = Number(stats.totalToolCalls || 0);
-    
+
     return {
       totalUsers,
       totalTokens,
@@ -408,40 +499,72 @@ export const pgUsageRepository: UsageRepository = {
     };
   },
 
-  // Pro user limit checking functions
-  async checkProLimits(userId: string, plannedUsage?: {
-    llmCostUsd?: number;
-    imageGenerations?: number;
-    videoGenerations?: number;
-    webSearches?: number;
-  }) {
+  // DEPRECATED - Legacy Pro user limit checking function
+  // Use checkUserLimits from subscription-limits.ts instead for proper plan-aware limits
+  async checkProLimits(
+    userId: string,
+    plannedUsage?: {
+      llmCostUsd?: number;
+      imageGenerations?: number;
+      videoGenerations?: number;
+      webSearches?: number;
+    },
+  ) {
+    // This function is deprecated - it uses hardcoded "plus" plan limits
+    // For proper plan-aware checking, use checkUserLimits from subscription-limits.ts
+    console.warn(
+      "checkProLimits is deprecated. Use checkUserLimits from subscription-limits.ts instead",
+    );
+
     const today = new Date();
     const currentMonth = today.getMonth() + 1;
     const currentYear = today.getFullYear();
-    
+
     // Get current daily and monthly usage
     const dailyUsage = await this.getUserDailyUsage(userId, today);
-    const monthlyUsage = await this.getUserMonthlyUsage(userId, currentYear, currentMonth);
-    
-    const currentDailyCost = parseFloat(dailyUsage?.totalCostUsd || '0');
-    const currentMonthlyCost = parseFloat(monthlyUsage?.totalCostUsd || '0');
-    
-    // Check LLM cost limits (Pro: $0.05/day, $1.50/month)
-    const wouldExceedDailyLimit = (currentDailyCost + (plannedUsage?.llmCostUsd || 0)) > 0.05;
-    const wouldExceedMonthlyLimit = (currentMonthlyCost + (plannedUsage?.llmCostUsd || 0)) > 1.50;
-    
+    const monthlyUsage = await this.getUserMonthlyUsage(
+      userId,
+      currentYear,
+      currentMonth,
+    );
+
+    const currentDailyCost = parseFloat(dailyUsage?.totalCostUsd || "0");
+    const currentMonthlyCost = parseFloat(monthlyUsage?.totalCostUsd || "0");
+
+    // Use PLUS plan limits as this was originally "Pro" but is now "Plus"
+    const PLUS_DAILY_COST_LIMIT = 0.05;
+    const PLUS_MONTHLY_COST_LIMIT = 1.5;
+    const PLUS_IMAGE_LIMIT = 15;
+    const PLUS_VIDEO_LIMIT = 2;
+    const PLUS_SEARCH_LIMIT = 80;
+
+    // Check LLM cost limits
+    const wouldExceedDailyLimit =
+      currentDailyCost + (plannedUsage?.llmCostUsd || 0) >
+      PLUS_DAILY_COST_LIMIT;
+    const wouldExceedMonthlyLimit =
+      currentMonthlyCost + (plannedUsage?.llmCostUsd || 0) >
+      PLUS_MONTHLY_COST_LIMIT;
+
     // Check tool limits (monthly)
     const currentImages = monthlyUsage?.imageGenerationsCount || 0;
     const currentVideos = monthlyUsage?.videoGenerationsCount || 0;
     const currentSearches = monthlyUsage?.webSearchesCount || 0;
-    
-    const wouldExceedImageLimit = (currentImages + (plannedUsage?.imageGenerations || 0)) > 10;
-    const wouldExceedVideoLimit = (currentVideos + (plannedUsage?.videoGenerations || 0)) > 2;
-    const wouldExceedSearchLimit = (currentSearches + (plannedUsage?.webSearches || 0)) > 40;
-    
+
+    const wouldExceedImageLimit =
+      currentImages + (plannedUsage?.imageGenerations || 0) > PLUS_IMAGE_LIMIT;
+    const wouldExceedVideoLimit =
+      currentVideos + (plannedUsage?.videoGenerations || 0) > PLUS_VIDEO_LIMIT;
+    const wouldExceedSearchLimit =
+      currentSearches + (plannedUsage?.webSearches || 0) > PLUS_SEARCH_LIMIT;
+
     return {
-      canProceed: !wouldExceedDailyLimit && !wouldExceedMonthlyLimit && 
-                  !wouldExceedImageLimit && !wouldExceedVideoLimit && !wouldExceedSearchLimit,
+      canProceed:
+        !wouldExceedDailyLimit &&
+        !wouldExceedMonthlyLimit &&
+        !wouldExceedImageLimit &&
+        !wouldExceedVideoLimit &&
+        !wouldExceedSearchLimit,
       limits: {
         dailyCostExceeded: wouldExceedDailyLimit,
         monthlyCostExceeded: wouldExceedMonthlyLimit,
@@ -457,12 +580,12 @@ export const pgUsageRepository: UsageRepository = {
         webSearches: currentSearches,
       },
       remaining: {
-        dailyCost: Math.max(0, 0.05 - currentDailyCost),
-        monthlyCost: Math.max(0, 1.50 - currentMonthlyCost),
-        imageGenerations: Math.max(0, 10 - currentImages),
-        videoGenerations: Math.max(0, 2 - currentVideos),
-        webSearches: Math.max(0, 40 - currentSearches),
-      }
+        dailyCost: Math.max(0, PLUS_DAILY_COST_LIMIT - currentDailyCost),
+        monthlyCost: Math.max(0, PLUS_MONTHLY_COST_LIMIT - currentMonthlyCost),
+        imageGenerations: Math.max(0, PLUS_IMAGE_LIMIT - currentImages),
+        videoGenerations: Math.max(0, PLUS_VIDEO_LIMIT - currentVideos),
+        webSearches: Math.max(0, PLUS_SEARCH_LIMIT - currentSearches),
+      },
     };
   },
 };
