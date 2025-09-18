@@ -35,11 +35,10 @@ import { supabase } from "@/lib/supabase/client";
 import { useTranslations } from "next-intl";
 import useSWR from "swr";
 import { getLocaleAction } from "@/i18n/get-locale";
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useShallow } from "zustand/shallow";
 import { useThemeStyle } from "@/hooks/use-theme-style";
 import { useSidebar } from "ui/sidebar";
-import { Button } from "ui/button";
 import Link from "next/link";
 import { useSubscription } from "@/hooks/useSubscription";
 import { HoverBorderGradient } from "ui/hover-border-gradient";
@@ -54,7 +53,7 @@ export function AppSidebarUser({
   session,
 }: { session?: { user: SessionUser } }) {
   const [appStoreMutate, profileDropdownOpen] = appStore(
-    useShallow((state) => [state.mutate, state.profileDropdownOpen])
+    useShallow((state) => [state.mutate, state.profileDropdownOpen]),
   );
   const t = useTranslations("Layout");
   const { open, openMobile } = useSidebar();
@@ -95,14 +94,17 @@ export function AppSidebarUser({
             as="div"
             className="bg-black dark:bg-white text-white dark:text-black flex items-center justify-center space-x-2 w-full py-2 px-4 font-medium"
           >
-            <Link href="/pricing" className="flex items-center gap-2 w-full justify-center">
+            <Link
+              href="/pricing"
+              className="flex items-center gap-2 w-full justify-center"
+            >
               <ArrowUpRight className="size-4" />
               <span>{t("upgrade")}</span>
             </Link>
           </HoverBorderGradient>
         </SidebarMenuItem>
       )}
-      
+
       <SidebarMenuItem>
         <DropdownMenu open={profileDropdownOpen} onOpenChange={setDropdownOpen}>
           <DropdownMenuTrigger asChild>
@@ -276,9 +278,7 @@ function SelectLanguage() {
         <span>{t("language")}</span>
       </DropdownMenuSubTrigger>
       <DropdownMenuPortal>
-        <DropdownMenuSubContent
-          className="bg-background/80 backdrop-blur-md border-border/20 w-48 max-h-96 overflow-y-auto rounded-lg"
-        >
+        <DropdownMenuSubContent className="bg-background/80 backdrop-blur-md border-border/20 w-48 max-h-96 overflow-y-auto rounded-lg">
           <DropdownMenuLabel className="text-muted-foreground">
             {t("language")}
           </DropdownMenuLabel>

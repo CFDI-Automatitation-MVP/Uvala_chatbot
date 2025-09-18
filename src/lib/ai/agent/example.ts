@@ -17,11 +17,6 @@ export const RandomDataGeneratorExample: Partial<Agent> = {
     mentions: [
       {
         type: "defaultTool",
-        label: DefaultToolName.JavascriptExecution,
-        name: DefaultToolName.JavascriptExecution,
-      },
-      {
-        type: "defaultTool",
         label: DefaultToolName.CreateTable,
         name: DefaultToolName.CreateTable,
       },
@@ -86,8 +81,8 @@ export const WeatherExample: Partial<Agent> = {
     mentions: [
       {
         type: "defaultTool",
-        label: DefaultToolName.Http,
-        name: DefaultToolName.Http,
+        label: DefaultToolName.WebSearch,
+        name: DefaultToolName.WebSearch,
       },
     ],
     systemPrompt: `

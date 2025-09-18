@@ -4,11 +4,23 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { User, Shield, CreditCard, Settings, X, LogOut } from "lucide-react";
+import {
+  User,
+  Shield,
+  CreditCard,
+  Settings,
+  X,
+  LogOut,
+  Crown,
+  Calendar,
+  AlertCircle,
+} from "lucide-react";
 import { cn } from "lib/utils";
 import { Label } from "ui/label";
 import { Button } from "ui/button";
+import { Badge } from "ui/badge";
 import { supabase } from "@/lib/supabase/client";
+import { useSubscription } from "@/hooks/useSubscription";
 
 const profileSections = [
   { id: "profile", icon: User, key: "title" },
@@ -32,6 +44,12 @@ export function ProfilePageClient({ session }: Props) {
   const t = useTranslations();
   const router = useRouter();
   const [activeSection, setActiveSection] = useState<string>("profile");
+  const {
+    hasSubscription,
+    planType,
+    subscription,
+    loading: subscriptionLoading,
+  } = useSubscription();
 
   const user = session?.user;
 
@@ -185,10 +203,124 @@ export function ProfilePageClient({ session }: Props) {
                   <h2 className="text-xl font-semibold text-foreground">
                     {t("Profile.billing")}
                   </h2>
-                  <div className="text-muted-foreground">
-                    Billing information and subscription details will be
-                    displayed here.
-                  </div>
+
+                  {subscriptionLoading ? (
+                    <div className="text-muted-foreground">
+                      Loading subscription details...
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {/* Current Plan */}
+                      <div className="bg-background/60 rounded-lg p-4 border border-border/20">
+                        <div className="flex items-center justify-between mb-3">
+                          <Label className="text-sm font-medium text-foreground">
+                            Current Plan
+                          </Label>
+                          {hasSubscription &&
+                            subscription?.status === "active" && (
+                              <Crown className="w-4 h-4 text-yellow-500" />
+                            )}
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <Badge
+                            variant={
+                              hasSubscription &&
+                              subscription?.status === "active"
+                                ? "default"
+                                : "secondary"
+                            }
+                            className="capitalize"
+                          >
+                            {planType} Plan
+                          </Badge>
+
+                          {subscription?.status && (
+                            <Badge
+                              variant={
+                                subscription.status === "active"
+                                  ? "default"
+                                  : subscription.status === "trialing"
+                                    ? "default"
+                                    : subscription.status === "canceled" ||
+                                        subscription.status === "unpaid"
+                                      ? "destructive"
+                                      : subscription.status === "past_due" ||
+                                          subscription.status === "incomplete"
+                                        ? "destructive"
+                                        : "secondary"
+                              }
+                              className="capitalize"
+                            >
+                              {subscription.status === "past_due"
+                                ? "Payment Due"
+                                : subscription.status === "incomplete"
+                                  ? "Action Required"
+                                  : subscription.status === "trialing"
+                                    ? "Trial"
+                                    : subscription.status}
+                            </Badge>
+                          )}
+                        </div>
+
+                        {!hasSubscription && (
+                          <p className="text-sm text-muted-foreground mt-2">
+                            You&apos;re currently on the free plan. Upgrade to
+                            unlock more features.
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Subscription Details */}
+                      {hasSubscription && subscription && (
+                        <div className="bg-background/60 rounded-lg p-4 border border-border/20">
+                          <Label className="text-sm font-medium text-foreground mb-3 block">
+                            Subscription Details
+                          </Label>
+
+                          <div className="space-y-2 text-sm">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="w-4 h-4 text-muted-foreground" />
+                              <span className="text-foreground">
+                                Current Period:{" "}
+                                {new Date(
+                                  subscription.currentPeriodStart,
+                                ).toLocaleDateString()}{" "}
+                                -{" "}
+                                {new Date(
+                                  subscription.currentPeriodEnd,
+                                ).toLocaleDateString()}
+                              </span>
+                            </div>
+
+                            {subscription.cancelAtPeriodEnd && (
+                              <div className="flex items-center gap-2 text-orange-600">
+                                <AlertCircle className="w-4 h-4" />
+                                <span>
+                                  Your subscription will cancel at the end of
+                                  the current period.
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Manage Subscription */}
+                      <div className="pt-2">
+                        <Button
+                          onClick={() => router.push("/pricing")}
+                          variant="outline"
+                          className="flex items-center gap-2"
+                        >
+                          <CreditCard className="size-4" />
+                          {hasSubscription
+                            ? "Manage Subscription"
+                            : "Upgrade Plan"}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

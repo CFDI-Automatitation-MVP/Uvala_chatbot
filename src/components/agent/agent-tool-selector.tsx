@@ -84,8 +84,6 @@ export function AgentToolSelector({
               name={m.name as DefaultToolName}
               className="size-3"
             />
-          ) : m.type === "mcpServer" ? (
-            <HammerIcon className="size-3" />
           ) : m.type === "workflow" ? (
             <Avatar
               style={m.icon?.style}

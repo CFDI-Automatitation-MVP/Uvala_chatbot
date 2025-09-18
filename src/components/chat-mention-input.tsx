@@ -8,7 +8,7 @@ import React, {
   useEffect,
 } from "react";
 
-import { CheckIcon, HammerIcon, SearchIcon } from "lucide-react";
+import { CheckIcon, SearchIcon } from "lucide-react";
 
 import { ChatMention } from "app-types/chat";
 
@@ -152,107 +152,16 @@ export function ChatMentionInputSuggestion({
   onOpenChange?: (open: boolean) => void;
   children?: React.ReactNode;
   style?: React.CSSProperties;
-  disabledType?: ("mcp" | "workflow" | "defaultTool" | "agent")[];
+  disabledType?: ("workflow" | "defaultTool" | "agent")[];
 }) {
   const t = useTranslations("Common");
-  const [mcpList, workflowList, agentList] = appStore(
-    useShallow((state) => [
-      state.mcpList,
-      state.workflowToolList,
-      state.agentList,
-    ]),
+  const [workflowList, agentList] = appStore(
+    useShallow((state) => [state.workflowToolList, state.agentList]),
   );
   const [searchValue, setSearchValue] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const itemRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
   const isMobile = useIsMobile();
-
-  const mcpMentions = useMemo(() => {
-    if (disabledType?.includes("mcp")) return [];
-    const filtered = mcpList
-      ?.filter((mcp) => mcp.toolInfo?.length)
-      .filter((mcp) => {
-        if (!searchValue) return true;
-        const search = searchValue.toLowerCase();
-        return (
-          mcp.name.toLowerCase().includes(search) ||
-          mcp.toolInfo?.some((tool) => tool.name.toLowerCase().includes(search))
-        );
-      });
-
-    return (
-      filtered?.flatMap((mcp) => {
-        const mcpId = JSON.stringify({
-          type: "mcpServer",
-          name: mcp.name,
-          serverId: mcp.id,
-          description: `${mcp.name} is an MCP server that includes ${mcp.toolInfo?.length ?? 0} tool(s).`,
-          toolCount: mcp.toolInfo?.length ?? 0,
-        });
-
-        const items: MentionItemType[] = [];
-
-        // Add MCP server item
-        if (
-          !searchValue ||
-          mcp.name.toLowerCase().includes(searchValue.toLowerCase())
-        ) {
-          items.push({
-            id: `${mcp.id}-mcp`,
-            type: "mcp",
-            label: mcp.name,
-            onSelect: () =>
-              onSelectMention({
-                label: `mcp("${mcp.name}")`,
-                id: mcpId,
-              }),
-            icon: <HammerIcon className="size-3.5 text-foreground" />,
-            suffix: selectedIds?.includes(mcpId) ? (
-              <CheckIcon className="size-3 ml-auto" />
-            ) : (
-              <span className="ml-auto text-xs text-muted-foreground">
-                {mcp.toolInfo?.length} tools
-              </span>
-            ),
-          });
-        }
-
-        // Add tool items
-        const toolItems =
-          mcp.toolInfo
-            ?.filter(
-              (tool) =>
-                !searchValue ||
-                tool.name.toLowerCase().includes(searchValue.toLowerCase()),
-            )
-            .map((tool) => {
-              const toolId = JSON.stringify({
-                type: "mcpTool",
-                name: tool.name,
-                serverId: mcp.id,
-                description: tool.description,
-                serverName: mcp.name,
-              });
-              return {
-                id: `${mcp.id}-${tool.name}`,
-                type: "mcpTool",
-                label: tool.name,
-                onSelect: () =>
-                  onSelectMention({
-                    label: `tool("${tool.name}") `,
-                    id: toolId,
-                  }),
-                icon: <HammerIcon className="size-3.5" />,
-                suffix: selectedIds?.includes(toolId) && (
-                  <CheckIcon className="size-3 ml-auto" />
-                ),
-              };
-            }) || [];
-
-        return [...items, ...toolItems];
-      }) || []
-    );
-  }, [mcpList, selectedIds, disabledType, searchValue]);
 
   const agentMentions = useMemo(() => {
     if (disabledType?.includes("agent")) return [];
@@ -373,18 +282,6 @@ export function ChatMentionInputSuggestion({
           label = "web-content";
           description = "Get the content of a web page";
           break;
-        case DefaultToolName.Http:
-          label = "HTTP";
-          description = "Send an http request";
-          break;
-        case DefaultToolName.JavascriptExecution:
-          label = "js-execution";
-          description = "Execute simple javascript code";
-          break;
-        case DefaultToolName.PythonExecution:
-          label = "python-execution";
-          description = "Execute simple python code";
-          break;
       }
       return {
         id: toolName,
@@ -439,13 +336,8 @@ export function ChatMentionInputSuggestion({
 
   // Combine all mentions
   const allMentions = useMemo(() => {
-    return [
-      ...agentMentions,
-      ...workflowMentions,
-      ...defaultToolMentions,
-      ...mcpMentions,
-    ];
-  }, [agentMentions, workflowMentions, defaultToolMentions, mcpMentions]);
+    return [...agentMentions, ...workflowMentions, ...defaultToolMentions];
+  }, [agentMentions, workflowMentions, defaultToolMentions]);
 
   // Reset selected index when mentions change
   useEffect(() => {
@@ -469,14 +361,10 @@ export function ChatMentionInputSuggestion({
       agent: { title: "Agents", items: [] as MentionItemType[] },
       workflow: { title: "Workflows", items: [] as MentionItemType[] },
       defaultTool: { title: "App Tools", items: [] as MentionItemType[] },
-      mcp: { title: "MCP Tools", items: [] as MentionItemType[] },
-      mcpTool: { title: "MCP Tools", items: [] as MentionItemType[] },
     };
 
     allMentions.forEach((mention) => {
-      if (mention.type === "mcpTool") {
-        groups.mcp.items.push(mention);
-      } else if (groups[mention.type as keyof typeof groups]) {
+      if (groups[mention.type as keyof typeof groups]) {
         groups[mention.type as keyof typeof groups].items.push(mention);
       }
     });
@@ -539,17 +427,14 @@ export function ChatMentionInputSuggestion({
                   e.preventDefault();
                   // Calculate column navigation
                   const currentItem = allMentions[selectedIndex];
-                  const currentType =
-                    currentItem.type === "mcpTool" ? "mcp" : currentItem.type;
-                  const typeOrder = ["agent", "workflow", "mcp", "defaultTool"];
+                  const currentType = currentItem.type;
+                  const typeOrder = ["agent", "workflow", "defaultTool"];
                   const currentTypeIndex = typeOrder.indexOf(currentType);
 
                   if (e.key === "ArrowLeft" && currentTypeIndex > 0) {
                     const prevType = typeOrder[currentTypeIndex - 1];
                     const prevTypeItems = allMentions.filter(
-                      (item) =>
-                        item.type === prevType ||
-                        (prevType === "mcp" && item.type === "mcpTool"),
+                      (item) => item.type === prevType,
                     );
                     if (prevTypeItems.length > 0) {
                       setSelectedIndex(allMentions.indexOf(prevTypeItems[0]));
@@ -560,9 +445,7 @@ export function ChatMentionInputSuggestion({
                   ) {
                     const nextType = typeOrder[currentTypeIndex + 1];
                     const nextTypeItems = allMentions.filter(
-                      (item) =>
-                        item.type === nextType ||
-                        (nextType === "mcp" && item.type === "mcpTool"),
+                      (item) => item.type === nextType,
                     );
                     if (nextTypeItems.length > 0) {
                       setSelectedIndex(allMentions.indexOf(nextTypeItems[0]));
@@ -661,27 +544,6 @@ export function ChatMentionInputSuggestion({
                     </div>
                   </div>
                 )}
-                {groupedMentions.mcp.items.length > 0 && (
-                  <div className="p-2 border-t">
-                    <div className="text-xs font-medium text-muted-foreground px-2 py-1.5">
-                      {groupedMentions.mcp.title}
-                    </div>
-                    <div className="space-y-1">
-                      {groupedMentions.mcp.items.map((item) => (
-                        <MentionItem
-                          key={item.id}
-                          item={item}
-                          isSelected={
-                            allMentions[selectedIndex]?.id === item.id
-                          }
-                          ref={(el) => {
-                            itemRefs.current[item.id] = el;
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             ) : (
               // Desktop horizontal layout
@@ -734,35 +596,6 @@ export function ChatMentionInputSuggestion({
                       ) : (
                         <div className="px-2 py-3 text-xs text-muted-foreground text-center">
                           No workflows found
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* MCP Tools Column */}
-                <div className="flex-1 border-r overflow-y-auto">
-                  <div className="p-2">
-                    <div className="text-xs font-medium text-muted-foreground px-2 py-1.5">
-                      {groupedMentions.mcp.title}
-                    </div>
-                    <div className="space-y-1">
-                      {groupedMentions.mcp.items.length > 0 ? (
-                        groupedMentions.mcp.items.map((item) => (
-                          <MentionItem
-                            key={item.id}
-                            item={item}
-                            isSelected={
-                              allMentions[selectedIndex]?.id === item.id
-                            }
-                            ref={(el) => {
-                              itemRefs.current[item.id] = el;
-                            }}
-                          />
-                        ))
-                      ) : (
-                        <div className="px-2 py-3 text-xs text-muted-foreground text-center">
-                          No MCP tools found
                         </div>
                       )}
                     </div>

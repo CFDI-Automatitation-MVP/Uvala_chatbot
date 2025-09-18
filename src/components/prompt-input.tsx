@@ -68,7 +68,7 @@ import { ChatMention, ChatModel } from "app-types/chat";
 import dynamic from "next/dynamic";
 import { ToolModeDropdown } from "./tool-mode-dropdown";
 
-import { ToolSelectDropdown } from "./tool-select-dropdown";
+import ToolSelectDropdown from "./tool-select-dropdown";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import { useTranslations } from "next-intl";
 import { Editor } from "@tiptap/react";
@@ -107,7 +107,9 @@ interface PromptInputProps {
   onFocus?: () => void;
   fileUploadDisabled?: boolean;
   fileAttachments?: AttachmentFile[];
-  setFileAttachments?: (files: AttachmentFile[] | ((prev: AttachmentFile[]) => AttachmentFile[])) => void;
+  setFileAttachments?: (
+    files: AttachmentFile[] | ((prev: AttachmentFile[]) => AttachmentFile[]),
+  ) => void;
   isDragOver?: boolean;
 }
 
@@ -135,7 +137,6 @@ export default function PromptInput({
   fileUploadDisabled,
   fileAttachments: externalFileAttachments,
   setFileAttachments: externalSetFileAttachments,
-  isDragOver: externalIsDragOver,
 }: PromptInputProps) {
   const t = useTranslations("Chat");
 
@@ -147,7 +148,9 @@ export default function PromptInput({
     ]),
   );
 
-  const [internalFileAttachments, setInternalFileAttachments] = useState<AttachmentFile[]>([]);
+  const [internalFileAttachments, setInternalFileAttachments] = useState<
+    AttachmentFile[]
+  >([]);
   const [isDictating, setIsDictating] = useState(false);
   const [recognition, setRecognition] = useState<SpeechRecognition | null>(
     null,
@@ -155,8 +158,8 @@ export default function PromptInput({
 
   // Use external props if provided, otherwise use internal state
   const fileAttachments = externalFileAttachments ?? internalFileAttachments;
-  const setFileAttachments = externalSetFileAttachments ?? setInternalFileAttachments;
-  const isDragOver = externalIsDragOver ?? false;
+  const setFileAttachments =
+    externalSetFileAttachments ?? setInternalFileAttachments;
 
   // Initialize speech recognition
   useEffect(() => {
@@ -373,7 +376,6 @@ export default function PromptInput({
   const handleRemoveFile = useCallback((index: number) => {
     setFileAttachments((prev) => prev.filter((_, i) => i !== index));
   }, []);
-
 
   // Handle clipboard paste for images
   useEffect(() => {

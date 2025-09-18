@@ -214,7 +214,8 @@ export const UserMessagePart = memo(
           className={cn(
             "flex flex-col gap-4 max-w-full ring ring-input relative overflow-hidden",
             {
-              "bg-accent text-accent-foreground px-4 py-3 rounded-2xl": isLast && part.type === "text",
+              "bg-accent text-accent-foreground px-4 py-3 rounded-2xl":
+                isLast && part.type === "text",
               "opacity-50": isError,
             },
             isError && "border-destructive border",
@@ -543,13 +544,25 @@ export const AssistMessagePart = memo(function AssistMessagePart({
                                 {metadata.usage.inputTokens.toLocaleString()}
                                 {metadata.chatModel && (
                                   <span className="text-green-600 ml-2">
-                                    ({formatCost(calculateTokenCost({
-                                      inputTokens: metadata.usage.inputTokens,
-                                      outputTokens: 0,
-                                      cachedInputTokens: metadata.usage.cachedInputTokens || 0,
-                                      reasoningTokens: metadata.usage.reasoningTokens || 0,
-                                      totalTokens: metadata.usage.inputTokens,
-                                    }, `${metadata.chatModel.provider}/${metadata.chatModel.model}`).inputCostUsd)})
+                                    (
+                                    {formatCost(
+                                      calculateTokenCost(
+                                        {
+                                          inputTokens:
+                                            metadata.usage.inputTokens,
+                                          outputTokens: 0,
+                                          cachedInputTokens:
+                                            metadata.usage.cachedInputTokens ||
+                                            0,
+                                          reasoningTokens:
+                                            metadata.usage.reasoningTokens || 0,
+                                          totalTokens:
+                                            metadata.usage.inputTokens,
+                                        },
+                                        `${metadata.chatModel.provider}/${metadata.chatModel.model}`,
+                                      ).inputCostUsd,
+                                    )}
+                                    )
                                   </span>
                                 )}
                               </span>
@@ -564,13 +577,22 @@ export const AssistMessagePart = memo(function AssistMessagePart({
                                 {metadata.usage.outputTokens.toLocaleString()}
                                 {metadata.chatModel && (
                                   <span className="text-green-600 ml-2">
-                                    ({formatCost(calculateTokenCost({
-                                      inputTokens: 0,
-                                      outputTokens: metadata.usage.outputTokens,
-                                      cachedInputTokens: 0,
-                                      reasoningTokens: 0,
-                                      totalTokens: metadata.usage.outputTokens,
-                                    }, `${metadata.chatModel.provider}/${metadata.chatModel.model}`).outputCostUsd)})
+                                    (
+                                    {formatCost(
+                                      calculateTokenCost(
+                                        {
+                                          inputTokens: 0,
+                                          outputTokens:
+                                            metadata.usage.outputTokens,
+                                          cachedInputTokens: 0,
+                                          reasoningTokens: 0,
+                                          totalTokens:
+                                            metadata.usage.outputTokens,
+                                        },
+                                        `${metadata.chatModel.provider}/${metadata.chatModel.model}`,
+                                      ).outputCostUsd,
+                                    )}
+                                    )
                                   </span>
                                 )}
                               </span>
@@ -585,10 +607,14 @@ export const AssistMessagePart = memo(function AssistMessagePart({
                                 {metadata.usage.totalTokens.toLocaleString()}
                                 {metadata.chatModel && (
                                   <span className="text-green-600 ml-2">
-                                    ({formatCost(calculateTokenCost(
-                                      metadata.usage, 
-                                      `${metadata.chatModel.provider}/${metadata.chatModel.model}`
-                                    ).totalCostUsd)})
+                                    (
+                                    {formatCost(
+                                      calculateTokenCost(
+                                        metadata.usage,
+                                        `${metadata.chatModel.provider}/${metadata.chatModel.model}`,
+                                      ).totalCostUsd,
+                                    )}
+                                    )
                                   </span>
                                 )}
                               </span>
@@ -741,18 +767,11 @@ const WebSearchToolInvocation = dynamic(
   },
 );
 
-const CodeExecutor = dynamic(
-  () =>
-    import("./tool-invocation/code-executor").then((mod) => mod.CodeExecutor),
-  {
-    ssr: false,
-    loading,
-  },
-);
-
 const ImageGeneration = dynamic(
   () =>
-    import("./tool-invocation/image-generation").then((mod) => mod.ImageGeneration),
+    import("./tool-invocation/image-generation").then(
+      (mod) => mod.ImageGeneration,
+    ),
   {
     ssr: false,
     loading,
@@ -760,17 +779,7 @@ const ImageGeneration = dynamic(
 );
 
 const WebSandbox = dynamic(
-  () =>
-    import("./tool-invocation/web-sandbox").then((mod) => mod.WebSandbox),
-  {
-    ssr: false,
-    loading,
-  },
-);
-
-const Presentation = dynamic(
-  () =>
-    import("./tool-invocation/presentation").then((mod) => mod.Presentation),
+  () => import("./tool-invocation/web-sandbox").then((mod) => mod.WebSandbox),
   {
     ssr: false,
     loading,
@@ -779,7 +788,9 @@ const Presentation = dynamic(
 
 const VideoGeneration = dynamic(
   () =>
-    import("./tool-invocation/video-generation").then((mod) => mod.VideoGeneration),
+    import("./tool-invocation/video-generation").then(
+      (mod) => mod.VideoGeneration,
+    ),
   {
     ssr: false,
     loading,
@@ -937,28 +948,6 @@ export const ToolMessagePart = memo(
         return <WebSearchToolInvocation part={part} />;
       }
 
-      if (toolName === DefaultToolName.JavascriptExecution) {
-        return (
-          <CodeExecutor
-            part={part}
-            key={part.toolCallId}
-            onResult={onToolCallDirect}
-            type="javascript"
-          />
-        );
-      }
-
-      if (toolName === DefaultToolName.PythonExecution) {
-        return (
-          <CodeExecutor
-            part={part}
-            key={part.toolCallId}
-            onResult={onToolCallDirect}
-            type="python"
-          />
-        );
-      }
-
       if (state === "output-available") {
         switch (toolName) {
           case DefaultToolName.CreatePieChart:
@@ -993,13 +982,6 @@ export const ToolMessagePart = memo(
           case DefaultToolName.CreateWebSandbox:
             return (
               <WebSandbox
-                key={`${toolCallId}-${toolName}`}
-                {...(output as any)}
-              />
-            );
-          case DefaultToolName.CreatePresentation:
-            return (
-              <Presentation
                 key={`${toolCallId}-${toolName}`}
                 {...(output as any)}
               />
@@ -1066,10 +1048,9 @@ export const ToolMessagePart = memo(
               <span className="font-bold flex items-center gap-2">
                 {isExecuting ? (
                   <TextShimmer>
-                    {toolName === DefaultToolName.CreateWebSandbox 
-                      ? "generating web page" 
-                      : mcpServerName
-                    }
+                    {toolName === DefaultToolName.CreateWebSandbox
+                      ? "generating web page"
+                      : mcpServerName}
                   </TextShimmer>
                 ) : (
                   mcpServerName

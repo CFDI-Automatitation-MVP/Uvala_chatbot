@@ -1,7 +1,7 @@
 "use client";
 
 import { getToolName, isToolUIPart, TextPart } from "ai";
-import { DEFAULT_VOICE_TOOLS, UIMessageWithCompleted } from "lib/ai/speech";
+import { UIMessageWithCompleted } from "lib/ai/speech";
 
 import {
   OPENAI_VOICE,
@@ -52,17 +52,6 @@ import { useTranslations } from "next-intl";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "ui/dialog";
 import JsonView from "ui/json-view";
 import { isShortcutEvent, Shortcuts } from "lib/keyboard-shortcuts";
-
-const _prependTools = [
-  {
-    id: "Browser",
-    name: "Browser",
-    tools: DEFAULT_VOICE_TOOLS.map((tool) => ({
-      name: tool.name,
-      description: tool.description,
-    })),
-  },
-];
 
 export function ChatBotVoice() {
   const t = useTranslations("Chat");

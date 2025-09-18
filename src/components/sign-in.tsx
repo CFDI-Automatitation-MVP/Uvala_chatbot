@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { GoogleIcon } from "ui/google-icon";
 import Image from "next/image";
+import { getURL } from "@/lib/get-url";
 
 export default function SignIn() {
   const [loading, setLoading] = useState(false);
@@ -18,7 +19,7 @@ export default function SignIn() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${getURL()}auth/callback`,
         },
       });
 

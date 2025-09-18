@@ -1,21 +1,15 @@
-import { createDbBasedMCPConfigsStorage } from "./db-mcp-config-storage";
-import { createFileBasedMCPConfigsStorage } from "./fb-mcp-config-storage";
 import {
   createMCPClientsManager,
   type MCPClientsManager,
 } from "./create-mcp-clients-manager";
-import { FILE_BASED_MCP_CONFIG } from "lib/const";
 declare global {
   // eslint-disable-next-line no-var
   var __mcpClientsManager__: MCPClientsManager;
 }
 
 if (!globalThis.__mcpClientsManager__) {
-  // Choose the appropriate storage implementation based on environment
-  const storage = FILE_BASED_MCP_CONFIG
-    ? createFileBasedMCPConfigsStorage()
-    : createDbBasedMCPConfigsStorage();
-  globalThis.__mcpClientsManager__ = createMCPClientsManager(storage);
+  // MCP functionality disabled
+  globalThis.__mcpClientsManager__ = createMCPClientsManager();
 }
 
 export const initMCPManager = async () => {

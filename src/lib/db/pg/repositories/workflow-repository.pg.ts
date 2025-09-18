@@ -143,7 +143,7 @@ export const pgWorkflowRepository: WorkflowRepository = {
     const result = await pgDb
       .delete(WorkflowSchema)
       .where(eq(WorkflowSchema.id, id));
-    if (result.rowCount === 0) {
+    if (result.count === 0) {
       throw new Error("Workflow not found");
     }
   },

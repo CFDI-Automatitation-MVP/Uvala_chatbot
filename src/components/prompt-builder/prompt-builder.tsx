@@ -15,17 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "ui/select";
-import {
-  Plus,
-  X,
-  Copy,
-  Download,
-  Upload,
-  Trash2,
-  Save,
-  Eye,
-  EyeOff,
-} from "lucide-react";
+import { Plus, X, Copy, Trash2, Save, Eye, EyeOff } from "lucide-react";
 
 interface PromptVariable {
   id: string;
@@ -59,7 +49,9 @@ const PROMPT_CATEGORIES = [
 
 export function PromptBuilder() {
   const [templates, setTemplates] = useState<PromptTemplate[]>([]);
-  const [activeTemplate, setActiveTemplate] = useState<PromptTemplate | null>(null);
+  const [activeTemplate, setActiveTemplate] = useState<PromptTemplate | null>(
+    null,
+  );
   const [isCreating, setIsCreating] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
 
@@ -82,19 +74,21 @@ export function PromptBuilder() {
   };
 
   const removeVariable = (id: string) => {
-    setVariables(variables.filter(v => v.id !== id));
+    setVariables(variables.filter((v) => v.id !== id));
   };
 
   const updateVariable = (id: string, updates: Partial<PromptVariable>) => {
-    setVariables(variables.map(v => v.id === id ? { ...v, ...updates } : v));
+    setVariables(
+      variables.map((v) => (v.id === id ? { ...v, ...updates } : v)),
+    );
   };
 
   const generatePreview = () => {
     let preview = promptContent;
-    variables.forEach(variable => {
+    variables.forEach((variable) => {
       const placeholder = `{{${variable.name}}}`;
       const value = variable.defaultValue || `[${variable.name}]`;
-      preview = preview.replace(new RegExp(placeholder, 'g'), value);
+      preview = preview.replace(new RegExp(placeholder, "g"), value);
     });
     return preview;
   };
@@ -142,7 +136,7 @@ export function PromptBuilder() {
   };
 
   const deleteTemplate = (id: string) => {
-    setTemplates(templates.filter(t => t.id !== id));
+    setTemplates(templates.filter((t) => t.id !== id));
     if (activeTemplate?.id === id) {
       resetForm();
     }
@@ -194,7 +188,10 @@ export function PromptBuilder() {
           // Template List View
           <div className="p-4 space-y-3">
             {templates.map((template) => (
-              <Card key={template.id} className="p-4 hover:bg-accent/50 transition-colors">
+              <Card
+                key={template.id}
+                className="p-4 hover:bg-accent/50 transition-colors"
+              >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
@@ -257,7 +254,9 @@ export function PromptBuilder() {
               </div>
 
               <div>
-                <Label htmlFor="template-description">Description (Optional)</Label>
+                <Label htmlFor="template-description">
+                  Description (Optional)
+                </Label>
                 <Input
                   id="template-description"
                   placeholder="Brief description of the template"
@@ -268,7 +267,10 @@ export function PromptBuilder() {
 
               <div>
                 <Label htmlFor="template-category">Category</Label>
-                <Select value={templateCategory} onValueChange={setTemplateCategory}>
+                <Select
+                  value={templateCategory}
+                  onValueChange={setTemplateCategory}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -302,7 +304,9 @@ export function PromptBuilder() {
                       <Input
                         placeholder="Variable name"
                         value={variable.name}
-                        onChange={(e) => updateVariable(variable.id, { name: e.target.value })}
+                        onChange={(e) =>
+                          updateVariable(variable.id, { name: e.target.value })
+                        }
                         className="font-mono text-sm"
                       />
                       <Button
@@ -316,7 +320,9 @@ export function PromptBuilder() {
                     <div className="grid grid-cols-2 gap-2">
                       <Select
                         value={variable.type}
-                        onValueChange={(value: any) => updateVariable(variable.id, { type: value })}
+                        onValueChange={(value: any) =>
+                          updateVariable(variable.id, { type: value })
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue />
@@ -331,13 +337,21 @@ export function PromptBuilder() {
                       <Input
                         placeholder="Default value"
                         value={variable.defaultValue}
-                        onChange={(e) => updateVariable(variable.id, { defaultValue: e.target.value })}
+                        onChange={(e) =>
+                          updateVariable(variable.id, {
+                            defaultValue: e.target.value,
+                          })
+                        }
                       />
                     </div>
                     <Input
                       placeholder="Description (optional)"
                       value={variable.description}
-                      onChange={(e) => updateVariable(variable.id, { description: e.target.value })}
+                      onChange={(e) =>
+                        updateVariable(variable.id, {
+                          description: e.target.value,
+                        })
+                      }
                     />
                   </div>
                 </Card>
@@ -355,7 +369,11 @@ export function PromptBuilder() {
                   variant="outline"
                   onClick={() => setPreviewMode(!previewMode)}
                 >
-                  {previewMode ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                  {previewMode ? (
+                    <EyeOff className="w-3 h-3" />
+                  ) : (
+                    <Eye className="w-3 h-3" />
+                  )}
                   {previewMode ? "Edit" : "Preview"}
                 </Button>
               </div>

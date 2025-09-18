@@ -1,98 +1,112 @@
-import Stripe from 'stripe'
+import Stripe from "stripe";
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY is not defined in environment variables')
-}
+let _stripe: Stripe | null = null;
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2025-08-27.basil',
-  typescript: true
-})
+export const getStripe = () => {
+  if (!_stripe) {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error(
+        "STRIPE_SECRET_KEY is not defined in environment variables",
+      );
+    }
+    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: "2025-08-27.basil",
+      typescript: true,
+    });
+  }
+  return _stripe;
+};
 
 export const getStripeSession = async (sessionId: string) => {
-  return await stripe.checkout.sessions.retrieve(sessionId)
-}
+  const stripe = getStripe();
+  return await stripe.checkout.sessions.retrieve(sessionId);
+};
 
 export const createCheckoutSession = async ({
   priceId,
   userId,
   userEmail,
   successUrl,
-  cancelUrl
+  cancelUrl,
 }: {
-  priceId: string
-  userId?: string
-  userEmail?: string
-  successUrl: string
-  cancelUrl: string
+  priceId: string;
+  userId?: string;
+  userEmail?: string;
+  successUrl: string;
+  cancelUrl: string;
 }) => {
+  const stripe = getStripe();
   const sessionParams: Stripe.Checkout.SessionCreateParams = {
-    payment_method_types: ['card'],
+    payment_method_types: ["card"],
     line_items: [
       {
         price: priceId,
-        quantity: 1
-      }
+        quantity: 1,
+      },
     ],
-    mode: 'subscription',
+    mode: "subscription",
     success_url: successUrl,
     cancel_url: cancelUrl,
     metadata: {
-      userId: userId || ''
+      userId: userId || "",
     },
     subscription_data: {
       metadata: {
-        userId: userId || ''
-      }
+        userId: userId || "",
+      },
     },
     custom_text: {
       submit: {
-        message: 'We\'ll email you instructions on how to get started.'
-      }
-    }
-  }
+        message: "We'll email you instructions on how to get started.",
+      },
+    },
+  };
 
   // If we have userId, create or update customer with metadata
   if (userId) {
     // Try to find existing customer by email or create new one
     let customerId: string | undefined;
-    
+
     if (userEmail) {
       const existingCustomers = await stripe.customers.list({
         email: userEmail,
-        limit: 1
+        limit: 1,
       });
-      
+
       if (existingCustomers.data.length > 0) {
         customerId = existingCustomers.data[0].id;
         // Update existing customer metadata
         await stripe.customers.update(customerId, {
-          metadata: { userId }
+          metadata: { userId },
         });
       }
     }
-    
+
     if (!customerId) {
       // Create new customer
       const customer = await stripe.customers.create({
         email: userEmail,
-        metadata: { userId }
+        metadata: { userId },
       });
       customerId = customer.id;
     }
-    
+
     sessionParams.customer = customerId;
   } else if (userEmail) {
     // Only set customer_email if we don't have a userId (fallback case)
     sessionParams.customer_email = userEmail;
   }
 
-  return await stripe.checkout.sessions.create(sessionParams)
-}
+  return await stripe.checkout.sessions.create(sessionParams);
+};
 
-export const createPortalSession = async (customerId: string, returnUrl: string) => {
+export const createPortalSession = async (
+  customerId: string,
+  returnUrl: string,
+) => {
+  const stripe = getStripe();
   return await stripe.billingPortal.sessions.create({
     customer: customerId,
-    return_url: returnUrl
-  })
-}
+    return_url: returnUrl,
+  });
+};

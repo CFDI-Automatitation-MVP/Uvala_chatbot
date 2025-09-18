@@ -64,9 +64,6 @@ export function estimateMessageCost(
   hasCachedSystemPrompt: boolean = true,
 ): number {
   const systemPromptTokens = 1200; // Approximate system prompt size
-  const _cachedSystemPromptCost = hasCachedSystemPrompt
-    ? (systemPromptTokens / 1_000_000) * GPT5_MINI_PRICING.CACHED_INPUT_PER_1M
-    : (systemPromptTokens / 1_000_000) * GPT5_MINI_PRICING.INPUT_PER_1M;
 
   return calculateLLMCost({
     inputTokens: inputTokens,

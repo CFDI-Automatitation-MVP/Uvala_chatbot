@@ -511,34 +511,40 @@
         "name": "Gratuit",
         "description": "Parfait pour commencer",
         "features": [
-          "10 conversations IA par mois",
-          "Fonctionnalités de chat de base",
-          "Temps de réponse standard",
-          "Support communautaire"
+          "4,500 tokens/jour",
+          "10 recherches web",
+          "2 images",
+          "1 vidéo"
+        ]
+      },
+      "plus": {
+        "name": "Plus",
+        "description": "Pour les utilisateurs réguliers",
+        "features": [
+          "37,000 tokens/jour",
+          "80 recherches web",
+          "15 images",
+          "2 vidéos"
         ]
       },
       "pro": {
         "name": "Pro",
-        "description": "Pour les utilisateurs réguliers",
+        "description": "Pour les professionnels et équipes",
         "features": [
-          "Conversations IA illimitées",
-          "Fonctionnalités de chat avancées",
-          "Temps de réponse prioritaire",
-          "Téléchargement de fichiers",
-          "Support par email"
+          "45,000 tokens/jour",
+          "120 recherches web",
+          "25 images",
+          "8 vidéos"
         ]
       },
       "max": {
         "name": "Max",
         "description": "Pour les utilisateurs avancés et les professionnels",
         "features": [
-          "Tout ce qui est dans Pro",
-          "Modèles IA personnalisés",
-          "Accès API",
-          "Support prioritaire",
-          "Intégrations avancées",
-          "Tableau de bord analytique",
-          "Limites d'utilisation plus élevées"
+          "61,000 tokens/jour",
+          "250 recherches web",
+          "40 images",
+          "20 vidéos"
         ]
       }
     }

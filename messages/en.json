@@ -524,34 +524,40 @@
         "name": "Free",
         "description": "Perfect for getting started",
         "features": [
-          "10 AI conversations per month",
-          "Basic chat features",
-          "Standard response time",
-          "Community support"
+          "4,500 tokens/day",
+          "10 web searches",
+          "2 images",
+          "1 video"
+        ]
+      },
+      "plus": {
+        "name": "Plus",
+        "description": "For regular users",
+        "features": [
+          "37,000 tokens/day",
+          "80 web searches",
+          "15 images",
+          "2 videos"
         ]
       },
       "pro": {
         "name": "Pro",
-        "description": "For regular users",
+        "description": "For professionals and teams",
         "features": [
-          "Unlimited AI conversations",
-          "Advanced chat features",
-          "Priority response time",
-          "File uploads",
-          "Email support"
+          "45,000 tokens/day",
+          "120 web searches",
+          "25 images",
+          "8 videos"
         ]
       },
       "max": {
         "name": "Max",
         "description": "For power users and professionals",
         "features": [
-          "Everything in Pro",
-          "Custom AI models",
-          "API access",
-          "Priority support",
-          "Advanced integrations",
-          "Analytics dashboard",
-          "Higher usage limits"
+          "61,000 tokens/day",
+          "250 web searches",
+          "40 images",
+          "20 videos"
         ]
       }
     }

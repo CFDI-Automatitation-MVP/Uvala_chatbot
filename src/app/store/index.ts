@@ -1,9 +1,6 @@
-import { create, StateCreator } from "zustand";
+import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-type Mutate<T> = (
-  partial: T | Partial<T> | ((state: T) => T | Partial<T>),
-) => void;
 import { ChatMention, ChatModel, ChatThread } from "app-types/chat";
 import { OPENAI_VOICE } from "lib/ai/speech/open-ai/use-voice-chat.openai";
 import { WorkflowSummary } from "app-types/workflow";
@@ -52,7 +49,9 @@ export interface AppState {
 }
 
 export interface AppDispatch {
-  mutate: (state: Mutate<AppState>) => void;
+  mutate: (
+    partial: Partial<AppState> | ((state: AppState) => Partial<AppState>),
+  ) => void;
 }
 
 const initialState: AppState = {
@@ -65,8 +64,8 @@ const initialState: AppState = {
   currentThreadId: null,
   toolChoice: "auto",
   allowedAppDefaultToolkit: [
-    AppDefaultToolkit.Code,
     AppDefaultToolkit.Visualization,
+    AppDefaultToolkit.WebSearch,
   ],
   toolPresets: [],
   chatModel: undefined,

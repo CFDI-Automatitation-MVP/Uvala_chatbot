@@ -34,13 +34,13 @@ export function EnabledMcpToolsDropdown({
   }[];
   side?: "left" | "right" | "top" | "bottom";
 }>) {
-  const [allowedMcpServers, mcpList, noToolChoice] = appStore(
-    useShallow((state) => [
-      state.allowedMcpServers,
-      state.mcpList,
-      state.toolChoice == "none",
-    ]),
+  const [noToolChoice] = appStore(
+    useShallow((state) => [state.toolChoice == "none"]),
   );
+
+  // MCP functionality disabled
+  const allowedMcpServers = {};
+  const mcpList: any[] = [];
 
   const EnabledMcpToolsDropdown = useMemo(() => {
     const mcpTools = mcpList

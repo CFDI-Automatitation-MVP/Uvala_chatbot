@@ -50,12 +50,13 @@ export function ChatBotTemporary() {
   const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
 
   const setOpen = (bool: boolean) => {
-    appStoreMutate({
+    appStoreMutate((prev) => ({
+      ...prev,
       temporaryChat: {
-        ...temporaryChat,
+        ...prev.temporaryChat,
         isOpen: bool,
       },
-    });
+    }));
   };
 
   const [input, setInput] = useState("");

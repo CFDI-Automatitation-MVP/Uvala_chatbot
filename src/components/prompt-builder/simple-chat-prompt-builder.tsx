@@ -1,11 +1,10 @@
 "use client";
-import { useState, useCallback, useEffect, useRef, useMemo } from "react";
-import { useChat, UseChatHelpers } from "@ai-sdk/react";
-import { DefaultChatTransport, UIMessage } from "ai";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
 import { appStore } from "@/app/store";
 import { useShallow } from "zustand/shallow";
 import { Button } from "ui/button";
-import { ScrollArea } from "ui/scroll-area";
 import { PreviewMessage, ErrorMessage } from "../message";
 import PromptInput from "../prompt-input";
 import { Think } from "ui/think";
@@ -117,8 +116,12 @@ export function SimpleChatPromptBuilder() {
       .reverse()
       .find((msg) => msg.role === "assistant");
 
-    if (lastAssistantMessage?.content) {
-      navigator.clipboard.writeText(lastAssistantMessage.content);
+    if (lastAssistantMessage && "content" in lastAssistantMessage) {
+      const content =
+        typeof (lastAssistantMessage as any).content === "string"
+          ? (lastAssistantMessage as any).content
+          : JSON.stringify((lastAssistantMessage as any).content);
+      navigator.clipboard.writeText(content);
     }
   };
 
