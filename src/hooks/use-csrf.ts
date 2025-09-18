@@ -60,7 +60,7 @@ export function useCSRF(): UseCSRFReturn {
     await fetchCSRFToken();
   }, [fetchCSRFToken]);
 
-  const getCSRFHeaders = useCallback(() => {
+  const getCSRFHeaders = useCallback((): Record<string, string> => {
     if (!token) {
       return {};
     }

@@ -1,8 +1,7 @@
 "use client";
-import { appStore } from "@/app/store";
 import useSWR, { SWRConfiguration } from "swr";
 import { handleErrorWithToast } from "ui/shared-toast";
-import { fetcher, objectFlow } from "lib/utils";
+import { fetcher } from "lib/utils";
 
 export function useMcpList(options?: SWRConfiguration) {
   return useSWR("/api/mcp/list", fetcher, {
@@ -12,14 +11,9 @@ export function useMcpList(options?: SWRConfiguration) {
     fallbackData: [],
     onError: handleErrorWithToast,
     onSuccess: (data) => {
-      const ids = data.map((v) => v.id);
-      appStore.setState((prev) => ({
-        ...prev,
-        mcpList: data,
-        allowedMcpServers: objectFlow(prev.allowedMcpServers || {}).filter(
-          (_, key) => ids.includes(key),
-        ),
-      }));
+      // MCP functionality has been removed, this hook is kept for backwards compatibility
+      // TODO: Remove this hook when MCP references are fully cleaned up
+      console.log("MCP list received but functionality is disabled:", data);
     },
     ...options,
   });
