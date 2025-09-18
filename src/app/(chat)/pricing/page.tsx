@@ -75,7 +75,7 @@ const pricingPlans: PricingPlan[] = [
     },
     interval: "month",
     stripePriceId: {
-      USD: "price_1S4o7U1pY9V37Up5PUtup870",
+      USD: "price_1S8aVQ1pY9V37Up58mNbG5rA",
       MXN: "price_1S8XzW1pY9V37Up5DIUux5pQ",
     },
     features: [
@@ -95,8 +95,8 @@ const pricingPlans: PricingPlan[] = [
     },
     interval: "month",
     stripePriceId: {
-      USD: "price_1S8Y0a1pY9V37Up5XgCSczWK",
-      MXN: "price_1S4o7a1pY9V37Up5AeSbRFSs",
+      USD: "price_1S8aWD1pY9V37Up57JJOhbk0",
+      MXN: "price_1S8aUO1pY9V37Up5TcfjXrNP",
     },
     features: [
       "61,000 tokens/day",

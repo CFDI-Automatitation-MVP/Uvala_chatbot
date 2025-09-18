@@ -122,11 +122,11 @@ export function getPlanTypeFromPriceId(priceId: string): PlanType {
     price_1S8ZQb1pY9V37Up5ZA7L5GdP: "plus", // Plus USD ($7)
     price_1S8XyI1pY9V37Up5iYJDKtqU: "plus", // Plus MXN (129)
     // Pro plan price IDs
-    price_1S4o7U1pY9V37Up5PUtup870: "pro", // Pro USD ($11)
+    price_1S8aVQ1pY9V37Up58mNbG5rA: "pro", // Pro USD ($11)
     price_1S8XzW1pY9V37Up5DIUux5pQ: "pro", // Pro MXN (199)
     // Max plan price IDs
-    price_1S8Y0a1pY9V37Up5XgCSczWK: "max", // Max USD ($14)
-    price_1S4o7a1pY9V37Up5AeSbRFSs: "max", // Max MXN (249)
+    price_1S8aWD1pY9V37Up57JJOhbk0: "max", // Max USD ($14)
+    price_1S8aUO1pY9V37Up5TcfjXrNP: "max", // Max MXN (249)
   };
 
   return priceIdMap[priceId] || "free";
