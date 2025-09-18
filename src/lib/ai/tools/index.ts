@@ -1,7 +1,6 @@
 export enum AppDefaultToolkit {
   Visualization = "visualization",
   WebSearch = "webSearch",
-  WebSandbox = "webSandbox",
   ImageGeneration = "imageGeneration",
   VideoGeneration = "videoGeneration",
 }
@@ -13,7 +12,6 @@ export enum DefaultToolName {
   CreateTable = "createTable",
   WebSearch = "webSearch",
   WebContent = "webContent",
-  CreateWebSandbox = "createWebSandbox",
   GenerateImage = "generateImage",
   GenerateVideo = "generateVideo",
 }

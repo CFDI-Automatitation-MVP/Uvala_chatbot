@@ -48,8 +48,12 @@ export async function POST(request: Request) {
       experimental_transform: smoothStream({ chunking: "word" }),
     }).toUIMessageStreamResponse();
   } catch (error: any) {
-    logger.error(error);
-    return new Response(error.message || "Oops, an error occured!", {
+    logger.error("Temporary Chat API Error:", error);
+    const message =
+      process.env.NODE_ENV === "development"
+        ? error.message
+        : "Failed to process temporary chat request";
+    return new Response(message, {
       status: 500,
     });
   }

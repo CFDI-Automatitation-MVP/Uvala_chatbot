@@ -1,6 +1,6 @@
-# Contributing to better-chatbot
+# Contributing to uvala
 
-Thank you for your interest in contributing to better-chatbot! We welcome contributions from the community and truly appreciate your effort to improve the project.
+Thank you for your interest in contributing to uvala! We welcome contributions from the community and truly appreciate your effort to improve the project.
 
 ---
 
@@ -204,5 +204,5 @@ When submitting **Issues** or **Pull Requests**:
 
 ## Thank You
 
-We sincerely appreciate your contribution to better-chatbot.
+We sincerely appreciate your contribution to uvala.
 Let’s build a powerful, well tested and lightweight AI experience together! 🚀

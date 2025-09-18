@@ -22,7 +22,6 @@ import {
   handleError,
   manualToolExecuteByLastMessage,
   extractInProgressToolPart,
-  loadWorkFlowTools,
   loadAppDefaultTools,
   convertToSavePart,
 } from "./shared.chat";
@@ -114,15 +113,7 @@ export async function POST(request: Request) {
 
     const stream = createUIMessageStream({
       execute: async ({ writer: dataStream }) => {
-        const WORKFLOW_TOOLS = await safe()
-          .map(errorIf(() => !isToolCallAllowed && "Not allowed"))
-          .map(() =>
-            loadWorkFlowTools({
-              mentions,
-              dataStream,
-            }),
-          )
-          .orElse({});
+        const WORKFLOW_TOOLS = {};
 
         const APP_DEFAULT_TOOLS = safe()
           .map(errorIf(() => !isToolCallAllowed && "Not allowed"))
@@ -382,7 +373,9 @@ export async function POST(request: Request) {
       stream,
     });
   } catch (error: any) {
-    logger.error(error);
-    return Response.json({ message: error.message }, { status: 500 });
+    logger.error("Chat API Error:", error);
+    const isDev = process.env.NODE_ENV === "development";
+    const message = isDev ? error.message : "Failed to process chat request";
+    return Response.json({ message }, { status: 500 });
   }
 }

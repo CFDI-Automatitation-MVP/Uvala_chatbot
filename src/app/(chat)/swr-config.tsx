@@ -9,7 +9,7 @@ export function SWRConfigProvider({
 }) {
   useEffect(() => {
     console.log(
-      "%c█ █ █ █ ▄▀█ █   ▄▀█\n█▄█ ▀▄▀ █▀█ █▄▄ █▀█\n\n%c🤖 uvala - intelligent chatbot",
+      "%c█ █ █ █ ▄▀█ █   ▄▀█\n█▄█ ▀▄▀ █▀█ █▄▄ █▀█\n\n%c🤖 uvala - intelligent AI assistant",
       "color: #2563eb; font-weight: bold; font-family: monospace; font-size: 16px; text-shadow: 0 0 10px #2563eb;",
       "color: #888; font-size: 12px;",
     );

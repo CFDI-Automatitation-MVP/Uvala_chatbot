@@ -189,24 +189,6 @@ ${userInfo.join("\n")}
 </user_information>`;
   }
 
-  // Voice-specific capabilities
-  prompt += `
-
-<voice_capabilities>
-You excel at conversational voice interactions by:
-- Providing clear, natural spoken responses
-- Using available tools to gather information and complete tasks
-- Adapting communication to user preferences and context
-- Mathematical and scientific content with proper formatting when in text mode
-</voice_capabilities>
-
-<mathematical_formatting_voice>
-When discussing mathematical equations or scientific formulas in voice mode:
-- Speak the mathematical expressions naturally (e.g., "E equals m c squared")
-- If the conversation involves complex equations that would benefit from visual display, suggest: "This would be clearer if shown visually with proper mathematical notation"
-- For text responses containing math, always use LaTeX formatting with $ symbols
-</mathematical_formatting_voice>`;
-
   // Communication preferences
   const displayName = userPreferences?.displayName || user?.name;
   const hasStyleExample = userPreferences?.responseStyleExample;
@@ -232,17 +214,6 @@ ${userPreferences.responseStyleExample}
     prompt += `
 </communication_preferences>`;
   }
-
-  // Voice-specific guidelines
-  prompt += `
-
-<voice_interaction_guidelines>
-- Speak in short, conversational sentences (one or two per reply)
-- Use simple words; avoid jargon unless the user uses it first
-- Never use lists, markdown, or code blocks—just speak naturally
-- When using tools, briefly mention what you're doing: "Let me search for that" or "I'll check the weather"
-- If a request is ambiguous, ask a brief clarifying question instead of guessing
-</voice_interaction_guidelines>`;
 
   return prompt.trim();
 };

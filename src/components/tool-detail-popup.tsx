@@ -1,5 +1,18 @@
 "use client";
-import { McpToolCustomization, MCPToolInfo } from "app-types/mcp";
+// MCP functionality disabled
+// import { McpToolCustomization, MCPToolInfo } from "app-types/mcp";
+
+// Stub types for compatibility
+interface MCPToolInfo {
+  name: string;
+  description: string;
+  inputSchema?: any;
+}
+
+interface McpToolCustomization {
+  id?: string;
+  prompt?: string;
+}
 import { PropsWithChildren, ReactNode, useState } from "react";
 import {
   Dialog,

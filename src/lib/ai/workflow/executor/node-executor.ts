@@ -173,7 +173,7 @@ export const conditionNodeExecutor: NodeExecutor<ConditionNodeData> = async ({
 
 /**
  * Tool Node Executor
- * Executes external tools (primarily MCP tools) with optional LLM-generated parameters.
+ * Executes external tools with optional LLM-generated parameters.
  *
  * Workflow:
  * 1. If tool has parameter schema, use LLM to generate parameters from message

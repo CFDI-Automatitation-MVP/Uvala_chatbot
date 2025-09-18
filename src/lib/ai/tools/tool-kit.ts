@@ -6,7 +6,6 @@ import { exaSearchTool, exaContentsTool } from "./web/web-search";
 import { AppDefaultToolkit, DefaultToolName } from ".";
 import { Tool } from "ai";
 import { generateImageTool } from "./image/generate-image";
-import { createWebSandboxTool } from "./web/create-web-sandbox";
 import { generateVideoTool } from "./video/generate-video";
 
 export const APP_DEFAULT_TOOL_KIT: Record<
@@ -22,9 +21,6 @@ export const APP_DEFAULT_TOOL_KIT: Record<
   [AppDefaultToolkit.WebSearch]: {
     [DefaultToolName.WebSearch]: exaSearchTool,
     [DefaultToolName.WebContent]: exaContentsTool,
-  },
-  [AppDefaultToolkit.WebSandbox]: {
-    [DefaultToolName.CreateWebSandbox]: createWebSandboxTool,
   },
   [AppDefaultToolkit.ImageGeneration]: {
     [DefaultToolName.GenerateImage]: generateImageTool,

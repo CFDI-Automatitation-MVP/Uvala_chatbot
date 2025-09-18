@@ -20,13 +20,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "uvala",
   description:
-    "uvala is an intelligent chatbot that uses advanced tools to answer questions.",
+    "uvala is an intelligent AI assistant that uses advanced tools to answer questions.",
   icons: {
-    icon: [
-      { url: "/uvala-white-log.svg", type: "image/svg+xml" }
-    ],
+    icon: [{ url: "/uvala-white-log.svg", type: "image/svg+xml" }],
     shortcut: "/uvala-white-log.svg",
-    apple: "/uvala-white-log.svg"
+    apple: "/uvala-white-log.svg",
   },
 };
 

@@ -778,14 +778,6 @@ const ImageGeneration = dynamic(
   },
 );
 
-const WebSandbox = dynamic(
-  () => import("./tool-invocation/web-sandbox").then((mod) => mod.WebSandbox),
-  {
-    ssr: false,
-    loading,
-  },
-);
-
 const VideoGeneration = dynamic(
   () =>
     import("./tool-invocation/video-generation").then(
@@ -919,7 +911,7 @@ export const ToolMessagePart = memo(
           ? {
               ...output,
               content: output.map((node) => {
-                // mcp tools
+                // external tools
                 if (node?.type === "text" && typeof node?.text === "string") {
                   const parsed = safeJSONParse(node.text);
                   return {
@@ -979,13 +971,6 @@ export const ToolMessagePart = memo(
                 {...(output as any)}
               />
             );
-          case DefaultToolName.CreateWebSandbox:
-            return (
-              <WebSandbox
-                key={`${toolCallId}-${toolName}`}
-                {...(output as any)}
-              />
-            );
           case DefaultToolName.GenerateVideo:
             return (
               <VideoGeneration
@@ -998,9 +983,10 @@ export const ToolMessagePart = memo(
       return null;
     }, [toolName, state, onToolCallDirect, result, input]);
 
-    const { serverName: mcpServerName, toolName: mcpToolName } = useMemo(() => {
-      return { serverName: "", toolName: toolName };
-    }, [toolName]);
+    const { serverName: serverName, toolName: displayToolName } =
+      useMemo(() => {
+        return { serverName: "", toolName: toolName };
+      }, [toolName]);
 
     const isExpanded = useMemo(() => {
       return expanded || result === null || isWorkflowTool;
@@ -1047,20 +1033,16 @@ export const ToolMessagePart = memo(
               </div>
               <span className="font-bold flex items-center gap-2">
                 {isExecuting ? (
-                  <TextShimmer>
-                    {toolName === DefaultToolName.CreateWebSandbox
-                      ? "generating web page"
-                      : mcpServerName}
-                  </TextShimmer>
+                  <TextShimmer>{serverName}</TextShimmer>
                 ) : (
-                  mcpServerName
+                  serverName
                 )}
               </span>
-              {mcpToolName && (
+              {displayToolName && (
                 <>
                   <ChevronRight className="size-3.5" />
                   <span className="text-muted-foreground group-hover/title:text-primary transition-colors duration-300">
-                    {mcpToolName}
+                    {displayToolName}
                   </span>
                 </>
               )}

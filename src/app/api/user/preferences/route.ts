@@ -14,7 +14,12 @@ export async function GET() {
     return NextResponse.json(preferences ?? {});
   } catch (error: any) {
     return NextResponse.json(
-      { error: error.message || "Failed to get preferences" },
+      {
+        error:
+          process.env.NODE_ENV === "development"
+            ? error.message
+            : "Failed to get preferences",
+      },
       { status: 500 },
     );
   }
@@ -38,7 +43,12 @@ export async function PUT(request: Request) {
     });
   } catch (error: any) {
     return NextResponse.json(
-      { error: error.message || "Failed to update preferences" },
+      {
+        error:
+          process.env.NODE_ENV === "development"
+            ? error.message
+            : "Failed to update preferences",
+      },
       { status: 500 },
     );
   }
