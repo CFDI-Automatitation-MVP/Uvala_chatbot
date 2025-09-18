@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { createServerClient } from '@supabase/ssr'
+import { createServerClient } from "@supabase/ssr";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -12,13 +12,17 @@ export async function middleware(request: NextRequest) {
     return new Response("pong", { status: 200 });
   }
 
-  // Allow public routes and specific auth assets only
-  if (pathname.startsWith("/sign-in") ||
-      pathname.startsWith("/sign-up") ||
-      pathname.startsWith("/auth/callback") ||
-      pathname.startsWith("/_next") ||
-      pathname.startsWith("/uvala-white-log.svg") ||
-      pathname.startsWith("/auth/")) { // Only auth folder assets
+  // Allow public routes, API routes, and specific auth assets only
+  if (
+    pathname.startsWith("/sign-in") ||
+    pathname.startsWith("/sign-up") ||
+    pathname.startsWith("/auth/callback") ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/api/") ||
+    pathname.startsWith("/uvala-white-log.svg") ||
+    pathname.startsWith("/auth/")
+  ) {
+    // Only auth folder assets
     return NextResponse.next();
   }
 
@@ -34,23 +38,28 @@ export async function middleware(request: NextRequest) {
     {
       cookies: {
         getAll() {
-          return request.cookies.getAll()
+          return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value),
+          );
           response = NextResponse.next({
             request,
-          })
+          });
           cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          )
+            response.cookies.set(name, value, options),
+          );
         },
       },
-    }
-  )
+    },
+  );
 
   // Check if user is authenticated
-  const { data: { user }, error } = await supabase.auth.getUser()
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
 
   // If no user and accessing protected route, redirect to sign-in
   if ((!user || error) && !pathname.startsWith("/sign-in")) {
@@ -63,6 +72,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|uvala-white-log.svg|sitemap.xml|robots.txt|api|sign-in|sign-up|auth).*)",
+    "/((?!_next/static|_next/image|uvala-white-log.svg|sitemap.xml|robots.txt|api/|sign-in|sign-up|auth).*)",
   ],
 };
