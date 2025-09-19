@@ -133,7 +133,6 @@ export default function PromptInput({
   toolDisabled,
   voiceDisabled,
   threadId,
-  disabledMention,
   fileUploadDisabled,
   fileAttachments: externalFileAttachments,
   setFileAttachments: externalSetFileAttachments,
@@ -579,7 +578,7 @@ export default function PromptInput({
                   onEnter={submit}
                   placeholder={placeholder ?? t("placeholder")}
                   ref={editorRef}
-                  disabledMention={disabledMention}
+                  disabledMention={true}
                   onFocus={onFocus}
                 />
               </div>

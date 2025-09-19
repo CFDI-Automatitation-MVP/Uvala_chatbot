@@ -63,13 +63,19 @@ const initialState: AppState = {
   agentList: [],
   workflowToolList: [],
   currentThreadId: null,
-  toolChoice: "auto",
+  toolChoice: "auto", // Default: Tools ON
   allowedAppDefaultToolkit: [
-    AppDefaultToolkit.Code,
     AppDefaultToolkit.Visualization,
+    AppDefaultToolkit.WebSearch,
+    AppDefaultToolkit.ImageGeneration,
+    AppDefaultToolkit.VideoGeneration,
+    // WebSandbox is hidden
   ],
   toolPresets: [],
-  chatModel: undefined,
+  chatModel: {
+    provider: "Fast & Direct",
+    model: "uvala-fuji",
+  },
   openShortcutsPopup: false,
   openChatPreferences: false,
   temporaryChat: {

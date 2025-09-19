@@ -10,7 +10,7 @@ import { PreviewMessage, ErrorMessage } from "../message";
 import PromptInput from "../prompt-input";
 import { Think } from "ui/think";
 import { cn } from "lib/utils";
-import { Copy, RotateCcw, Brain } from "lucide-react";
+import { RotateCcw, Brain } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 export function SimpleChatPromptBuilder() {
@@ -105,50 +105,26 @@ export function SimpleChatPromptBuilder() {
     }));
   }, [appStoreMutate]);
 
-  const resetChat = () => {
+  const resetChat = useCallback(() => {
     setMessages([]);
     clearError();
     setInput("");
-  };
+  }, [setMessages, clearError, setInput]);
 
-  const copyLastAssistantMessage = () => {
-    const lastAssistantMessage = messages
-      .slice()
-      .reverse()
-      .find((msg) => msg.role === "assistant");
+  // Listen for reset event from the header button
+  useEffect(() => {
+    const handleReset = () => {
+      resetChat();
+    };
 
-    if (lastAssistantMessage?.content) {
-      navigator.clipboard.writeText(lastAssistantMessage.content);
-    }
-  };
+    window.addEventListener("promptBuilderReset", handleReset);
+    return () => {
+      window.removeEventListener("promptBuilderReset", handleReset);
+    };
+  }, [resetChat]);
 
   return (
     <div className="h-full flex flex-col">
-      {/* Header with buttons */}
-      <div className="p-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">{t("title")}</h2>
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={copyLastAssistantMessage}
-              title={t("copyLastResponse")}
-            >
-              <Copy className="w-4 h-4" />
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={resetChat}
-              title={t("resetChat")}
-            >
-              <RotateCcw className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
-
       {/* Chat Area */}
       <div
         className={cn("flex flex-col min-w-0 h-full flex-1 overflow-y-hidden")}

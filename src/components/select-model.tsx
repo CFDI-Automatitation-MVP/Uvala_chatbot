@@ -16,6 +16,8 @@ import {
   CommandSeparator,
 } from "ui/command";
 import { ModelProviderIcon } from "ui/model-provider-icon";
+import Image from "next/image";
+import { useTheme } from "next-themes";
 import { Popover, PopoverContent, PopoverTrigger } from "ui/popover";
 
 interface SelectModelProps {
@@ -132,24 +134,38 @@ const ProviderHeader = memo(function ProviderHeader({
   provider,
 }: { provider: string }) {
   const t = useTranslations("Common");
+  const { theme, resolvedTheme } = useTheme();
+
+  const getProviderLabel = (provider: string) => {
+    switch (provider) {
+      case "Fast & Direct":
+        return t("fastAndDirect");
+      case "Reasoning Model":
+        return t("reasoningModel");
+      case "Great for all your tasks":
+        return t("greatForAllYourTasks");
+      default:
+        return provider;
+    }
+  };
+
+  // Determine which logo to use based on theme
+  const logoSrc =
+    resolvedTheme === "light" || theme === "light"
+      ? "/uvala-black-log.svg"
+      : "/uvala-white-log.svg";
 
   return (
     <div className="text-sm text-muted-foreground flex items-center justify-center gap-1.5 group-hover:text-foreground transition-colors duration-300">
-      {provider !== "Great for all your tasks" && (
-        <>
-          {provider === "openai" ? (
-            <ModelProviderIcon
-              provider="openai"
-              className="size-3 text-foreground"
-            />
-          ) : (
-            <ModelProviderIcon provider={provider} className="size-3" />
-          )}
-        </>
-      )}
-      {provider === "Great for all your tasks"
-        ? t("greatForAllYourTasks")
-        : provider}
+      {/* Always show Uvala logo for all providers */}
+      <Image
+        src={logoSrc}
+        alt="Uvala"
+        width={12}
+        height={12}
+        className="size-3 opacity-70"
+      />
+      {getProviderLabel(provider)}
     </div>
   );
 });

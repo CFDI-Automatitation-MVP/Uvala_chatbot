@@ -42,7 +42,9 @@
     "resultsFound": "{count} resultados encontrados",
     "youAreAnExpertIn": "Eres un experto en {role}",
     "sharedBy": "Compartido por {userName}",
-    "greatForAllYourTasks": "Perfecto para todas tus tareas"
+    "greatForAllYourTasks": "Perfecto para todas tus tareas",
+    "fastAndDirect": "Rápido y Directo",
+    "reasoningModel": "Modelo de Razonamiento"
   },
   "Auth": {
     "SignIn": {
@@ -96,7 +98,7 @@
       "temporaryChatInstructionsPlaceholder": "Ingresa tus instrucciones aquí",
       "temporaryChatInstructionsDescription": "Puedes establecer instrucciones para el chat temporal. Esto se usará como prompt del sistema para el chat temporal."
     },
-    "placeholder": "Pregunta cualquier cosa o @menciona",
+    "placeholder": "Pregunta cualquier cosa...",
     "disclaimer": "uvala puede cometer errores. Verifica información importante.",
     "Tool": {
       "webSearching": "Buscando en la web...",
@@ -107,6 +109,10 @@
       "autoToolModeDescription": "Decide cuándo usar herramientas sin preguntarte",
       "manualToolModeDescription": "Pide tu permiso antes de usar cualquier herramienta",
       "noneToolModeDescription": "No usar herramientas. @mention sigue estando disponible.",
+      "toolsOn": "Herramientas Activadas",
+      "toolsOff": "Herramientas Desactivadas",
+      "toolsOnDescription": "Imágenes, videos, gráficos, tablas, búsqueda web y más",
+      "toolsOffDescription": "Solo conversación con soporte de carga de archivos",
       "toolsSetup": "Configuración de Herramientas",
       "preset": "Preajuste",
       "toolPresets": "Preajustes de Herramientas",
