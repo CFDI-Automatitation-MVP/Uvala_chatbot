@@ -68,7 +68,7 @@ import { ChatMention, ChatModel } from "app-types/chat";
 import dynamic from "next/dynamic";
 import { ToolModeDropdown } from "./tool-mode-dropdown";
 
-import ToolSelectDropdown from "./tool-select-dropdown";
+import { ToolSelectDropdown } from "./tool-select-dropdown";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import { useTranslations } from "next-intl";
 import { Editor } from "@tiptap/react";
@@ -133,10 +133,10 @@ export default function PromptInput({
   toolDisabled,
   voiceDisabled,
   threadId,
-  disabledMention,
   fileUploadDisabled,
   fileAttachments: externalFileAttachments,
   setFileAttachments: externalSetFileAttachments,
+  isDragOver: externalIsDragOver,
 }: PromptInputProps) {
   const t = useTranslations("Chat");
 
@@ -160,12 +160,33 @@ export default function PromptInput({
   const fileAttachments = externalFileAttachments ?? internalFileAttachments;
   const setFileAttachments =
     externalSetFileAttachments ?? setInternalFileAttachments;
+  const _isDragOver = externalIsDragOver ?? false;
 
   // Initialize speech recognition
   useEffect(() => {
-    if (typeof window !== "undefined" && "webkitSpeechRecognition" in window) {
-      const SpeechRecognition =
-        window.webkitSpeechRecognition || window.SpeechRecognition;
+    if (typeof window === "undefined") return;
+
+    // Check for HTTPS requirement in production
+    const isHttps = window.location.protocol === "https:";
+    const isLocalhost =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
+
+    if (!isHttps && !isLocalhost) {
+      console.warn("Speech recognition requires HTTPS in production");
+      return;
+    }
+
+    // Check for Speech Recognition API support
+    const SpeechRecognition =
+      window.webkitSpeechRecognition || window.SpeechRecognition;
+
+    if (!SpeechRecognition) {
+      console.warn("Speech Recognition API not supported in this browser");
+      return;
+    }
+
+    try {
       const recognitionInstance = new SpeechRecognition();
       recognitionInstance.continuous = true;
       recognitionInstance.interimResults = true;
@@ -174,16 +195,20 @@ export default function PromptInput({
       let processedCount = 0;
 
       recognitionInstance.onresult = (event) => {
-        // Only process new final results
-        for (let i = processedCount; i < event.results.length; i++) {
-          if ((event.results[i] as any).isFinal) {
-            const transcript = event.results[i][0].transcript.trim();
-            if (transcript) {
-              const newInput = input ? `${input} ${transcript}` : transcript;
-              setInput(newInput);
-              processedCount = i + 1;
+        try {
+          // Only process new final results
+          for (let i = processedCount; i < event.results.length; i++) {
+            if ((event.results[i] as any).isFinal) {
+              const transcript = event.results[i][0].transcript.trim();
+              if (transcript) {
+                const newInput = input ? `${input} ${transcript}` : transcript;
+                setInput(newInput);
+                processedCount = i + 1;
+              }
             }
           }
+        } catch (error) {
+          console.error("Error processing speech recognition result:", error);
         }
       };
 
@@ -198,9 +223,20 @@ export default function PromptInput({
       recognitionInstance.onerror = (event) => {
         console.error("Speech recognition error:", event.error);
         setIsDictating(false);
+
+        // Handle specific error types
+        if (event.error === "not-allowed") {
+          console.error("Microphone permission denied");
+        } else if (event.error === "no-speech") {
+          console.warn("No speech detected");
+        } else if (event.error === "network") {
+          console.error("Network error during speech recognition");
+        }
       };
 
       setRecognition(recognitionInstance);
+    } catch (error) {
+      console.error("Failed to initialize speech recognition:", error);
     }
   }, [setInput]);
 
@@ -542,7 +578,7 @@ export default function PromptInput({
                   onEnter={submit}
                   placeholder={placeholder ?? t("placeholder")}
                   ref={editorRef}
-                  disabledMention={disabledMention}
+                  disabledMention={true}
                   onFocus={onFocus}
                 />
               </div>
@@ -633,7 +669,11 @@ export default function PromptInput({
                         ? isDictating
                           ? "Stop Dictation"
                           : "Start Dictation"
-                        : "Dictation not supported"}
+                        : typeof window !== "undefined" &&
+                            window.location.protocol !== "https:" &&
+                            window.location.hostname !== "localhost"
+                          ? "Dictation requires HTTPS"
+                          : "Dictation not supported in this browser"}
                     </TooltipContent>
                   </Tooltip>
                 ) : (

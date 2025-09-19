@@ -53,11 +53,7 @@ export const ToolModeDropdown = ({ disabled }: { disabled?: boolean }) => {
         appStoreMutate(({ toolChoice }) => {
           return {
             toolChoice:
-              toolChoice == "auto"
-                ? "manual"
-                : toolChoice == "manual"
-                  ? "none"
-                  : "auto",
+              toolChoice == "auto" || toolChoice == "manual" ? "none" : "auto",
           };
         });
         setToolChoiceChangeInfo(true);
@@ -79,7 +75,9 @@ export const ToolModeDropdown = ({ disabled }: { disabled?: boolean }) => {
               <span className="absolute inset-0 -z-10" />
             </TooltipTrigger>
             <TooltipContent className="flex items-center gap-2">
-              {capitalizeFirstLetter(toolChoice)}
+              {toolChoice == "auto" || toolChoice == "manual"
+                ? t("toolsOn")
+                : t("toolsOff")}
               <CheckIcon className="size-2.5" />
             </TooltipContent>
           </Tooltip>
@@ -124,29 +122,14 @@ export const ToolModeDropdown = ({ disabled }: { disabled?: boolean }) => {
           >
             <div className="flex flex-col gap-2 w-full">
               <div className="flex items-center gap-2">
-                <Infinity />
-                <span className="font-bold">Auto</span>
-                {toolChoice == "auto" && <Check className="ml-auto" />}
+                <Settings2 />
+                <span className="font-bold">{t("toolsOn")}</span>
+                {(toolChoice == "auto" || toolChoice == "manual") && (
+                  <Check className="ml-auto" />
+                )}
               </div>
               <p className="text-xs text-muted-foreground">
-                {t("autoToolModeDescription")}
-              </p>
-            </div>
-          </DropdownMenuItem>
-          <div className="px-2 py-1">
-            <DropdownMenuSeparator />
-          </div>
-          <DropdownMenuItem
-            onClick={() => appStoreMutate({ toolChoice: "manual" })}
-          >
-            <div className="flex flex-col gap-2 w-full">
-              <div className="flex items-center gap-2">
-                <ClipboardCheck />
-                <span className="font-bold">Manual</span>
-                {toolChoice == "manual" && <Check className="ml-auto" />}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {t("manualToolModeDescription")}
+                {t("toolsOnDescription")}
               </p>
             </div>
           </DropdownMenuItem>
@@ -159,15 +142,12 @@ export const ToolModeDropdown = ({ disabled }: { disabled?: boolean }) => {
             <div className="flex flex-col gap-2 w-full">
               <div className="flex items-center gap-2">
                 <PenOff />
-                <span className="font-bold">None</span>
-                <span className="text-xs text-muted-foreground ml-4">
-                  @mention only
-                </span>
+                <span className="font-bold">{t("toolsOff")}</span>
                 {toolChoice == "none" && <Check className="ml-auto" />}
               </div>
 
               <p className="text-xs text-muted-foreground">
-                {t("noneToolModeDescription")}
+                {t("toolsOffDescription")}
               </p>
             </div>
           </DropdownMenuItem>

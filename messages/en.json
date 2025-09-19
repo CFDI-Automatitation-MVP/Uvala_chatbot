@@ -43,7 +43,9 @@
     "resultsFound": "{count} results found",
     "youAreAnExpertIn": "You are an expert in {role}",
     "sharedBy": "Shared by {userName}",
-    "greatForAllYourTasks": "Great for all your tasks"
+    "greatForAllYourTasks": "Great for all your tasks",
+    "fastAndDirect": "Fast & Direct",
+    "reasoningModel": "Reasoning Model"
   },
   "Error": {},
   "Info": {
@@ -206,7 +208,7 @@
       "temporaryChatInstructionsPlaceholder": "Enter your instructions here",
       "temporaryChatInstructionsDescription": "You can set instructions for the temporary chat. This will be used as a system prompt for the temporary chat."
     },
-    "placeholder": "Ask anything or @mention",
+    "placeholder": "Ask anything...",
     "disclaimer": "uvala can make mistakes. Check important information.",
     "Tool": {
       "webSearching": "Searching the Web...",
@@ -216,6 +218,10 @@
       "autoToolModeDescription": "Decides when to use tools without asking you",
       "manualToolModeDescription": "Asks your permission before using any tools",
       "noneToolModeDescription": "Do not use tools. @mention is still available.",
+      "toolsOn": "Tools On",
+      "toolsOff": "Tools Off",
+      "toolsOnDescription": "Images, videos, charts, tables, web search, and more",
+      "toolsOffDescription": "Conversation only with file upload support",
       "toolsSetup": "Tools Setup",
       "preset": "Preset",
       "toolPresets": "Tool Presets",

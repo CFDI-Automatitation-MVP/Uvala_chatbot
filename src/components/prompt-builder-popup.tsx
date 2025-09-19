@@ -10,14 +10,13 @@ import {
   DrawerTitle,
 } from "ui/drawer";
 import { Button } from "ui/button";
-import { X } from "lucide-react";
+import { X, RotateCcw } from "lucide-react";
 import { SimpleChatPromptBuilder } from "./prompt-builder/simple-chat-prompt-builder";
 
 export function PromptBuilderPopup() {
   const [promptBuilder, appStoreMutate] = appStore(
     useShallow((state) => [state.promptBuilder, state.mutate]),
   );
-
 
   const setOpen = (bool: boolean) => {
     appStoreMutate({
@@ -42,7 +41,18 @@ export function PromptBuilderPopup() {
       >
         <DrawerHeader>
           <DrawerTitle className="flex items-center gap-2">
-            <p className="hidden sm:flex">Prompt Builder</p>
+            <Button
+              variant={"ghost"}
+              size={"sm"}
+              onClick={() => {
+                // Reset function will be called through a ref or context
+                const resetEvent = new CustomEvent("promptBuilderReset");
+                window.dispatchEvent(resetEvent);
+              }}
+              className="rounded-full"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </Button>
             <div className="flex-1" />
             <DrawerClose asChild>
               <Button

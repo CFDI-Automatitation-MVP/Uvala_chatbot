@@ -1,6 +1,9 @@
-import { create } from "zustand";
+import { create, StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
 
+type Mutate<T> = (
+  partial: T | Partial<T> | ((state: T) => T | Partial<T>),
+) => void;
 import { ChatMention, ChatModel, ChatThread } from "app-types/chat";
 import { OPENAI_VOICE } from "lib/ai/speech/open-ai/use-voice-chat.openai";
 import { WorkflowSummary } from "app-types/workflow";
@@ -49,9 +52,7 @@ export interface AppState {
 }
 
 export interface AppDispatch {
-  mutate: (
-    partial: Partial<AppState> | ((state: AppState) => Partial<AppState>),
-  ) => void;
+  mutate: (state: Mutate<AppState>) => void;
 }
 
 const initialState: AppState = {
@@ -62,13 +63,19 @@ const initialState: AppState = {
   agentList: [],
   workflowToolList: [],
   currentThreadId: null,
-  toolChoice: "auto",
+  toolChoice: "auto", // Default: Tools ON
   allowedAppDefaultToolkit: [
     AppDefaultToolkit.Visualization,
     AppDefaultToolkit.WebSearch,
+    AppDefaultToolkit.ImageGeneration,
+    AppDefaultToolkit.VideoGeneration,
+    // WebSandbox is hidden
   ],
   toolPresets: [],
-  chatModel: undefined,
+  chatModel: {
+    provider: "Fast & Direct",
+    model: "uvala-fuji",
+  },
   openShortcutsPopup: false,
   openChatPreferences: false,
   temporaryChat: {
