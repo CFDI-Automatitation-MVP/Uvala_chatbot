@@ -47,7 +47,7 @@ const pricingPlans: PricingPlan[] = [
       USD: "",
       MXN: "",
     },
-    features: ["4,500 tokens/day", "10 web searches", "2 images", "1 video"],
+    features: [],
   },
   {
     id: "plus",
@@ -63,7 +63,7 @@ const pricingPlans: PricingPlan[] = [
       MXN: "price_1S8XyI1pY9V37Up5iYJDKtqU",
     },
     popular: true,
-    features: ["37,000 tokens/day", "80 web searches", "15 images", "2 videos"],
+    features: [],
   },
   {
     id: "pro",
@@ -78,12 +78,7 @@ const pricingPlans: PricingPlan[] = [
       USD: "price_1S8aVQ1pY9V37Up58mNbG5rA",
       MXN: "price_1S8XzW1pY9V37Up5DIUux5pQ",
     },
-    features: [
-      "45,000 tokens/day",
-      "120 web searches",
-      "25 images",
-      "8 videos",
-    ],
+    features: [],
   },
   {
     id: "max",
@@ -98,12 +93,7 @@ const pricingPlans: PricingPlan[] = [
       USD: "price_1S8aWD1pY9V37Up57JJOhbk0",
       MXN: "price_1S8aUO1pY9V37Up5TcfjXrNP",
     },
-    features: [
-      "61,000 tokens/day",
-      "250 web searches",
-      "40 images",
-      "20 videos",
-    ],
+    features: [],
   },
 ];
 

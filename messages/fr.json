@@ -521,19 +521,19 @@
         "name": "Plus",
         "description": "Pour les utilisateurs réguliers",
         "features": [
-          "37,000 tokens/jour",
-          "80 recherches web",
-          "15 images",
-          "2 vidéos"
+          "50,000 tokens/jour",
+          "180 recherches web",
+          "35 images",
+          "6 vidéos"
         ]
       },
       "pro": {
         "name": "Pro",
         "description": "Pour les professionnels et équipes",
         "features": [
-          "45,000 tokens/jour",
-          "120 recherches web",
-          "25 images",
+          "65,000 tokens/jour",
+          "220 recherches web",
+          "50 images",
           "8 vidéos"
         ]
       },
@@ -541,10 +541,10 @@
         "name": "Max",
         "description": "Pour les utilisateurs avancés et les professionnels",
         "features": [
-          "61,000 tokens/jour",
-          "250 recherches web",
-          "40 images",
-          "20 vidéos"
+          "100,000 tokens/jour",
+          "300 recherches web",
+          "70 images",
+          "15 vidéos"
         ]
       }
     }

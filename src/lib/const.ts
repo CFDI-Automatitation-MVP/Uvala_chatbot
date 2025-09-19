@@ -62,11 +62,6 @@ export const SUPPORTED_LOCALES = [
     name: "English",
   },
   {
-    code: "ko",
-    name: "Korean",
-  },
-
-  {
     code: "es",
     name: "Spanish",
   },
@@ -77,10 +72,6 @@ export const SUPPORTED_LOCALES = [
   {
     code: "ja",
     name: "Japanese",
-  },
-  {
-    code: "zh",
-    name: "Chinese",
   },
 ];
 

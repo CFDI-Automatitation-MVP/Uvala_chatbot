@@ -17,7 +17,6 @@ export interface PlanLimits {
   maxTokensPerMonth: number;
   maxTokensPerDay?: number;
   maxApiCallsPerMonth: number;
-  maxApiCallsPerDay?: number;
   maxToolCallsPerMonth: number;
   // Cost-based limits
   maxDailyCostUSD: number;
@@ -37,38 +36,38 @@ export interface PlanLimits {
 
 export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
   free: {
-    maxTokensPerMonth: 135000, // 4,500 tokens/day * 30 days
-    maxTokensPerDay: 4500, // From tier image
-    maxApiCallsPerMonth: 300, // Estimated based on token usage
-    maxToolCallsPerMonth: 50,
-    // Tool-specific limits from tier image
-    maxImageGenerationsPerMonth: 2, // Flux images
-    maxVideoGenerationsPerMonth: 1, // Wan videos
-    maxWebSearchesPerMonth: 10, // Exa web searches
-    // Cost limits
-    maxDailyCostUSD: 0.01, // Conservative for free tier
-    maxMonthlyCostUSD: 0.3,
-    allowedVideoQualities: ["480p", "720p", "1080p"],
-    // Features
-    hasFileUploads: false,
-    hasAdvancedFeatures: false,
-    hasApiAccess: false,
-    hasPrioritySupport: false,
+    // 3-day trial with Plus tier limits
+    maxTokensPerMonth: 1500000, // Same as Plus
+    maxTokensPerDay: 50000, // Same as Plus
+    maxApiCallsPerMonth: 1000, // Same as Plus
+    maxToolCallsPerMonth: 1000, // Same as Plus
+    // Tool-specific limits - Same as Plus
+    maxImageGenerationsPerMonth: 35, // Same as Plus
+    maxVideoGenerationsPerMonth: 6, // Same as Plus
+    maxWebSearchesPerMonth: 180, // Same as Plus
+    // Cost limits - Same as Plus
+    maxDailyCostUSD: 0.05, // Same as Plus
+    maxMonthlyCostUSD: 1.5, // Same as Plus
+    allowedVideoQualities: ["480p"], // Same as Plus
+    // Features - Same as Plus
+    hasFileUploads: true, // Same as Plus
+    hasAdvancedFeatures: true, // Same as Plus
+    hasApiAccess: false, // Keep API access restricted to paid plans
+    hasPrioritySupport: false, // Keep priority support restricted to paid plans
   },
   plus: {
-    maxTokensPerMonth: 1110000, // 37,000 tokens/day * 30 days
-    maxTokensPerDay: 37000, // From tier image
-    maxApiCallsPerMonth: 850, // Estimated based on token usage
-    maxApiCallsPerDay: 28,
+    maxTokensPerMonth: 1500000, // 50,000 tokens/day * 30 days
+    maxTokensPerDay: 50000, // From updated tier image
+    maxApiCallsPerMonth: 1000, // Estimated based on token usage
     maxToolCallsPerMonth: 1000,
-    // Tool-specific limits from tier image
-    maxImageGenerationsPerMonth: 15, // Flux images
-    maxVideoGenerationsPerMonth: 2, // Wan videos
-    maxWebSearchesPerMonth: 80, // Exa web searches
+    // Tool-specific limits from updated tier image
+    maxImageGenerationsPerMonth: 35, // Imagen 4 Fast images
+    maxVideoGenerationsPerMonth: 6, // Wan (video) clips
+    maxWebSearchesPerMonth: 180, // Exa web searches
     // Cost limits
     maxDailyCostUSD: 0.05,
     maxMonthlyCostUSD: 1.5,
-    allowedVideoQualities: ["480p", "720p", "1080p"],
+    allowedVideoQualities: ["480p"],
     // Features
     hasFileUploads: true,
     hasAdvancedFeatures: true,
@@ -76,19 +75,18 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     hasPrioritySupport: false,
   },
   pro: {
-    maxTokensPerMonth: 1350000, // 45,000 tokens/day * 30 days
-    maxTokensPerDay: 45000, // From tier image
-    maxApiCallsPerMonth: 1200, // Estimated based on token usage
-    maxApiCallsPerDay: 40,
+    maxTokensPerMonth: 1950000, // 65,000 tokens/day * 30 days
+    maxTokensPerDay: 65000, // From updated tier image
+    maxApiCallsPerMonth: 1300, // Estimated based on token usage
     maxToolCallsPerMonth: 2000,
-    // Tool-specific limits from tier image
-    maxImageGenerationsPerMonth: 25, // Flux images
-    maxVideoGenerationsPerMonth: 8, // Wan videos
-    maxWebSearchesPerMonth: 120, // Exa web searches
+    // Tool-specific limits from updated tier image
+    maxImageGenerationsPerMonth: 50, // Imagen 4 Fast images
+    maxVideoGenerationsPerMonth: 8, // Wan (video) clips
+    maxWebSearchesPerMonth: 220, // Exa web searches
     // Cost limits
     maxDailyCostUSD: 0.1,
     maxMonthlyCostUSD: 3.0,
-    allowedVideoQualities: ["480p", "720p"],
+    allowedVideoQualities: ["480p"],
     // Features
     hasFileUploads: true,
     hasAdvancedFeatures: true,
@@ -96,18 +94,18 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     hasPrioritySupport: true,
   },
   max: {
-    maxTokensPerMonth: 1830000, // 61,000 tokens/day * 30 days
-    maxTokensPerDay: 61000, // From tier image
+    maxTokensPerMonth: 3000000, // 100,000 tokens/day * 30 days
+    maxTokensPerDay: 100000, // From updated tier image
     maxApiCallsPerMonth: 10000,
     maxToolCallsPerMonth: 5000,
-    // Tool-specific limits from tier image
-    maxImageGenerationsPerMonth: 40, // Flux images
-    maxVideoGenerationsPerMonth: 20, // Wan videos
-    maxWebSearchesPerMonth: 250, // Exa web searches
+    // Tool-specific limits from updated tier image
+    maxImageGenerationsPerMonth: 70, // Imagen 4 Fast images
+    maxVideoGenerationsPerMonth: 15, // Wan (video) clips
+    maxWebSearchesPerMonth: 300, // Exa web searches
     // Cost limits
     maxDailyCostUSD: 0.2,
     maxMonthlyCostUSD: 6.0,
-    allowedVideoQualities: ["480p", "720p", "1080p"],
+    allowedVideoQualities: ["480p"],
     // Features
     hasFileUploads: true,
     hasAdvancedFeatures: true,
@@ -247,4 +245,36 @@ export function getCurrentUsagePeriod(): { month: number; year: number } {
     month: now.getMonth() + 1, // JavaScript months are 0-indexed
     year: now.getFullYear(),
   };
+}
+
+/**
+ * Check if a user is within their 3-day trial period
+ */
+export function isUserInTrialPeriod(userCreatedAt: Date): boolean {
+  const now = new Date();
+  const trialEndDate = new Date(userCreatedAt);
+  trialEndDate.setDate(trialEndDate.getDate() + 3); // Add 3 days
+
+  return now <= trialEndDate;
+}
+
+/**
+ * Get remaining trial days for a user
+ */
+export function getRemainingTrialDays(userCreatedAt: Date): number {
+  const now = new Date();
+  const trialEndDate = new Date(userCreatedAt);
+  trialEndDate.setDate(trialEndDate.getDate() + 3);
+
+  const diffTime = trialEndDate.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  return Math.max(0, diffDays);
+}
+
+/**
+ * Check if user's trial has expired and they need to upgrade
+ */
+export function isTrialExpired(userCreatedAt: Date): boolean {
+  return !isUserInTrialPeriod(userCreatedAt);
 }

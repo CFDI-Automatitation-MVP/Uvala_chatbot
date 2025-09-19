@@ -1,7 +1,12 @@
 import { pgUsageRepository } from "@/lib/db/pg/repositories/usage-repository.pg";
-import { subscriptionRepository } from "@/lib/db/repository";
+import { subscriptionRepository, userRepository } from "@/lib/db/repository";
 import { estimateMessageCost } from "@/lib/cost-calculator";
-import { PLAN_LIMITS, PlanType, PlanLimits } from "@/lib/subscription";
+import {
+  PLAN_LIMITS,
+  PlanType,
+  PlanLimits,
+  isTrialExpired,
+} from "@/lib/subscription";
 
 export interface LimitCheckResult {
   canProceed: boolean;
@@ -180,6 +185,18 @@ export async function checkUserLimits(
 
     // Get plan type (defaults to 'free' if no active subscription)
     const planType = subscription?.planType || "free";
+
+    // Check if free user's trial has expired
+    if (planType === "free") {
+      const user = await userRepository.findById(userId);
+      if (user && isTrialExpired((user as any).createdAt)) {
+        return {
+          canProceed: false,
+          limitExceeded:
+            "Your 3-day trial has expired. Please upgrade to continue using the service.",
+        };
+      }
+    }
 
     // Apply limits to ALL users based on their plan type
     // Free users get the most restrictive limits, paid users get higher limits

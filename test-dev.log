@@ -1,0 +1,37 @@
+
+> uvala@1.21.0 dev
+> next dev --turbopack
+
+ ⚠ Port 3000 is in use, using available port 3001 instead.
+   ▲ Next.js 15.3.2 (Turbopack)
+   - Local:        http://localhost:3001
+   - Network:      http://10.49.106.197:3001
+   - Environments: .env.local, .env
+
+ ✓ Starting...
+ ✓ Compiled instrumentation Node.js in 124ms
+ ✓ Compiled instrumentation Edge in 11ms
+ ✓ Compiled middleware in 157ms
+⏳ Running PostgreSQL migrations...
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42P06',
+  message: 'schema "drizzle" already exists, skipping',
+  file: 'schemacmds.c',
+  line: '132',
+  routine: 'CreateSchemaCommand'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42P07',
+  message: 'relation "__drizzle_migrations" already exists, skipping',
+  file: 'parse_utilcmd.c',
+  line: '207',
+  routine: 'transformCreateStmt'
+}
+ℹ️ Tables already exist, skipping migration...
+✅ PostgreSQL migrations completed in 1401 ms
+ ✓ Ready in 2.4s
+[?25h
