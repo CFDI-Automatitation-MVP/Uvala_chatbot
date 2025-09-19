@@ -107,7 +107,9 @@ interface PromptInputProps {
   onFocus?: () => void;
   fileUploadDisabled?: boolean;
   fileAttachments?: AttachmentFile[];
-  setFileAttachments?: (files: AttachmentFile[] | ((prev: AttachmentFile[]) => AttachmentFile[])) => void;
+  setFileAttachments?: (
+    files: AttachmentFile[] | ((prev: AttachmentFile[]) => AttachmentFile[]),
+  ) => void;
   isDragOver?: boolean;
 }
 
@@ -147,7 +149,9 @@ export default function PromptInput({
     ]),
   );
 
-  const [internalFileAttachments, setInternalFileAttachments] = useState<AttachmentFile[]>([]);
+  const [internalFileAttachments, setInternalFileAttachments] = useState<
+    AttachmentFile[]
+  >([]);
   const [isDictating, setIsDictating] = useState(false);
   const [recognition, setRecognition] = useState<SpeechRecognition | null>(
     null,
@@ -155,14 +159,35 @@ export default function PromptInput({
 
   // Use external props if provided, otherwise use internal state
   const fileAttachments = externalFileAttachments ?? internalFileAttachments;
-  const setFileAttachments = externalSetFileAttachments ?? setInternalFileAttachments;
-  const isDragOver = externalIsDragOver ?? false;
+  const setFileAttachments =
+    externalSetFileAttachments ?? setInternalFileAttachments;
+  const _isDragOver = externalIsDragOver ?? false;
 
   // Initialize speech recognition
   useEffect(() => {
-    if (typeof window !== "undefined" && "webkitSpeechRecognition" in window) {
-      const SpeechRecognition =
-        window.webkitSpeechRecognition || window.SpeechRecognition;
+    if (typeof window === "undefined") return;
+
+    // Check for HTTPS requirement in production
+    const isHttps = window.location.protocol === "https:";
+    const isLocalhost =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
+
+    if (!isHttps && !isLocalhost) {
+      console.warn("Speech recognition requires HTTPS in production");
+      return;
+    }
+
+    // Check for Speech Recognition API support
+    const SpeechRecognition =
+      window.webkitSpeechRecognition || window.SpeechRecognition;
+
+    if (!SpeechRecognition) {
+      console.warn("Speech Recognition API not supported in this browser");
+      return;
+    }
+
+    try {
       const recognitionInstance = new SpeechRecognition();
       recognitionInstance.continuous = true;
       recognitionInstance.interimResults = true;
@@ -171,16 +196,20 @@ export default function PromptInput({
       let processedCount = 0;
 
       recognitionInstance.onresult = (event) => {
-        // Only process new final results
-        for (let i = processedCount; i < event.results.length; i++) {
-          if ((event.results[i] as any).isFinal) {
-            const transcript = event.results[i][0].transcript.trim();
-            if (transcript) {
-              const newInput = input ? `${input} ${transcript}` : transcript;
-              setInput(newInput);
-              processedCount = i + 1;
+        try {
+          // Only process new final results
+          for (let i = processedCount; i < event.results.length; i++) {
+            if ((event.results[i] as any).isFinal) {
+              const transcript = event.results[i][0].transcript.trim();
+              if (transcript) {
+                const newInput = input ? `${input} ${transcript}` : transcript;
+                setInput(newInput);
+                processedCount = i + 1;
+              }
             }
           }
+        } catch (error) {
+          console.error("Error processing speech recognition result:", error);
         }
       };
 
@@ -195,9 +224,20 @@ export default function PromptInput({
       recognitionInstance.onerror = (event) => {
         console.error("Speech recognition error:", event.error);
         setIsDictating(false);
+
+        // Handle specific error types
+        if (event.error === "not-allowed") {
+          console.error("Microphone permission denied");
+        } else if (event.error === "no-speech") {
+          console.warn("No speech detected");
+        } else if (event.error === "network") {
+          console.error("Network error during speech recognition");
+        }
       };
 
       setRecognition(recognitionInstance);
+    } catch (error) {
+      console.error("Failed to initialize speech recognition:", error);
     }
   }, [setInput]);
 
@@ -373,7 +413,6 @@ export default function PromptInput({
   const handleRemoveFile = useCallback((index: number) => {
     setFileAttachments((prev) => prev.filter((_, i) => i !== index));
   }, []);
-
 
   // Handle clipboard paste for images
   useEffect(() => {
@@ -631,7 +670,11 @@ export default function PromptInput({
                         ? isDictating
                           ? "Stop Dictation"
                           : "Start Dictation"
-                        : "Dictation not supported"}
+                        : typeof window !== "undefined" &&
+                            window.location.protocol !== "https:" &&
+                            window.location.hostname !== "localhost"
+                          ? "Dictation requires HTTPS"
+                          : "Dictation not supported in this browser"}
                     </TooltipContent>
                   </Tooltip>
                 ) : (
