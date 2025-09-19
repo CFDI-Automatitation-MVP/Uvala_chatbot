@@ -16,17 +16,25 @@ export default function SignIn() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
+      const redirectUrl = `${getURL()}auth/callback`;
+      console.log("[SIGN-IN] Using redirect URL:", redirectUrl);
+      console.log("[SIGN-IN] getURL() returns:", getURL());
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${getURL()}auth/callback`,
+          redirectTo: redirectUrl,
         },
       });
 
       if (error) {
+        console.error("[SIGN-IN] OAuth error:", error);
         toast.error(error.message);
+      } else {
+        console.log("[SIGN-IN] OAuth initiated successfully");
       }
-    } catch {
+    } catch (err) {
+      console.error("[SIGN-IN] OAuth exception:", err);
       toast.error("Failed to sign in with Google");
     } finally {
       setLoading(false);
