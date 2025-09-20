@@ -10,7 +10,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, Zap, Crown } from "lucide-react";
+import {
+  Check,
+  Zap,
+  Crown,
+  Globe,
+  Image as ImageIcon,
+  Video,
+} from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useTranslations } from "next-intl";
 
@@ -34,21 +41,6 @@ interface PricingPlan {
 }
 
 const pricingPlans: PricingPlan[] = [
-  {
-    id: "free",
-    name: "Free",
-    description: "Perfect for getting started",
-    price: {
-      USD: 0,
-      MXN: 0,
-    },
-    interval: "month",
-    stripePriceId: {
-      USD: "",
-      MXN: "",
-    },
-    features: [],
-  },
   {
     id: "plus",
     name: "Plus",
@@ -96,6 +88,33 @@ const pricingPlans: PricingPlan[] = [
     features: [],
   },
 ];
+
+// Function to get icon for feature
+const getFeatureIcon = (feature: string) => {
+  const lowerFeature = feature.toLowerCase();
+  if (
+    lowerFeature.includes("web search") ||
+    lowerFeature.includes("búsqueda web") ||
+    lowerFeature.includes("recherche web") ||
+    lowerFeature.includes("ウェブ検索")
+  ) {
+    return <Globe className="w-4 h-4 text-green-500 flex-shrink-0" />;
+  } else if (
+    lowerFeature.includes("image") ||
+    lowerFeature.includes("imagen") ||
+    lowerFeature.includes("画像")
+  ) {
+    return <ImageIcon className="w-4 h-4 text-green-500 flex-shrink-0" />;
+  } else if (
+    lowerFeature.includes("video") ||
+    lowerFeature.includes("vidéo") ||
+    lowerFeature.includes("動画")
+  ) {
+    return <Video className="w-4 h-4 text-green-500 flex-shrink-0" />;
+  } else {
+    return <Check className="w-4 h-4 text-green-500 flex-shrink-0" />;
+  }
+};
 
 export default function PricingPage() {
   const [isLoading, setIsLoading] = useState<string | null>(null);
@@ -202,7 +221,7 @@ export default function PricingPage() {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-4 gap-6 max-w-7xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
           {pricingPlans.map((plan) => {
             const isCurrentPlan = hasSubscription && planType === plan.id;
             const isActivePlan =
@@ -232,43 +251,49 @@ export default function PricingPage() {
                   </Badge>
                 )}
 
-                <CardHeader>
-                  <CardTitle className="flex justify-between items-center">
-                    {t(`plans.${plan.id}.name`)}
+                <CardHeader className="p-8 pb-4 text-center">
+                  <CardTitle className="mb-4">
                     {isActivePlan && (
-                      <div className="flex items-center text-green-600">
+                      <div className="flex items-center justify-center text-green-600 mb-2">
                         <Crown className="w-4 h-4 mr-1" />
                         <span className="text-sm font-medium">
                           {t("active")}
                         </span>
                       </div>
                     )}
-                    <div className="text-right">
-                      <div className="text-3xl font-bold">
-                        {plan.price[currency] === 0
-                          ? t("free")
-                          : `$${plan.price[currency]} ${currency}`}
-                        {plan.price[currency] > 0 && (
-                          <span className="text-base font-normal text-gray-400">
-                            /{t(plan.interval)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
+                    <h3 className="text-2xl font-bold text-white mb-2">
+                      {t(`plans.${plan.id}.name`)}
+                    </h3>
+                    <CardDescription className="text-gray-300 text-base">
+                      {t(`plans.${plan.id}.description`)}
+                    </CardDescription>
                   </CardTitle>
-                  <CardDescription className="text-gray-300">
-                    {t(`plans.${plan.id}.description`)}
-                  </CardDescription>
+                  <div className="text-center">
+                    <div className="text-4xl font-bold text-white">
+                      ${plan.price[currency]} {currency}
+                      <span className="text-lg font-normal text-gray-400">
+                        /{t(plan.interval)}
+                      </span>
+                    </div>
+                  </div>
                 </CardHeader>
 
-                <CardContent>
-                  <ul className="space-y-3 mb-6">
+                <CardContent className="p-8">
+                  <ul className="space-y-4 mb-8">
                     {t
                       .raw(`plans.${plan.id}.features`)
                       .map((feature: string, index: number) => (
-                        <li key={index} className="flex items-center gap-2">
-                          <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                          <span className="text-sm text-white">{feature}</span>
+                        <li key={index} className="flex items-center gap-3">
+                          {getFeatureIcon(feature)}
+                          <span
+                            className="text-sm text-white"
+                            dangerouslySetInnerHTML={{
+                              __html: feature.replace(
+                                /\*\*(.*?)\*\*/g,
+                                "<strong>$1</strong>",
+                              ),
+                            }}
+                          />
                         </li>
                       ))}
                   </ul>
@@ -283,7 +308,7 @@ export default function PricingPage() {
                         {t("subscribed")}
                       </p>
                     </div>
-                  ) : plan.price[currency] === 0 ? null : (
+                  ) : (
                     <Button
                       className={`w-full ${
                         plan.popular

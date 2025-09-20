@@ -527,30 +527,30 @@
         "name": "Plus",
         "description": "Pour les utilisateurs réguliers",
         "features": [
-          "50,000 tokens/jour",
-          "180 recherches web",
-          "35 images",
-          "6 vidéos"
+          "**Même usage que le plan d'entrée des concurrents**",
+          "Recherche web",
+          "35 images par mois",
+          "6 vidéos par mois"
         ]
       },
       "pro": {
         "name": "Pro",
         "description": "Pour les professionnels et équipes",
         "features": [
-          "65,000 tokens/jour",
-          "220 recherches web",
-          "50 images",
-          "8 vidéos"
+          "**1.75x plus d'usage que le plan Plus**",
+          "Recherche web",
+          "50 images par mois",
+          "8 vidéos par mois"
         ]
       },
       "max": {
         "name": "Max",
         "description": "Pour les utilisateurs avancés et les professionnels",
         "features": [
-          "100,000 tokens/jour",
-          "300 recherches web",
-          "70 images",
-          "15 vidéos"
+          "**2.25x plus d'usage que le plan Plus**",
+          "Recherche web",
+          "70 images par mois",
+          "15 vidéos par mois"
         ]
       }
     }

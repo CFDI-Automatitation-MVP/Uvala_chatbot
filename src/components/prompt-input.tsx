@@ -649,16 +649,14 @@ export default function PromptInput({
                     </Button>
                   </SelectModel>
                 )}
-                {!isLoading &&
-                !input.length &&
-                fileAttachments.length === 0 &&
-                !voiceDisabled ? (
+                {/* Dictation Button - Show when voice is enabled and not loading */}
+                {!isLoading && !voiceDisabled && (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
                         size={"sm"}
                         onClick={toggleDictation}
-                        className={`rounded-full p-2! ${isDictating ? "bg-red-500 hover:bg-red-600 text-white" : ""}`}
+                        className={`rounded-full p-2! mr-2 ${isDictating ? "bg-red-500 hover:bg-red-600 text-white" : ""}`}
                         disabled={!recognition}
                       >
                         {isDictating ? <MicOff size={16} /> : <Mic size={16} />}
@@ -676,7 +674,12 @@ export default function PromptInput({
                           : "Dictation not supported in this browser"}
                     </TooltipContent>
                   </Tooltip>
-                ) : (
+                )}
+
+                {/* Send/Stop Button - Show when there's content or when loading */}
+                {(input.length > 0 ||
+                  fileAttachments.length > 0 ||
+                  isLoading) && (
                   <div
                     onClick={() => {
                       if (isLoading) {
@@ -685,13 +688,10 @@ export default function PromptInput({
                         submit();
                       }
                     }}
-                    className="fade-in animate-in cursor-pointer text-muted-foreground rounded-full p-2 bg-secondary hover:bg-accent-foreground hover:text-accent transition-all duration-200"
+                    className="fade-in animate-in cursor-pointer text-white rounded-full p-2 bg-blue-500 hover:bg-blue-600 border-2 border-blue-400 transition-all duration-200 shadow-lg"
                   >
                     {isLoading ? (
-                      <Square
-                        size={16}
-                        className="fill-muted-foreground text-muted-foreground"
-                      />
+                      <Square size={16} className="fill-white text-white" />
                     ) : (
                       <CornerRightUp size={16} />
                     )}

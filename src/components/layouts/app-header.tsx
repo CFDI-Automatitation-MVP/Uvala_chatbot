@@ -1,20 +1,24 @@
 "use client";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, HelpCircle } from "lucide-react";
 import { Button } from "ui/button";
 import { Separator } from "ui/separator";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ThreadDropdown } from "../thread-dropdown";
 import { appStore } from "@/app/store";
 import { usePathname } from "next/navigation";
 import { useShallow } from "zustand/shallow";
 import { TextShimmer } from "ui/text-shimmer";
+import { useOnboarding } from "@/hooks/use-onboarding";
+import { WelcomePopup } from "@/components/onboarding/welcome-popup";
 
 export function AppHeader() {
   const [_appStoreMutate] = appStore(useShallow((state) => [state.mutate]));
   const currentPaths = usePathname();
+  const { showOnboardingManually } = useOnboarding();
+  const [showPopup, setShowPopup] = useState(false);
 
   const componentByPage = useMemo(() => {
     if (currentPaths.startsWith("/chat/")) {
@@ -23,12 +27,43 @@ export function AppHeader() {
   }, [currentPaths]);
 
   return (
-    <header className="sticky top-0 z-50 flex items-center px-3 py-2">
-      {componentByPage}
-      <div className="flex-1" />
+    <>
+      <header className="sticky top-0 z-50 flex items-center px-3 py-2">
+        {componentByPage}
+        <div className="flex-1" />
 
-      <div className="flex items-center gap-2"></div>
-    </header>
+        <div className="flex items-center gap-2">
+          {/* Onboarding trigger button */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.preventDefault();
+                  console.log("🔘 Button clicked, triggering onboarding...");
+                  showOnboardingManually();
+                  setShowPopup(true);
+                }}
+                className="h-8 w-8 p-0 hover:bg-accent text-muted-foreground hover:text-foreground"
+              >
+                <HelpCircle className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Show tutorial</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      </header>
+
+      {/* Fallback popup */}
+      <WelcomePopup
+        isOpen={showPopup}
+        onClose={() => setShowPopup(false)}
+        isFirstTimeUser={false}
+      />
+    </>
   );
 }
 

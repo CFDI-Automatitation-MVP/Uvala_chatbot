@@ -48,6 +48,44 @@
     "reasoningModel": "Reasoning Model"
   },
   "Error": {},
+  "onboarding": {
+    "features": {
+      "webSearch": {
+        "title": "Web Live Search",
+        "description": "Get real-time information from the web",
+        "example": "Give me the latest news about AI"
+      },
+      "videoGenerator": {
+        "title": "Video Generator",
+        "description": "Create engaging videos from text",
+        "example": "Generate a video of a sunset"
+      },
+      "imageCreation": {
+        "title": "Image Creation",
+        "description": "Generate stunning visuals instantly",
+        "example": "Create an image of a futuristic city"
+      },
+      "chartsAnalytics": {
+        "title": "Charts & Analytics",
+        "description": "Visualize data with beautiful charts",
+        "example": "Create a pie chart of market share"
+      },
+      "promptBuilder": {
+        "title": "Prompt Builder",
+        "description": "Transform requests into structured prompts",
+        "example": "Help me write a business plan"
+      }
+    },
+    "trial": {
+      "title": "Start Your Free Trial",
+      "description": "Unlock all features with 3 days of unlimited access. Experience the full power of our AI platform.",
+      "button": "Start 3-Day Free Trial Now"
+    },
+    "tryExample": "Try saying:",
+    "next": "Next",
+    "getStarted": "Get Started",
+    "of": "of"
+  },
   "Info": {
     "mcpAddingDisabled": "MCP server addition has been disabled by the administrator.",
     "vercelSyncDelay": "Running on Vercel\n\nMCP changes may take 10-15 seconds to sync. Please wait a moment after adding, editing, or deleting servers if changes don't appear immediately."
@@ -512,11 +550,10 @@
   "Pricing": {
     "title": "Choose Your Plan",
     "description": "Unlock the full potential of AI-powered conversations with our flexible pricing plans.",
-    "currencyPesos": "MXN (Pesos)",
-    "currencyDollars": "USD (Dollars)",
+    "currencyPesos": "MXN",
+    "currencyDollars": "USD",
     "month": "month",
     "year": "year",
-    "free": "Free",
     "mostPopular": "Most Popular",
     "currentPlan": "Current Plan",
     "active": "Active",
@@ -526,44 +563,34 @@
     "subscribeTo": "Subscribe to {plan}",
     "loading": "Loading...",
     "plans": {
-      "free": {
-        "name": "Free",
-        "description": "Perfect for getting started",
-        "features": [
-          "4,500 tokens/day",
-          "10 web searches",
-          "2 images",
-          "1 video"
-        ]
-      },
       "plus": {
         "name": "Plus",
         "description": "For regular users",
         "features": [
-          "50,000 tokens/day",
-          "180 web searches",
-          "35 images",
-          "6 videos"
+          "**Same usage as competitors entry plan**",
+          "Web search",
+          "35 images per month",
+          "6 videos per month"
         ]
       },
       "pro": {
         "name": "Pro",
         "description": "For professionals and teams",
         "features": [
-          "65,000 tokens/day",
-          "220 web searches",
-          "50 images",
-          "8 videos"
+          "**1.75x more usage than Plus plan**",
+          "Web search",
+          "50 images per month",
+          "8 videos per month"
         ]
       },
       "max": {
         "name": "Max",
         "description": "For power users and professionals",
         "features": [
-          "100,000 tokens/day",
-          "300 web searches",
-          "70 images",
-          "15 videos"
+          "**2.25x more usage than Plus plan**",
+          "Web search",
+          "70 images per month",
+          "15 videos per month"
         ]
       }
     }

@@ -8,6 +8,7 @@ import { getSessionWithRedirect } from "@/lib/auth/supabase-auth";
 import { COOKIE_KEY_SIDEBAR_STATE } from "lib/const";
 import { AppPopupProvider } from "@/components/layouts/app-popup-provider";
 import { SWRConfigProvider } from "./swr-config";
+import { OnboardingProvider } from "@/components/onboarding/onboarding-provider";
 
 export const experimental_ppr = true;
 
@@ -22,6 +23,7 @@ export default async function ChatLayout({
     <SidebarProvider defaultOpen={!isCollapsed}>
       <SWRConfigProvider>
         <AppPopupProvider />
+        <OnboardingProvider />
         <AppSidebar session={session} />
         <SidebarHoverZone />
         <SidebarInset className="relative bg-background flex flex-col h-screen">

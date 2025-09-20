@@ -382,6 +382,44 @@
     "mcpServerCustomizationPlaceholder": "ej. Si el valor de entrada es email, siempre ingresa el email en el formato ejemplo@ejemplo.com."
   },
   "Error": {},
+  "onboarding": {
+    "features": {
+      "webSearch": {
+        "title": "Búsqueda Web en Vivo",
+        "description": "Obtén información en tiempo real de la web",
+        "example": "Dame las últimas noticias sobre IA"
+      },
+      "videoGenerator": {
+        "title": "Generador de Videos",
+        "description": "Crea videos atractivos desde texto",
+        "example": "Genera un video de un atardecer"
+      },
+      "imageCreation": {
+        "title": "Creación de Imágenes",
+        "description": "Genera visuales impresionantes al instante",
+        "example": "Crea una imagen de una ciudad futurista"
+      },
+      "chartsAnalytics": {
+        "title": "Gráficos y Análisis",
+        "description": "Visualiza datos con hermosos gráficos",
+        "example": "Crea un gráfico circular de participación de mercado"
+      },
+      "promptBuilder": {
+        "title": "Constructor de Prompts",
+        "description": "Transforma solicitudes en prompts estructurados",
+        "example": "Ayúdame a escribir un plan de negocios"
+      }
+    },
+    "trial": {
+      "title": "Inicia tu Prueba Gratuita",
+      "description": "Desbloquea todas las funciones con 3 días de acceso ilimitado",
+      "button": "Iniciar Prueba Gratuita de 3 Días"
+    },
+    "tryExample": "Intenta decir:",
+    "next": "Siguiente",
+    "getStarted": "Comenzar",
+    "of": "de"
+  },
   "Info": {
     "mcpAddingDisabled": "La adición de servidores MCP ha sido deshabilitada por el administrador.",
     "vercelSyncDelay": "Ejecutándose en Vercel\n\nLos cambios de MCP pueden tardar 10-15 segundos en sincronizarse. Por favor espera un momento si los cambios no aparecen inmediatamente después de agregar, editar o eliminar servidores."
@@ -499,11 +537,10 @@
   "Pricing": {
     "title": "Elige tu Plan",
     "description": "Desbloquea todo el potencial de las conversaciones con IA con nuestros planes de precios flexibles.",
-    "currencyPesos": "MXN (Pesos)",
-    "currencyDollars": "USD (Dólares)",
+    "currencyPesos": "MXN",
+    "currencyDollars": "USD",
     "month": "mes",
     "year": "año",
-    "free": "Gratis",
     "mostPopular": "Más Popular",
     "currentPlan": "Plan Actual",
     "active": "Activo",
@@ -513,44 +550,34 @@
     "subscribeTo": "Suscribirse a {plan}",
     "loading": "Cargando...",
     "plans": {
-      "free": {
-        "name": "Gratis",
-        "description": "Perfecto para comenzar",
-        "features": [
-          "4,500 tokens/día",
-          "10 búsquedas web",
-          "2 imágenes",
-          "1 video"
-        ]
-      },
       "plus": {
         "name": "Plus",
         "description": "Para usuarios regulares",
         "features": [
-          "50,000 tokens/día",
-          "180 búsquedas web",
-          "35 imágenes",
-          "6 videos"
+          "**Mismo uso que el plan de entrada de competidores**",
+          "Búsqueda web",
+          "35 imágenes por mes",
+          "6 videos por mes"
         ]
       },
       "pro": {
         "name": "Pro",
         "description": "Para profesionales y equipos",
         "features": [
-          "65,000 tokens/día",
-          "220 búsquedas web",
-          "50 imágenes",
-          "8 videos"
+          "**1.75x más uso que el plan Plus**",
+          "Búsqueda web",
+          "50 imágenes por mes",
+          "8 videos por mes"
         ]
       },
       "max": {
         "name": "Max",
         "description": "Para usuarios avanzados y profesionales",
         "features": [
-          "100,000 tokens/día",
-          "300 búsquedas web",
-          "70 imágenes",
-          "15 videos"
+          "**2.25x más uso que el plan Plus**",
+          "Búsqueda web",
+          "70 imágenes por mes",
+          "15 videos por mes"
         ]
       }
     }
