@@ -15,6 +15,7 @@ interface SubscriptionStatus {
   hasSubscription: boolean;
   planType: "free" | "pro" | "max";
   subscription: SubscriptionData | null;
+  userCreatedAt: string | null;
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
@@ -25,6 +26,7 @@ export function useSubscription(): SubscriptionStatus {
     hasSubscription: false,
     planType: "free",
     subscription: null,
+    userCreatedAt: null,
     loading: true,
     error: null,
     refetch: async () => {},
@@ -53,6 +55,7 @@ export function useSubscription(): SubscriptionStatus {
           hasSubscription: false,
           planType: "free",
           subscription: null,
+          userCreatedAt: null,
           loading: false,
         }));
         return;

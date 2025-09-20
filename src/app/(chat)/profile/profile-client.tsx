@@ -14,6 +14,7 @@ import {
   Crown,
   Calendar,
   AlertCircle,
+  Clock,
 } from "lucide-react";
 import { cn } from "lib/utils";
 import { Label } from "ui/label";
@@ -21,6 +22,11 @@ import { Button } from "ui/button";
 import { Badge } from "ui/badge";
 import { supabase } from "@/lib/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
+import {
+  isUserInTrialPeriod,
+  getRemainingTrialDays,
+  isTrialExpired,
+} from "@/lib/subscription";
 
 const profileSections = [
   { id: "profile", icon: User, key: "title" },
@@ -48,6 +54,7 @@ export function ProfilePageClient({ session }: Props) {
     hasSubscription,
     planType,
     subscription,
+    userCreatedAt,
     loading: subscriptionLoading,
   } = useSubscription();
 
@@ -270,6 +277,68 @@ export function ProfilePageClient({ session }: Props) {
                           </p>
                         )}
                       </div>
+
+                      {/* Trial Status - Show for free users only */}
+                      {!hasSubscription && userCreatedAt && (
+                        <div className="bg-background/60 rounded-lg p-4 border border-border/20">
+                          <Label className="text-sm font-medium text-foreground mb-3 block">
+                            Trial Status
+                          </Label>
+
+                          {(() => {
+                            const userCreationDate = new Date(userCreatedAt);
+                            const isInTrial =
+                              isUserInTrialPeriod(userCreationDate);
+                            const remainingDays =
+                              getRemainingTrialDays(userCreationDate);
+                            const trialExpired =
+                              isTrialExpired(userCreationDate);
+
+                            if (isInTrial) {
+                              return (
+                                <div className="flex items-center gap-3">
+                                  <div className="flex items-center gap-2 text-blue-600">
+                                    <Clock className="w-4 h-4" />
+                                    <Badge
+                                      variant="default"
+                                      className="bg-blue-600"
+                                    >
+                                      Trial Active
+                                    </Badge>
+                                  </div>
+                                  <div className="text-sm text-foreground">
+                                    <span className="font-medium">
+                                      {remainingDays} day
+                                      {remainingDays !== 1 ? "s" : ""}
+                                    </span>{" "}
+                                    remaining
+                                  </div>
+                                </div>
+                              );
+                            } else if (trialExpired) {
+                              return (
+                                <div className="flex items-center gap-3">
+                                  <div className="flex items-center gap-2 text-red-600">
+                                    <AlertCircle className="w-4 h-4" />
+                                    <Badge variant="destructive">
+                                      Trial Expired
+                                    </Badge>
+                                  </div>
+                                  <div className="text-sm text-muted-foreground">
+                                    Upgrade to continue using the service
+                                  </div>
+                                </div>
+                              );
+                            } else {
+                              return (
+                                <div className="text-sm text-muted-foreground">
+                                  No trial information available
+                                </div>
+                              );
+                            }
+                          })()}
+                        </div>
+                      )}
 
                       {/* Subscription Details */}
                       {hasSubscription && subscription && (

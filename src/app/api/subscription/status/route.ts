@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { pgDb as db } from '@/lib/db/pg/db.pg'
-import { SubscriptionRepository } from '@/lib/db/pg/repositories/subscription-repository.pg'
+import { NextRequest, NextResponse } from "next/server";
+import { createServerClient } from "@supabase/ssr";
+import { pgDb as db } from "@/lib/db/pg/db.pg";
+import { SubscriptionRepository } from "@/lib/db/pg/repositories/subscription-repository.pg";
+import { pgUserRepository } from "@/lib/db/pg/repositories/user-repository.pg";
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,35 +13,45 @@ export async function GET(request: NextRequest) {
       {
         cookies: {
           getAll() {
-            return request.cookies.getAll()
+            return request.cookies.getAll();
           },
           setAll() {
             // No need to set cookies in API route
           },
         },
-      }
-    )
+      },
+    );
 
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-    
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
     if (!user || userError) {
       return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
+        { error: "Authentication required" },
+        { status: 401 },
+      );
     }
 
-    const subscriptionRepo = new SubscriptionRepository(db)
-    
+    const subscriptionRepo = new SubscriptionRepository(db);
+
     // Get user's active subscription
-    const subscription = await subscriptionRepo.getUserActiveSubscription(user.id)
-    
+    const subscription = await subscriptionRepo.getUserActiveSubscription(
+      user.id,
+    );
+
+    // Get user creation date from database
+    const userRecord = await pgUserRepository.findById(user.id);
+    const userCreatedAt = userRecord?.createdAt || new Date();
+
     if (!subscription) {
       return NextResponse.json({
         hasSubscription: false,
-        planType: 'free',
-        subscription: null
-      })
+        planType: "free",
+        subscription: null,
+        userCreatedAt: userCreatedAt.toISOString(),
+      });
     }
 
     return NextResponse.json({
@@ -53,14 +64,15 @@ export async function GET(request: NextRequest) {
         currentPeriodStart: subscription.currentPeriodStart,
         currentPeriodEnd: subscription.currentPeriodEnd,
         cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
-        createdAt: subscription.createdAt
-      }
-    })
+        createdAt: subscription.createdAt,
+      },
+      userCreatedAt: userCreatedAt.toISOString(),
+    });
   } catch (error) {
-    console.error('Error fetching subscription status:', error)
+    console.error("Error fetching subscription status:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }
