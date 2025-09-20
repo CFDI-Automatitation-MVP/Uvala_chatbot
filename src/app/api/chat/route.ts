@@ -34,7 +34,6 @@ import {
   truncateConversation,
   logTruncationResult,
 } from "lib/ai/context-manager";
-import { checkUserLimits, formatLimitError } from "@/lib/subscription-limits";
 
 const logger = globalLogger.withDefaults({
   message: colorize("blackBright", `Chat API: `),
@@ -193,33 +192,7 @@ export async function POST(request: Request) {
           JSON.stringify(optimizedMessages.slice(-1)[0]?.parts, null, 2),
         );
 
-        // Basic token limit check (without tool predictions)
-        const lastUserMessage = optimizedMessages
-          .slice()
-          .reverse()
-          .find((m) => m.role === "user");
-        if (lastUserMessage) {
-          // Rough token estimation: ~4 chars per token
-          const estimatedInputTokens = Math.ceil(
-            JSON.stringify(lastUserMessage.parts).length / 4,
-          );
-          const estimatedOutputTokens = 150; // Conservative estimate for response
-
-          const limitCheck = await checkUserLimits(session.user.id, {
-            inputTokens: estimatedInputTokens,
-            outputTokens: estimatedOutputTokens,
-          });
-
-          if (!limitCheck.canProceed) {
-            const errorMessage = formatLimitError(limitCheck);
-            logger.warn(
-              `User ${session.user.id} exceeded limits: ${errorMessage}`,
-            );
-
-            // Throw an error that will be handled by the onError handler
-            throw new Error(errorMessage);
-          }
-        }
+        // Token limit check removed - allow all file uploads and messages without pre-validation
 
         const result = streamText({
           model,
@@ -239,7 +212,7 @@ export async function POST(request: Request) {
               ? {
                   openai: {
                     reasoningEffort: "low",
-                    textVerbosity: "medium",
+                    textVerbosity: "low",
                   },
                 }
               : {

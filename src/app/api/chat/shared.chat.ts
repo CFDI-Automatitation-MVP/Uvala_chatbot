@@ -184,6 +184,30 @@ export function handleError(error: any) {
   if (LoadAPIKeyError.isInstance(error)) {
     return error.message;
   }
+
+  // Handle subscription limit errors with user-friendly messages
+  if (error.message && typeof error.message === "string") {
+    if (
+      error.message.includes("Daily cost limit exceeded") ||
+      error.message.includes("Monthly cost limit exceeded") ||
+      error.message.includes("Usage limit exceeded") ||
+      error.message.includes("trial has expired")
+    ) {
+      logger.warn(`Subscription limit: ${error.message}`);
+      return error.message; // Return the formatted limit error message
+    }
+
+    // Handle file size related errors
+    if (
+      error.message.includes("file size") ||
+      error.message.includes("File size") ||
+      error.message.includes("exceeds maximum")
+    ) {
+      logger.warn(`File upload error: ${error.message}`);
+      return `File upload failed: ${error.message}`;
+    }
+  }
+
   logger.error(error);
   logger.error(`Route Error: ${error.name}`);
   return errorToString(error.message);

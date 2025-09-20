@@ -9,6 +9,11 @@ import { appStore } from "@/app/store";
 import { cn, generateUUID, truncateString } from "lib/utils";
 import { ErrorMessage, PreviewMessage } from "./message";
 import { ChatGreeting } from "./chat-greeting";
+import {
+  validateFile,
+  getFileValidation,
+  formatFileSize,
+} from "@/lib/file-upload";
 
 import { useShallow } from "zustand/shallow";
 import {
@@ -275,7 +280,21 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
         const isImage = file.type.startsWith("image/");
         const isPDF = file.type === "application/pdf";
 
-        if (!isImage && !isPDF) return;
+        if (!isImage && !isPDF) {
+          toast.error(
+            `File type "${file.type}" is not supported. Only images and PDFs are allowed.`,
+          );
+          return;
+        }
+
+        // Validate file size and type using the validation utility
+        const validation = getFileValidation(file);
+        const validationResult = validateFile(file, validation);
+
+        if (!validationResult.valid) {
+          toast.error(`Upload failed: ${validationResult.error}`);
+          return;
+        }
 
         const reader = new FileReader();
         reader.onload = (event) => {
@@ -289,8 +308,16 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
             };
 
             setFileAttachments((prev) => [...prev, attachmentFile]);
+            toast.success(
+              `File "${file.name}" (${formatFileSize(file.size)}) uploaded successfully.`,
+            );
           }
         };
+
+        reader.onerror = () => {
+          toast.error(`Failed to read file "${file.name}". Please try again.`);
+        };
+
         reader.readAsDataURL(file);
       });
     },
@@ -332,15 +359,15 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
   }, []);
 
   useEffect(() => {
-    appStoreMutate({ currentThreadId: threadId });
+    appStoreMutate((state) => ({ ...state, currentThreadId: threadId }));
     return () => {
-      appStoreMutate({ currentThreadId: null });
+      appStoreMutate((state) => ({ ...state, currentThreadId: null }));
     };
   }, [threadId]);
 
   useEffect(() => {
     if (pendingThreadMention && threadId) {
-      appStoreMutate((prev) => ({
+      appStore.setState((prev) => ({
         threadMentions: {
           ...prev.threadMentions,
           [threadId]: [pendingThreadMention],
@@ -348,7 +375,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
         pendingThreadMention: undefined,
       }));
     }
-  }, [pendingThreadMention, threadId, appStoreMutate]);
+  }, [pendingThreadMention, threadId]);
 
   useEffect(() => {
     if (isInitialThreadEntry)
@@ -488,7 +515,9 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
             onStop={stop}
             onFocus={isFirstTime ? undefined : handleFocus}
             model={model}
-            setModel={(newModel) => appStoreMutate({ chatModel: newModel })}
+            setModel={(newModel) =>
+              appStoreMutate((state) => ({ ...state, chatModel: newModel }))
+            }
             fileAttachments={fileAttachments}
             setFileAttachments={setFileAttachments}
             isDragOver={isDragOver}
