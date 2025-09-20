@@ -5,15 +5,17 @@ import { useSession } from "@/hooks/use-supabase-session";
 import { useRouter } from "next/navigation";
 
 const ONBOARDING_STORAGE_KEY = "uvala-onboarding-completed";
+const LANGUAGE_SELECTED_KEY = "uvala-language-selected";
 
 export function useOnboarding() {
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [isTrueFirstTimeUser, setIsTrueFirstTimeUser] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { data: session, isLoading: sessionLoading } = useSession();
   const router = useRouter();
 
-  // Detect system language and set locale
-  const detectAndSetSystemLanguage = () => {
+  // Detect system language and set locale in cookie (no redirect)
+  const _detectAndSetSystemLanguage = () => {
     if (typeof window !== "undefined") {
       const systemLanguage =
         navigator.language || navigator.languages?.[0] || "en";
@@ -25,23 +27,12 @@ export function useOnboarding() {
         ? langCode
         : "en";
 
-      // Get current URL path without locale
-      const currentPath = window.location.pathname;
-      const isAlreadyLocalized = supportedLanguages.some((lang) =>
-        currentPath.startsWith(`/${lang}`),
-      );
+      // Set locale in cookie instead of redirecting
+      document.cookie = `i18n:locale=${targetLanguage}; path=/; max-age=31536000`;
 
-      // Only redirect if not already on the correct locale
-      if (
-        !isAlreadyLocalized ||
-        !currentPath.startsWith(`/${targetLanguage}`)
-      ) {
-        const newPath = `/${targetLanguage}${currentPath}`;
-        console.log(
-          `🌍 Detected system language: ${systemLanguage}, redirecting to: ${newPath}`,
-        );
-        router.push(newPath);
-      }
+      console.log(
+        `🌍 Detected system language: ${systemLanguage}, set locale to: ${targetLanguage}`,
+      );
     }
   };
 
@@ -65,18 +56,27 @@ export function useOnboarding() {
 
     // Check if user has completed onboarding
     const storageKey = `${ONBOARDING_STORAGE_KEY}-${user.id}`;
+    const languageSelectedKey = `${LANGUAGE_SELECTED_KEY}-${user.id}`;
     const hasCompletedOnboarding = localStorage.getItem(storageKey);
+    const hasSelectedLanguage = localStorage.getItem(languageSelectedKey);
 
     console.log("🔑 Onboarding storage check:", {
       storageKey,
       hasCompletedOnboarding,
+      hasSelectedLanguage,
       userId: user.id,
     });
 
-    // For first-time users, detect and set system language
+    // Determine if this is a true first-time user (no onboarding AND no language selection)
+    const isTruelyFirstTime = !hasCompletedOnboarding && !hasSelectedLanguage;
+
+    // For first-time users, show onboarding
     if (!hasCompletedOnboarding) {
-      detectAndSetSystemLanguage();
-      console.log("✅ Showing onboarding for new user");
+      console.log(
+        "✅ Showing onboarding for user, isTruelyFirstTime:",
+        isTruelyFirstTime,
+      );
+      setIsTrueFirstTimeUser(isTruelyFirstTime);
       setShowOnboarding(true);
     } else {
       console.log("⏭️ User has already completed onboarding");
@@ -107,6 +107,7 @@ export function useOnboarding() {
 
   return {
     showOnboarding,
+    isTrueFirstTimeUser,
     isLoading,
     completeOnboarding,
     skipOnboarding,

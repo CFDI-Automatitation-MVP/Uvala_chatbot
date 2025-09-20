@@ -4,7 +4,8 @@ import { useOnboarding } from "@/hooks/use-onboarding";
 import { WelcomePopup } from "./welcome-popup";
 
 export function OnboardingProvider() {
-  const { showOnboarding, completeOnboarding, isLoading } = useOnboarding();
+  const { showOnboarding, isTrueFirstTimeUser, completeOnboarding, isLoading } =
+    useOnboarding();
 
   console.log("🎭 OnboardingProvider render:", { showOnboarding, isLoading });
 
@@ -22,7 +23,7 @@ export function OnboardingProvider() {
     <WelcomePopup
       isOpen={showOnboarding}
       onClose={completeOnboarding}
-      isFirstTimeUser={true}
+      isFirstTimeUser={isTrueFirstTimeUser}
     />
   );
 }
