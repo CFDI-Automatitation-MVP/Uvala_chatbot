@@ -183,11 +183,11 @@ export async function checkUserLimits(
     const subscription =
       await subscriptionRepository.getUserActiveSubscription(userId);
 
-    // Get plan type (defaults to 'free' if no active subscription)
+    // Get plan type (defaults to 'free' if no active subscription - free trial)
     const planType = subscription?.planType || "free";
 
-    // Check if free user's trial has expired
-    if (planType === "free") {
+    // Check if user's trial has expired (applies to users without active subscription)
+    if (!subscription) {
       const user = await userRepository.findById(userId);
       if (user && isTrialExpired((user as any).createdAt)) {
         return {

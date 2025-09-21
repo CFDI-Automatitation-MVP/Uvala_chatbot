@@ -1,16 +1,14 @@
 "use client";
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
-import { useChat, UseChatHelpers } from "@ai-sdk/react";
-import { DefaultChatTransport, UIMessage } from "ai";
+import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
 import { appStore } from "@/app/store";
 import { useShallow } from "zustand/shallow";
-import { Button } from "ui/button";
-import { ScrollArea } from "ui/scroll-area";
 import { PreviewMessage, ErrorMessage } from "../message";
 import PromptInput from "../prompt-input";
 import { Think } from "ui/think";
 import { cn } from "lib/utils";
-import { RotateCcw, Brain } from "lucide-react";
+import { Brain } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 export function SimpleChatPromptBuilder() {

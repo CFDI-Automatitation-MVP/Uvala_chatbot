@@ -43,11 +43,5 @@
         }
       ]
     }
-  ],
-  "rewrites": [
-    {
-      "source": "/((?!api|_next|_static|favicon.ico).*)",
-      "destination": "/"
-    }
   ]
 }

@@ -53,7 +53,7 @@ export function ChatBotTemporary() {
     appStoreMutate((prev) => ({
       ...prev,
       temporaryChat: {
-        ...prev.temporaryChat,
+        ...temporaryChat,
         isOpen: bool,
       },
     }));

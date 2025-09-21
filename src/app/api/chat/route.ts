@@ -34,6 +34,7 @@ import {
   truncateConversation,
   logTruncationResult,
 } from "lib/ai/context-manager";
+import { checkUserLimits, formatLimitError } from "@/lib/subscription-limits";
 
 const logger = globalLogger.withDefaults({
   message: colorize("blackBright", `Chat API: `),
@@ -192,7 +193,49 @@ export async function POST(request: Request) {
           JSON.stringify(optimizedMessages.slice(-1)[0]?.parts, null, 2),
         );
 
-        // Token limit check removed - allow all file uploads and messages without pre-validation
+        // Basic token limit check (without tool predictions) - applies to all users based on their subscription
+        // Skip token limit check for file uploads to allow unrestricted file processing
+        const lastUserMessage = optimizedMessages
+          .slice()
+          .reverse()
+          .find((m) => m.role === "user");
+
+        if (lastUserMessage) {
+          // Check if this message contains file uploads
+          const hasFileUploads = lastUserMessage.parts?.some((part) => {
+            const partData = part as any;
+            return partData.file?.data || partData.file?.type;
+          });
+
+          // Only check token limits for text-only messages, skip file uploads
+          if (!hasFileUploads) {
+            // Rough token estimation: ~4 chars per token (only for text parts)
+            const textParts =
+              lastUserMessage.parts?.filter((part) => part.type === "text") ||
+              [];
+            const estimatedInputTokens = Math.ceil(
+              JSON.stringify(textParts).length / 4,
+            );
+            const estimatedOutputTokens = 150; // Conservative estimate for response
+
+            const limitCheck = await checkUserLimits(session.user.id, {
+              inputTokens: estimatedInputTokens,
+              outputTokens: estimatedOutputTokens,
+            });
+
+            if (!limitCheck.canProceed) {
+              const errorMessage = formatLimitError(limitCheck);
+              logger.warn(
+                `User ${session.user.id} exceeded limits: ${errorMessage}`,
+              );
+
+              // Throw an error that will be handled by the onError handler
+              throw new Error(errorMessage);
+            }
+          } else {
+            logger.info("Skipping token limit check for file upload message");
+          }
+        }
 
         const result = streamText({
           model,

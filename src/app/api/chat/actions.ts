@@ -7,16 +7,11 @@ import {
   type UIMessage,
 } from "ai";
 
-import {
-  CREATE_THREAD_TITLE_PROMPT,
-} from "lib/ai/prompts";
+import { CREATE_THREAD_TITLE_PROMPT } from "lib/ai/prompts";
 
 import type { ChatModel, ChatThread } from "app-types/chat";
 
-import {
-  agentRepository,
-  chatRepository,
-} from "lib/db/repository";
+import { agentRepository, chatRepository } from "lib/db/repository";
 import { customModelProvider } from "lib/ai/models";
 import { toAny } from "lib/utils";
 import { serverCache } from "lib/cache";
@@ -56,16 +51,44 @@ export async function generateTitleFromUserMessageAction({
 
 export async function selectThreadWithMessagesAction(threadId: string) {
   const session = await getSession();
+
+  logger.info("selectThreadWithMessagesAction called", {
+    threadId,
+    sessionExists: !!session,
+    sessionUserId: session?.user?.id,
+    sessionEmail: session?.user?.email,
+  });
+
   const thread = await chatRepository.selectThread(threadId);
 
   if (!thread) {
-    logger.error("Thread not found", threadId);
+    logger.error("Thread not found", { threadId });
     return null;
   }
+
+  logger.info("Thread found in database", {
+    threadId,
+    threadUserId: thread.userId,
+    threadTitle: thread.title,
+    sessionUserId: session?.user?.id,
+  });
+
   if (thread.userId !== session?.user?.id) {
+    logger.error("Thread access denied - user mismatch", {
+      threadId,
+      threadUserId: thread.userId,
+      sessionUserId: session?.user?.id,
+      sessionEmail: session?.user?.email,
+    });
     return null;
   }
+
   const messages = await chatRepository.selectMessagesByThreadId(threadId);
+  logger.info("Thread loaded successfully", {
+    threadId,
+    messageCount: messages?.length ?? 0,
+    userId: session?.user?.id,
+  });
   return { ...thread, messages: messages ?? [] };
 }
 
@@ -101,8 +124,6 @@ export async function deleteUnarchivedThreadsAction() {
   const userId = await getUserId();
   await chatRepository.deleteUnarchivedThreads(userId);
 }
-
-
 
 export async function generateObjectAction({
   model,

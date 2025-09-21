@@ -136,7 +136,7 @@ export default function PromptInput({
   fileUploadDisabled,
   fileAttachments: externalFileAttachments,
   setFileAttachments: externalSetFileAttachments,
-  isDragOver: externalIsDragOver,
+  isDragOver: _externalIsDragOver,
 }: PromptInputProps) {
   const t = useTranslations("Chat");
 
@@ -160,7 +160,7 @@ export default function PromptInput({
   const fileAttachments = externalFileAttachments ?? internalFileAttachments;
   const setFileAttachments =
     externalSetFileAttachments ?? setInternalFileAttachments;
-  const _isDragOver = externalIsDragOver ?? false;
+  // const _isDragOver = externalIsDragOver ?? false;
 
   // Initialize speech recognition
   useEffect(() => {

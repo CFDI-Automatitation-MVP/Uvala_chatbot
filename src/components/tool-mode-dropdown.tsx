@@ -6,14 +6,7 @@ import {
   isShortcutEvent,
   Shortcuts,
 } from "lib/keyboard-shortcuts";
-import {
-  Check,
-  CheckIcon,
-  ClipboardCheck,
-  Infinity,
-  PenOff,
-  Settings2,
-} from "lucide-react";
+import { Check, CheckIcon, PenOff, Settings2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "ui/button";
 import { useTranslations } from "next-intl";
@@ -32,7 +25,7 @@ import {
 import { useShallow } from "zustand/shallow";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 
-import { capitalizeFirstLetter, cn, createDebounce } from "lib/utils";
+import { cn, createDebounce } from "lib/utils";
 
 const debounce = createDebounce();
 
@@ -50,12 +43,11 @@ export const ToolModeDropdown = ({ disabled }: { disabled?: boolean }) => {
       if (isShortcutEvent(e, Shortcuts.toolMode)) {
         e.preventDefault();
         e.stopPropagation();
-        appStoreMutate(({ toolChoice }) => {
-          return {
-            toolChoice:
-              toolChoice == "auto" || toolChoice == "manual" ? "none" : "auto",
-          };
-        });
+        appStoreMutate((state) => ({
+          ...state,
+          toolChoice:
+            toolChoice == "auto" || toolChoice == "manual" ? "none" : "auto",
+        }));
         setToolChoiceChangeInfo(true);
         debounce(() => {
           setToolChoiceChangeInfo(false);
@@ -118,7 +110,9 @@ export const ToolModeDropdown = ({ disabled }: { disabled?: boolean }) => {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem
-            onClick={() => appStoreMutate({ toolChoice: "auto" })}
+            onClick={() =>
+              appStoreMutate((state) => ({ ...state, toolChoice: "auto" }))
+            }
           >
             <div className="flex flex-col gap-2 w-full">
               <div className="flex items-center gap-2">
@@ -137,7 +131,9 @@ export const ToolModeDropdown = ({ disabled }: { disabled?: boolean }) => {
             <DropdownMenuSeparator />
           </div>
           <DropdownMenuItem
-            onClick={() => appStoreMutate({ toolChoice: "none" })}
+            onClick={() =>
+              appStoreMutate((state) => ({ ...state, toolChoice: "none" }))
+            }
           >
             <div className="flex flex-col gap-2 w-full">
               <div className="flex items-center gap-2">

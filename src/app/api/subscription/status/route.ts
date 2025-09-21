@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
 
     // Get user creation date from database
     const userRecord = await pgUserRepository.findById(user.id);
-    const userCreatedAt = userRecord?.createdAt || new Date();
+    const userCreatedAt = (userRecord as any)?.createdAt || new Date();
 
     if (!subscription) {
       return NextResponse.json({

@@ -3,7 +3,7 @@ import {
   UserSubscriptionUsageEntity,
 } from "@/lib/db/pg/schema.pg";
 
-export type PlanType = "plus" | "pro" | "max";
+export type PlanType = "free" | "plus" | "pro" | "max";
 export type SubscriptionStatus =
   | "active"
   | "canceled"
@@ -35,6 +35,23 @@ export interface PlanLimits {
 }
 
 export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
+  free: {
+    // 3-day trial with Plus tier limits
+    maxTokensPerMonth: 1500000, // Same as Plus
+    maxTokensPerDay: 50000, // Same as Plus
+    maxApiCallsPerMonth: 1000, // Same as Plus
+    maxToolCallsPerMonth: 1000, // Same as Plus
+    maxImageGenerationsPerMonth: 35, // Same as Plus
+    maxVideoGenerationsPerMonth: 6, // Same as Plus
+    maxWebSearchesPerMonth: 180, // Same as Plus
+    maxDailyCostUSD: 0.05, // Same as Plus
+    maxMonthlyCostUSD: 1.5, // Same as Plus
+    allowedVideoQualities: ["480p"], // Same as Plus
+    hasFileUploads: true, // Same as Plus
+    hasAdvancedFeatures: true, // Same as Plus
+    hasApiAccess: false, // No API access during trial
+    hasPrioritySupport: false, // No priority support during trial
+  },
   plus: {
     maxTokensPerMonth: 1500000, // 50,000 tokens/day * 30 days
     maxTokensPerDay: 50000, // From updated tier image
@@ -107,7 +124,7 @@ export function getPlanTypeFromPriceId(priceId: string): PlanType {
     price_1S8aUO1pY9V37Up5TcfjXrNP: "max", // Max MXN (249)
   };
 
-  return priceIdMap[priceId] || "plus";
+  return priceIdMap[priceId] || "free";
 }
 
 export function hasExceededLimits(

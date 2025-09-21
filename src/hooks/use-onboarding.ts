@@ -14,28 +14,6 @@ export function useOnboarding() {
   const { data: session, isLoading: sessionLoading } = useSession();
   const router = useRouter();
 
-  // Detect system language and set locale in cookie (no redirect)
-  const _detectAndSetSystemLanguage = () => {
-    if (typeof window !== "undefined") {
-      const systemLanguage =
-        navigator.language || navigator.languages?.[0] || "en";
-      const supportedLanguages = ["en", "es", "fr", "ja"];
-
-      // Extract language code (e.g., 'en-US' -> 'en')
-      const langCode = systemLanguage.split("-")[0];
-      const targetLanguage = supportedLanguages.includes(langCode)
-        ? langCode
-        : "en";
-
-      // Set locale in cookie instead of redirecting
-      document.cookie = `i18n:locale=${targetLanguage}; path=/; max-age=31536000`;
-
-      console.log(
-        `🌍 Detected system language: ${systemLanguage}, set locale to: ${targetLanguage}`,
-      );
-    }
-  };
-
   useEffect(() => {
     console.log("🔍 Onboarding check:", {
       sessionLoading,
