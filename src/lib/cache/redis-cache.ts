@@ -1,11 +1,12 @@
-import Redis, { type RedisOptions } from "ioredis";
+import { Redis } from "@upstash/redis";
 import { Cache } from "./cache.interface";
 import logger from "logger";
 
 export interface RedisCacheOptions {
   redis?: Redis;
   redisUrl?: string;
-  redisOptions?: RedisOptions;
+  restUrl?: string;
+  restToken?: string;
   defaultTtlMs?: number;
   keyPrefix?: string;
 }
@@ -16,13 +17,25 @@ export class RedisCache implements Cache {
   private keyPrefix: string;
 
   constructor(options: RedisCacheOptions = {}) {
-    logger.info("RedisCache constructor");
+    logger.info("RedisCache constructor - Using Upstash Redis");
+
     if (options.redis) {
       this.redis = options.redis;
+    } else if (options.restUrl && options.restToken) {
+      // Use Upstash REST API
+      this.redis = new Redis({
+        url: options.restUrl,
+        token: options.restToken,
+      });
     } else if (options.redisUrl) {
-      this.redis = new Redis(options.redisUrl, options.redisOptions || {});
+      // Legacy fallback - won't work with Upstash
+      logger.warn(
+        "RedisCache: Using legacy redisUrl, this may not work with Upstash",
+      );
+      this.redis = Redis.fromEnv();
     } else {
-      this.redis = new Redis(options.redisOptions || {});
+      // Use environment variables
+      this.redis = Redis.fromEnv();
     }
 
     this.defaultTtlMs = options.defaultTtlMs ?? Infinity;
@@ -37,10 +50,14 @@ export class RedisCache implements Cache {
     const value = await this.redis.get(this.getKey(key));
     if (!value) return undefined;
 
+    // Handle Upstash Redis response types
+    const stringValue =
+      typeof value === "string" ? value : JSON.stringify(value);
+
     try {
-      return JSON.parse(value) as T;
+      return JSON.parse(stringValue) as T;
     } catch {
-      return value as T;
+      return stringValue as T;
     }
   }
 
@@ -49,7 +66,9 @@ export class RedisCache implements Cache {
     const serialized = JSON.stringify(value);
 
     if (isFinite(ttl)) {
-      await this.redis.psetex(this.getKey(key), ttl, serialized);
+      // Convert milliseconds to seconds for Upstash
+      const ttlSeconds = Math.ceil(ttl / 1000);
+      await this.redis.setex(this.getKey(key), ttlSeconds, serialized);
     } else {
       await this.redis.set(this.getKey(key), serialized);
     }
@@ -86,12 +105,12 @@ export class RedisCache implements Cache {
 
     keys.forEach((key, index) => {
       const value = values[index];
-      if (value !== null) {
+      if (value !== null && value !== undefined) {
         const cleanKey = this.keyPrefix
           ? key.slice(this.keyPrefix.length)
           : key;
         try {
-          result.set(cleanKey, JSON.parse(value));
+          result.set(cleanKey, JSON.parse(value as string));
         } catch {
           result.set(cleanKey, value);
         }
@@ -102,6 +121,9 @@ export class RedisCache implements Cache {
   }
 
   async disconnect(): Promise<void> {
-    this.redis.disconnect();
+    // Upstash Redis doesn't need explicit disconnection (REST API)
+    logger.info(
+      "RedisCache: Upstash Redis disconnection requested (no-op for REST API)",
+    );
   }
 }

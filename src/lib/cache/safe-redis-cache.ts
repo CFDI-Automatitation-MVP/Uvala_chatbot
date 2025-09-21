@@ -8,6 +8,8 @@ export interface SafeRedisCacheOptions extends RedisCacheOptions {
   serverCache?: Cache;
   maxRetries?: number;
   retryDelay?: number;
+  restUrl?: string;
+  restToken?: string;
 }
 
 export class SafeRedisCache implements Cache {
@@ -25,6 +27,8 @@ export class SafeRedisCache implements Cache {
       serverCache,
       maxRetries = 3,
       retryDelay = 60000,
+      restUrl,
+      restToken,
       ...redisOptions
     } = options;
 
@@ -34,8 +38,12 @@ export class SafeRedisCache implements Cache {
 
     if (fallbackToMemory) {
       try {
-        this.redisCache = new RedisCache(redisOptions);
-        logger.info("SafeRedisCache: Redis initialized successfully");
+        this.redisCache = new RedisCache({
+          ...redisOptions,
+          restUrl,
+          restToken,
+        });
+        logger.info("SafeRedisCache: Upstash Redis initialized successfully");
       } catch (error) {
         logger.error(
           "SafeRedisCache: Failed to initialize Redis, using memory cache",
@@ -44,7 +52,11 @@ export class SafeRedisCache implements Cache {
         this.isRedisFailed = true;
       }
     } else {
-      this.redisCache = new RedisCache(redisOptions);
+      this.redisCache = new RedisCache({
+        ...redisOptions,
+        restUrl,
+        restToken,
+      });
     }
   }
 

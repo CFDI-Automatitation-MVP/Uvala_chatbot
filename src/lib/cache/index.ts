@@ -11,35 +11,27 @@ declare global {
 }
 
 const createCache = () => {
-  const redisUrl = process.env.REDIS_URL;
-
   if (IS_DEV) {
     logger.info("Using MemoryCache for development");
     return new MemoryCache();
   }
 
-  if (redisUrl) {
-    logger.info("Using SafeRedisCache with automatic fallback");
+  // Use Upstash Redis REST API (KV) for production
+  const upstashUrl = process.env.KV_REST_API_URL;
+  const upstashToken = process.env.KV_REST_API_TOKEN;
+
+  if (upstashUrl && upstashToken) {
+    logger.info("Using SafeRedisCache with Upstash KV");
     return new SafeRedisCache({
-      redisUrl,
+      restUrl: upstashUrl,
+      restToken: upstashToken,
       fallbackToMemory: true,
-      redisOptions: {
-        retryStrategy: (times: number) => {
-          if (times > 3) {
-            logger.error("Redis connection failed after 3 retries");
-            return null;
-          }
-          return Math.min(times * 1000, 3000);
-        },
-        maxRetriesPerRequest: 2,
-        enableOfflineQueue: false,
-        connectTimeout: 5000,
-        commandTimeout: 5000,
-      },
+      maxRetries: 3,
+      retryDelay: 60000,
     });
   }
 
-  // logger.warn("No Redis URL found, using MemoryCache");
+  logger.warn("No Upstash KV credentials found, using MemoryCache");
   return new MemoryCache();
 };
 
