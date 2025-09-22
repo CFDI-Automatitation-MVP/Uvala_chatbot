@@ -15,6 +15,7 @@ import {
   Calendar,
   AlertCircle,
   Clock,
+  XCircle,
 } from "lucide-react";
 import { cn } from "lib/utils";
 import { Label } from "ui/label";
@@ -50,6 +51,7 @@ export function ProfilePageClient({ session }: Props) {
   const t = useTranslations();
   const router = useRouter();
   const [activeSection, setActiveSection] = useState<string>("profile");
+  const [cancelingSubscription, setCancelingSubscription] = useState(false);
   const {
     hasSubscription,
     planType,
@@ -67,6 +69,45 @@ export function ProfilePageClient({ session }: Props) {
     } catch (error) {
       console.error("Error signing out:", error);
       window.location.href = "/sign-in";
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    if (
+      !confirm(
+        "Are you sure you want to cancel your subscription? It will remain active until the end of your current billing period.",
+      )
+    ) {
+      return;
+    }
+
+    setCancelingSubscription(true);
+    try {
+      const response = await fetch("/api/stripe/cancel-subscription", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(
+          "Your subscription has been scheduled for cancellation at the end of the current billing period.",
+        );
+        // Refresh the page to update subscription status
+        window.location.reload();
+      } else {
+        alert(`Error: ${data.error || "Failed to cancel subscription"}`);
+      }
+    } catch (error) {
+      console.error("Error canceling subscription:", error);
+      alert(
+        "An error occurred while canceling your subscription. Please try again.",
+      );
+    } finally {
+      setCancelingSubscription(false);
     }
   };
 
@@ -376,17 +417,32 @@ export function ProfilePageClient({ session }: Props) {
                       )}
 
                       {/* Manage Subscription */}
-                      <div className="pt-2">
+                      <div className="pt-2 space-y-3">
                         <Button
                           onClick={() => router.push("/pricing")}
                           variant="outline"
-                          className="flex items-center gap-2"
+                          className="flex items-center gap-2 w-full"
                         >
                           <CreditCard className="size-4" />
-                          {hasSubscription
-                            ? "Manage Subscription"
-                            : "Upgrade Plan"}
+                          Upgrade Plan
                         </Button>
+
+                        {/* Cancel Subscription - Only show for active subscriptions */}
+                        {hasSubscription &&
+                          subscription?.status === "active" &&
+                          !subscription?.cancelAtPeriodEnd && (
+                            <Button
+                              onClick={handleCancelSubscription}
+                              disabled={cancelingSubscription}
+                              variant="destructive"
+                              className="flex items-center gap-2 w-full bg-red-600 hover:bg-red-700"
+                            >
+                              <XCircle className="size-4" />
+                              {cancelingSubscription
+                                ? "Canceling..."
+                                : "Cancel Subscription"}
+                            </Button>
+                          )}
                       </div>
                     </div>
                   )}

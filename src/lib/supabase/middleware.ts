@@ -29,18 +29,30 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  // refreshing the auth token
+  // IMPORTANT: DO NOT REMOVE auth.getUser()
+  // This refreshes the session and manages tokens
   const {
     data: { user },
     error,
   } = await supabase.auth.getUser();
 
-  // Add user info to response headers for middleware to check
-  // SECURITY: Encode user data as Base64 to handle non-ASCII characters
-  if (user && !error) {
-    const userJson = JSON.stringify(user);
-    const userBase64 = Buffer.from(userJson, "utf8").toString("base64");
-    supabaseResponse.headers.set("x-supabase-user", userBase64);
+  // Handle invalid refresh tokens gracefully
+  if (error && error.message?.includes("refresh_token_not_found")) {
+    await supabase.auth.signOut();
+  }
+
+  // Auth redirect logic for protected routes
+  const { pathname } = request.nextUrl;
+  const isProtectedRoute =
+    !pathname.startsWith("/sign-in") &&
+    !pathname.startsWith("/sign-up") &&
+    !pathname.startsWith("/auth/");
+
+  if (isProtectedRoute && (!user || error)) {
+    console.log(
+      `[MIDDLEWARE] Redirecting ${pathname} to sign-in - no valid user`,
+    );
+    return NextResponse.redirect(new URL("/sign-in", request.url));
   }
 
   return supabaseResponse;

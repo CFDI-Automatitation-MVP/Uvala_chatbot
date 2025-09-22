@@ -38,7 +38,7 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
   free: {
     // 3-day trial with Plus tier limits
     maxTokensPerMonth: 1500000, // Same as Plus
-    maxTokensPerDay: 50000, // Same as Plus
+    maxTokensPerDay: 150000, // Increased from 50,000
     maxApiCallsPerMonth: 1000, // Same as Plus
     maxToolCallsPerMonth: 1000, // Same as Plus
     maxImageGenerationsPerMonth: 35, // Same as Plus
@@ -53,8 +53,8 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     hasPrioritySupport: false, // No priority support during trial
   },
   plus: {
-    maxTokensPerMonth: 1500000, // 50,000 tokens/day * 30 days
-    maxTokensPerDay: 50000, // From updated tier image
+    maxTokensPerMonth: 4500000, // 150,000 tokens/day * 30 days
+    maxTokensPerDay: 150000, // Increased from 50,000
     maxApiCallsPerMonth: 1000, // Estimated based on token usage
     maxToolCallsPerMonth: 1000,
     // Tool-specific limits from updated tier image
@@ -72,8 +72,8 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     hasPrioritySupport: false,
   },
   pro: {
-    maxTokensPerMonth: 1950000, // 65,000 tokens/day * 30 days
-    maxTokensPerDay: 65000, // From updated tier image
+    maxTokensPerMonth: 5100000, // 170,000 tokens/day * 30 days
+    maxTokensPerDay: 170000, // Increased from 65,000
     maxApiCallsPerMonth: 1300, // Estimated based on token usage
     maxToolCallsPerMonth: 2000,
     // Tool-specific limits from updated tier image
@@ -91,8 +91,8 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     hasPrioritySupport: true,
   },
   max: {
-    maxTokensPerMonth: 3000000, // 100,000 tokens/day * 30 days
-    maxTokensPerDay: 100000, // From updated tier image
+    maxTokensPerMonth: 6600000, // 220,000 tokens/day * 30 days
+    maxTokensPerDay: 220000, // Increased from 100,000
     maxApiCallsPerMonth: 10000,
     maxToolCallsPerMonth: 5000,
     // Tool-specific limits from updated tier image

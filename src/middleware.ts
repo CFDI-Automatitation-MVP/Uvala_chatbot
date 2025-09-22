@@ -1,8 +1,45 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
+import { rateLimitMiddleware } from "@/lib/security/rate-limit";
+import { csrfMiddleware } from "@/lib/security/csrf";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Apply rate limiting first (before any other processing)
+  const rateLimitResult = await rateLimitMiddleware(request);
+  if (rateLimitResult instanceof Response) {
+    // Rate limit exceeded, return the rate limit response immediately
+    return rateLimitResult;
+  }
+
+  // Apply CSRF protection for critical API endpoints
+  const csrfResult = await csrfMiddleware(request);
+  if (csrfResult instanceof Response) {
+    // CSRF validation failed, return the CSRF error response
+    return csrfResult;
+  }
+
+  // Handle CORS for API routes
+  if (pathname.startsWith("/api/")) {
+    // Handle preflight requests
+    if (request.method === "OPTIONS") {
+      return new Response(null, {
+        status: 200,
+        headers: {
+          "Access-Control-Allow-Origin":
+            process.env.NODE_ENV === "development"
+              ? "http://localhost:3000"
+              : "https://" + (process.env.VERCEL_URL || "yourdomain.com"),
+          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "Access-Control-Allow-Headers":
+            "Content-Type, Authorization, X-Requested-With",
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Max-Age": "86400",
+        },
+      });
+    }
+  }
 
   /*
    * Playwright starts the dev server and requires a 200 status to
@@ -12,61 +49,51 @@ export async function middleware(request: NextRequest) {
     return new Response("pong", { status: 200 });
   }
 
-  try {
-    // SECURE: Use Supabase's official Edge Runtime validation
-    const response = await updateSession(request);
-    const userBase64 = response.headers.get("x-supabase-user");
+  // Allow public routes, API routes, and specific auth assets only
+  if (
+    pathname.startsWith("/sign-in") ||
+    pathname.startsWith("/sign-up") ||
+    pathname.startsWith("/auth/") ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/api/") ||
+    pathname.includes("favicon") ||
+    pathname.endsWith(".svg") ||
+    pathname.endsWith(".png") ||
+    pathname.endsWith(".jpg") ||
+    pathname.endsWith(".jpeg") ||
+    pathname.endsWith(".gif") ||
+    pathname.endsWith(".webp")
+  ) {
+    console.log(`[MIDDLEWARE] Allowing public path: ${pathname}`);
+    const response = NextResponse.next();
 
-    if (!userBase64) {
-      // SECURE: No user found after proper validation
-      return NextResponse.redirect(new URL("/sign-in", request.url));
+    // Add CORS and rate limit headers to API responses
+    if (pathname.startsWith("/api/")) {
+      response.headers.set(
+        "Access-Control-Allow-Origin",
+        process.env.NODE_ENV === "development"
+          ? "http://localhost:3000"
+          : "https://" + (process.env.VERCEL_URL || "yourdomain.com"),
+      );
+      response.headers.set("Access-Control-Allow-Credentials", "true");
+
+      // Add rate limit headers if available
+      if (rateLimitResult && typeof rateLimitResult === "object") {
+        Object.entries(rateLimitResult).forEach(([key, value]) => {
+          response.headers.set(key, value);
+        });
+      }
     }
 
-    // SECURITY: Decode Base64 user data (handles non-ASCII characters)
-    try {
-      const userJson = Buffer.from(userBase64, "base64").toString("utf8");
-      JSON.parse(userJson); // Validate JSON format
-      // User validation successful
-    } catch (decodeError) {
-      console.error("[MIDDLEWARE] Failed to decode user data:", decodeError);
-      return NextResponse.redirect(new URL("/sign-in", request.url));
-    }
-
-    // SECURE: Add Content Security Policy and other security headers
-    response.headers.set(
-      "Content-Security-Policy",
-      "default-src 'self'; " +
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live; " +
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-        "font-src 'self' https://fonts.gstatic.com; " +
-        "img-src 'self' data: https: blob:; " +
-        "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://vercel.live; " +
-        "frame-src 'none'; " +
-        "object-src 'none'; " +
-        "base-uri 'self'; " +
-        "form-action 'self';",
-    );
-
-    // Additional security headers
-    response.headers.set("X-Frame-Options", "DENY");
-    response.headers.set("X-Content-Type-Options", "nosniff");
-    response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-    response.headers.set(
-      "Permissions-Policy",
-      "camera=(), microphone=(), geolocation=()",
-    );
-
-    // SECURE: Return response with refreshed tokens and security headers
     return response;
-  } catch (error) {
-    // SECURE: Handle authentication errors gracefully
-    console.error("[MIDDLEWARE] Auth validation failed:", error);
-    return NextResponse.redirect(new URL("/sign-in", request.url));
   }
+
+  // Use updateSession to handle session refresh and token management
+  return await updateSession(request);
 }
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|auth/|sign-in|sign-up).*)",
+    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|.*\\.svg$|.*\\.png$|.*\\.jpg$|.*\\.jpeg$|.*\\.gif$|.*\\.webp$|api/|sign-in|sign-up|auth/).*)",
   ],
 };
