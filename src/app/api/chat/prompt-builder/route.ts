@@ -106,6 +106,18 @@ export async function POST(request: Request) {
       estimatedTotalTokens,
     );
 
+    // Add debugging information
+    logger.info(
+      `🔍 PROMPT BUILDER - Limit check for user ${session.user.id}:`,
+      {
+        estimatedTokens: estimatedTotalTokens,
+        canProceed: limitCheck.canProceed,
+        limitExceeded: limitCheck.limitExceeded,
+        currentUsage: limitCheck.usage?.current,
+        remainingUsage: limitCheck.usage?.remaining,
+      },
+    );
+
     if (!limitCheck.canProceed) {
       const errorMessage = formatLimitError(limitCheck);
       logger.warn(

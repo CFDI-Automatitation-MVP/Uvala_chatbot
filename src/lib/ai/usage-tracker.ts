@@ -169,8 +169,25 @@ export async function trackPromptBuilderUsage({
     const month = now.getMonth() + 1;
 
     // Update daily usage with prompt builder specific tracking
-    await usageRepository.updateDailyUsage(userId, now, cost, undefined, {
+    // Pass zero cost to avoid adding prompt builder tokens to main totals
+    const zeroCost = {
+      totalTokens: 0,
+      inputTokens: 0,
+      outputTokens: 0,
+      cachedInputTokens: 0,
+      reasoningTokens: 0,
+      inputCostUsd: 0,
+      outputCostUsd: 0,
+      cachedInputCostUsd: 0,
+      reasoningCostUsd: 0,
+      totalCostUsd: 0,
+      toolCallsCount: 0,
+      toolCallsCostUsd: 0,
+    };
+
+    await usageRepository.updateDailyUsage(userId, now, zeroCost, undefined, {
       promptBuilderTokens: cost.totalTokens,
+      promptBuilderCost: cost.totalCostUsd,
     });
 
     // Update monthly usage with prompt builder specific tracking
@@ -178,10 +195,11 @@ export async function trackPromptBuilderUsage({
       userId,
       year,
       month,
-      cost,
+      zeroCost,
       undefined,
       {
         promptBuilderTokens: cost.totalTokens,
+        promptBuilderCost: cost.totalCostUsd,
       },
     );
 

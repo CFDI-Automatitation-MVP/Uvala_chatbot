@@ -364,6 +364,16 @@ export async function checkPromptBuilderLimits(
     const dailyUsage = await pgUsageRepository.getUserDailyUsage(userId, today);
     const currentPromptBuilderTokens = dailyUsage?.promptBuilderTokensUsed || 0;
 
+    // Add debugging
+    console.log(`🔍 PROMPT BUILDER LIMITS DEBUG for user ${userId}:`, {
+      planType,
+      maxPromptBuilderTokensPerDay: planLimits.maxPromptBuilderTokensPerDay,
+      currentPromptBuilderTokens,
+      plannedTokens,
+      totalAfterPlanned: currentPromptBuilderTokens + plannedTokens,
+      dailyUsageRecord: dailyUsage,
+    });
+
     // Check if adding planned tokens would exceed daily limit
     const wouldExceedLimit =
       currentPromptBuilderTokens + plannedTokens >
