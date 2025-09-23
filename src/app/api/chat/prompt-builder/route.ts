@@ -9,6 +9,11 @@ import {
 import { customModelProvider } from "lib/ai/models";
 import globalLogger from "logger";
 import { colorize } from "consola/utils";
+import {
+  checkPromptBuilderLimits,
+  formatLimitError,
+} from "@/lib/subscription-limits";
+import { trackPromptBuilderUsage } from "@/lib/ai/usage-tracker";
 
 const logger = globalLogger.withDefaults({
   message: colorize("blueBright", `Prompt Builder API: `),
@@ -75,16 +80,69 @@ export async function POST(request: Request) {
       };
     };
 
-    logger.info(`🎯 PROMPT BUILDER - Using model: ${chatModel?.provider}/${chatModel?.model}`);
+    logger.info(
+      `🎯 PROMPT BUILDER - Using model: ${chatModel?.provider}/${chatModel?.model}`,
+    );
     const model = customModelProvider.getModel(chatModel);
-    logger.info(`🔧 PROMPT BUILDER - Resolved to actual model: gpt-5-nano (uvala-fuji-micro)`);
+    logger.info(
+      `🔧 PROMPT BUILDER - Resolved to actual model: gpt-5-nano (uvala-fuji-micro)`,
+    );
 
-    return streamText({
+    // Estimate token usage for limit checking (rough estimate)
+    const estimatedInputTokens =
+      messages.reduce((acc, msg) => {
+        // Extract text from message parts (similar to main chat route)
+        const textParts =
+          msg.parts?.filter((part) => part.type === "text") || [];
+        return acc + Math.ceil(JSON.stringify(textParts).length / 4);
+      }, 0) + Math.ceil(PROMPT_BUILDER_SYSTEM.length / 4);
+
+    const estimatedOutputTokens = 500; // Conservative estimate for prompt builder response
+    const estimatedTotalTokens = estimatedInputTokens + estimatedOutputTokens;
+
+    // Check limits before proceeding
+    const limitCheck = await checkPromptBuilderLimits(
+      session.user.id,
+      estimatedTotalTokens,
+    );
+
+    if (!limitCheck.canProceed) {
+      const errorMessage = formatLimitError(limitCheck);
+      logger.warn(
+        `🚫 PROMPT BUILDER - Limit exceeded for user ${session.user.id}: ${errorMessage}`,
+      );
+      return new Response(JSON.stringify({ error: errorMessage }), {
+        status: 429,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Create the streaming response with usage tracking
+    const result = streamText({
       model,
       system: PROMPT_BUILDER_SYSTEM,
       messages: convertToModelMessages(messages),
       experimental_transform: smoothStream({ chunking: "word" }),
-    }).toUIMessageStreamResponse();
+      onFinish: async (completion) => {
+        // Track actual usage after completion
+        if (completion.usage) {
+          await trackPromptBuilderUsage({
+            usage: completion.usage,
+            userId: session.user.id,
+            chatModel: chatModel || {
+              provider: "Internal",
+              model: "uvala-fuji-micro",
+            },
+          });
+
+          logger.info(
+            `✅ PROMPT BUILDER - Usage tracked for user ${session.user.id}: ${completion.usage.totalTokens} tokens`,
+          );
+        }
+      },
+    });
+
+    return result.toUIMessageStreamResponse();
   } catch (error: any) {
     logger.error(error);
     return new Response(error.message || "Oops, an error occured!", {

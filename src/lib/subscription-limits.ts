@@ -37,6 +37,7 @@ export interface PendingUsage {
   imageGenerations?: number;
   videoGenerations?: number;
   webSearches?: number;
+  promptBuilderTokens?: number;
 }
 
 /**
@@ -323,4 +324,108 @@ export function formatLimitError(limitResult: LimitCheckResult): string {
   }
 
   return message;
+}
+
+/**
+ * Check prompt builder usage limits specifically
+ */
+export async function checkPromptBuilderLimits(
+  userId: string,
+  plannedTokens: number,
+): Promise<LimitCheckResult> {
+  try {
+    // Get user's subscription
+    const subscription =
+      await subscriptionRepository.getUserActiveSubscription(userId);
+
+    // Get plan type (defaults to 'free' if no active subscription - free trial)
+    const planType = subscription?.planType || "free";
+
+    // Check if user's trial has expired (applies to users without active subscription)
+    if (!subscription) {
+      const user = await userRepository.findById(userId);
+      if (user && isTrialExpired((user as any).createdAt)) {
+        return {
+          canProceed: false,
+          limitExceeded:
+            "Your 3-day trial has expired. Please upgrade to continue using the service.",
+        };
+      }
+    }
+
+    // Get plan-specific limits
+    const planLimits = await getSubscriptionLimitsFromDb(planType);
+    if (!planLimits) {
+      return { canProceed: true }; // Allow operation if we can't check limits
+    }
+
+    // Get current daily prompt builder usage
+    const today = new Date();
+    const dailyUsage = await pgUsageRepository.getUserDailyUsage(userId, today);
+    const currentPromptBuilderTokens = dailyUsage?.promptBuilderTokensUsed || 0;
+
+    // Check if adding planned tokens would exceed daily limit
+    const wouldExceedLimit =
+      currentPromptBuilderTokens + plannedTokens >
+      planLimits.maxPromptBuilderTokensPerDay;
+
+    if (wouldExceedLimit) {
+      return {
+        canProceed: false,
+        limitExceeded: `Daily prompt builder token limit exceeded (${planLimits.maxPromptBuilderTokensPerDay}/day for ${planType.toUpperCase()} plan)`,
+        usage: {
+          current: {
+            dailyCost: 0,
+            monthlyCost: 0,
+            dailyTokens: currentPromptBuilderTokens,
+            imageGenerations: 0,
+            videoGenerations: 0,
+            webSearches: 0,
+          },
+          remaining: {
+            dailyCost: 0,
+            monthlyCost: 0,
+            dailyTokens: Math.max(
+              0,
+              planLimits.maxPromptBuilderTokensPerDay -
+                currentPromptBuilderTokens,
+            ),
+            imageGenerations: 0,
+            videoGenerations: 0,
+            webSearches: 0,
+          },
+        },
+      };
+    }
+
+    return {
+      canProceed: true,
+      usage: {
+        current: {
+          dailyCost: 0,
+          monthlyCost: 0,
+          dailyTokens: currentPromptBuilderTokens,
+          imageGenerations: 0,
+          videoGenerations: 0,
+          webSearches: 0,
+        },
+        remaining: {
+          dailyCost: 0,
+          monthlyCost: 0,
+          dailyTokens: Math.max(
+            0,
+            planLimits.maxPromptBuilderTokensPerDay -
+              currentPromptBuilderTokens,
+          ),
+          imageGenerations: 0,
+          videoGenerations: 0,
+          webSearches: 0,
+        },
+      },
+    };
+  } catch (error) {
+    console.error("Error checking prompt builder limits:", error);
+    // On error, allow the operation to prevent blocking users
+    return { canProceed: true };
+  }
 }

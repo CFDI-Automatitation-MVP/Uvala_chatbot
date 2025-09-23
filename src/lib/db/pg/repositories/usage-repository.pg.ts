@@ -21,6 +21,7 @@ export interface UsageRepository {
       messageId?: string;
       modelProvider: string;
       modelName: string;
+      isPromptBuilder?: boolean;
     } & TokenCost,
   ): Promise<ApiUsageEntity>;
 
@@ -36,6 +37,9 @@ export interface UsageRepository {
       imageGenerations?: number;
       videoGenerations?: number;
       webSearches?: number;
+    },
+    promptBuilderUsage?: {
+      promptBuilderTokens?: number;
     },
   ): Promise<UserDailyUsageEntity>;
   getUserDailyUsage(
@@ -58,6 +62,9 @@ export interface UsageRepository {
       imageGenerations?: number;
       videoGenerations?: number;
       webSearches?: number;
+    },
+    promptBuilderUsage?: {
+      promptBuilderTokens?: number;
     },
   ): Promise<UserMonthlyUsageEntity>;
   getUserMonthlyUsage(
@@ -160,6 +167,7 @@ export const pgUsageRepository: UsageRepository = {
         totalCostUsd: usage.totalCostUsd.toString(),
         toolCallsCount: usage.toolCallsCount,
         toolCallsCostUsd: usage.toolCallsCostUsd.toString(),
+        isPromptBuilder: usage.isPromptBuilder || false,
       })
       .returning();
 
@@ -195,6 +203,9 @@ export const pgUsageRepository: UsageRepository = {
       videoGenerations?: number;
       webSearches?: number;
     },
+    promptBuilderUsage?: {
+      promptBuilderTokens?: number;
+    },
   ): Promise<UserDailyUsageEntity> {
     const usageDate = date.toISOString().split("T")[0]; // YYYY-MM-DD format
 
@@ -215,6 +226,10 @@ export const pgUsageRepository: UsageRepository = {
         imageGenerationsCount: toolUsage?.imageGenerations || 0,
         videoGenerationsCount: toolUsage?.videoGenerations || 0,
         webSearchesCount: toolUsage?.webSearches || 0,
+        promptBuilderTokensUsed: promptBuilderUsage?.promptBuilderTokens || 0,
+        promptBuilderCostUsd: promptBuilderUsage?.promptBuilderTokens
+          ? usage.totalCostUsd.toString()
+          : "0",
         updatedAt: new Date(),
       })
       .onConflictDoUpdate({
@@ -232,6 +247,8 @@ export const pgUsageRepository: UsageRepository = {
           imageGenerationsCount: sql`${UserDailyUsageSchema.imageGenerationsCount} + ${toolUsage?.imageGenerations || 0}`,
           videoGenerationsCount: sql`${UserDailyUsageSchema.videoGenerationsCount} + ${toolUsage?.videoGenerations || 0}`,
           webSearchesCount: sql`${UserDailyUsageSchema.webSearchesCount} + ${toolUsage?.webSearches || 0}`,
+          promptBuilderTokensUsed: sql`${UserDailyUsageSchema.promptBuilderTokensUsed} + ${promptBuilderUsage?.promptBuilderTokens || 0}`,
+          promptBuilderCostUsd: sql`${UserDailyUsageSchema.promptBuilderCostUsd} + ${promptBuilderUsage?.promptBuilderTokens ? usage.totalCostUsd : 0}`,
           updatedAt: new Date(),
         },
       })
@@ -290,6 +307,9 @@ export const pgUsageRepository: UsageRepository = {
       videoGenerations?: number;
       webSearches?: number;
     },
+    promptBuilderUsage?: {
+      promptBuilderTokens?: number;
+    },
   ): Promise<UserMonthlyUsageEntity> {
     const [result] = await db
       .insert(UserMonthlyUsageSchema)
@@ -309,6 +329,10 @@ export const pgUsageRepository: UsageRepository = {
         imageGenerationsCount: toolUsage?.imageGenerations || 0,
         videoGenerationsCount: toolUsage?.videoGenerations || 0,
         webSearchesCount: toolUsage?.webSearches || 0,
+        promptBuilderTokensUsed: promptBuilderUsage?.promptBuilderTokens || 0,
+        promptBuilderCostUsd: promptBuilderUsage?.promptBuilderTokens
+          ? usage.totalCostUsd.toString()
+          : "0",
         updatedAt: new Date(),
       })
       .onConflictDoUpdate({
@@ -330,6 +354,8 @@ export const pgUsageRepository: UsageRepository = {
           imageGenerationsCount: sql`${UserMonthlyUsageSchema.imageGenerationsCount} + ${toolUsage?.imageGenerations || 0}`,
           videoGenerationsCount: sql`${UserMonthlyUsageSchema.videoGenerationsCount} + ${toolUsage?.videoGenerations || 0}`,
           webSearchesCount: sql`${UserMonthlyUsageSchema.webSearchesCount} + ${toolUsage?.webSearches || 0}`,
+          promptBuilderTokensUsed: sql`${UserMonthlyUsageSchema.promptBuilderTokensUsed} + ${promptBuilderUsage?.promptBuilderTokens || 0}`,
+          promptBuilderCostUsd: sql`${UserMonthlyUsageSchema.promptBuilderCostUsd} + ${promptBuilderUsage?.promptBuilderTokens ? usage.totalCostUsd : 0}`,
           updatedAt: new Date(),
         },
       })

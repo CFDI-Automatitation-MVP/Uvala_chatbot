@@ -25,6 +25,8 @@ export interface PlanLimits {
   maxImageGenerationsPerMonth: number;
   maxVideoGenerationsPerMonth: number;
   maxWebSearchesPerMonth: number;
+  // Prompt builder limits
+  maxPromptBuilderTokensPerDay: number;
   // Video quality restrictions
   allowedVideoQualities: ("480p" | "720p" | "1080p")[];
   // Feature flags
@@ -44,6 +46,7 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     maxImageGenerationsPerMonth: 35, // Same as Plus
     maxVideoGenerationsPerMonth: 6, // Same as Plus
     maxWebSearchesPerMonth: 180, // Same as Plus
+    maxPromptBuilderTokensPerDay: 40000, // Prompt builder daily limit
     maxDailyCostUSD: 0.05, // Same as Plus
     maxMonthlyCostUSD: 1.5, // Same as Plus
     allowedVideoQualities: ["480p"], // Same as Plus
@@ -61,6 +64,7 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     maxImageGenerationsPerMonth: 35, // Imagen 4 Fast images
     maxVideoGenerationsPerMonth: 6, // Wan (video) clips
     maxWebSearchesPerMonth: 180, // Exa web searches
+    maxPromptBuilderTokensPerDay: 60000, // Prompt builder daily limit
     // Cost limits
     maxDailyCostUSD: 0.05,
     maxMonthlyCostUSD: 1.5,
@@ -80,6 +84,7 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     maxImageGenerationsPerMonth: 50, // Imagen 4 Fast images
     maxVideoGenerationsPerMonth: 8, // Wan (video) clips
     maxWebSearchesPerMonth: 220, // Exa web searches
+    maxPromptBuilderTokensPerDay: 40000, // Prompt builder daily limit
     // Cost limits
     maxDailyCostUSD: 0.1,
     maxMonthlyCostUSD: 3.0,
@@ -99,6 +104,7 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     maxImageGenerationsPerMonth: 70, // Imagen 4 Fast images
     maxVideoGenerationsPerMonth: 15, // Wan (video) clips
     maxWebSearchesPerMonth: 300, // Exa web searches
+    maxPromptBuilderTokensPerDay: 100000, // Prompt builder daily limit
     // Cost limits
     maxDailyCostUSD: 0.2,
     maxMonthlyCostUSD: 6.0,
