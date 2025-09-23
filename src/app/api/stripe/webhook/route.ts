@@ -3,6 +3,7 @@ import { getStripe } from "@/lib/stripe";
 import Stripe from "stripe";
 import { pgDb as db } from "@/lib/db/pg/db.pg";
 import { SubscriptionRepository } from "@/lib/db/pg/repositories/subscription-repository.pg";
+import { pgUserRepository } from "@/lib/db/pg/repositories/user-repository.pg";
 import { getPlanTypeFromPriceId } from "@/lib/subscription";
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -151,9 +152,48 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
   }
 
   console.log("🆔 User ID found:", userId);
-  console.log("💾 Attempting database insertion...");
 
   try {
+    // Check if user exists in our database
+    console.log("👀 Checking if user exists in database...");
+    const existingUser = await pgUserRepository.findById(userId);
+
+    if (!existingUser) {
+      console.log("❌ User not found in database, fetching from Stripe...");
+
+      // Get customer details from Stripe
+      const stripe = getStripe();
+      const stripeCustomer = await stripe.customers.retrieve(
+        customer as string,
+      );
+
+      if (stripeCustomer.deleted) {
+        console.error("❌ Stripe customer was deleted");
+        return;
+      }
+
+      console.log("📝 Stripe customer data:", stripeCustomer);
+
+      // Create user if they don't exist
+      if (stripeCustomer.email) {
+        console.log("👤 Creating user in database...");
+        await pgUserRepository.createUser({
+          id: userId,
+          name: stripeCustomer.name || stripeCustomer.email.split("@")[0],
+          email: stripeCustomer.email,
+          image: null,
+        });
+        console.log("✅ User created successfully!");
+      } else {
+        console.error("❌ No email found for Stripe customer");
+        return;
+      }
+    } else {
+      console.log("✅ User already exists in database");
+    }
+
+    console.log("💾 Attempting subscription database insertion...");
+
     const subscriptionData = {
       userId,
       stripeCustomerId: customer as string,
@@ -207,6 +247,18 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   const planType = priceId ? getPlanTypeFromPriceId(priceId) : undefined;
 
   try {
+    // Check if subscription exists in our database first
+    const existingSubscription =
+      await subscriptionRepo.getUserSubscriptionByStripeId(subscription.id);
+
+    if (!existingSubscription) {
+      console.log(
+        "⚠️ Subscription not found in database, skipping update:",
+        subscription.id,
+      );
+      return;
+    }
+
     await subscriptionRepo.updateSubscription(subscription.id, {
       status,
       currentPeriodStart: (subscription as any).current_period_start
