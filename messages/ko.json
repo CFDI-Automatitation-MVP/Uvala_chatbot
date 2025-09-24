@@ -43,7 +43,10 @@
     "resultsFound": "{count}개의 결과 찾음",
     "youAreAnExpertIn": "당신은 {role} 전문가입니다",
     "sharedBy": "{userName}님이 공유함",
-    "greatForAllYourTasks": "모든 작업에 완벽함"
+    "greatForAllYourTasks": "모든 작업에 완벽함",
+    "fastAndDirect": "빠르고 직접적",
+    "reasoningModel": "추론 모델",
+    "loading": "로딩 중..."
   },
   "Auth": {
     "SignIn": {
@@ -236,7 +239,6 @@
   },
   "Profile": {
     "title": "프로필",
-    "account": "계정",
     "privacy": "개인정보",
     "billing": "결제",
     "googleAccount": "Google 계정",
@@ -255,7 +257,21 @@
       "design": "디자인",
       "legal": "법무",
       "other": "기타"
-    }
+    },
+    "subscriptionManage": "구독 관리",
+    "upgradePlan": "플랜 업그레이드",
+    "changePlan": "플랜 변경",
+    "cancelSubscription": "구독 취소",
+    "canceling": "취소 중...",
+    "termsAndConditions": "Uvala.AI 플랫폼 이용 약관",
+    "dataNotUsedForTraining": "귀하의 데이터는 AI 학습에 사용되지 않습니다",
+    "dataNotUsedForTrainingDescription": "완전히 투명하게 말씀드리자면, 귀하의 대화, 문서 및 개인 정보는 저희 AI 모델이나 제3자 시스템 학습에 사용되지 않습니다. 귀하의 데이터는 비공개로 유지되며, 최고의 서비스 경험을 제공하기 위해서만 처리됩니다.",
+    "dataOperationalUse": "운영 목적으로 데이터를 사용하는 방법",
+    "dataOperationalUseDescription": "귀하의 데이터는 경험 향상을 위해 운영 목적으로만 사용됩니다:",
+    "dataUse1": "개인화된 응답 제공 및 대화 문맥 유지",
+    "dataUse2": "앱 성능 향상 및 사용자 인터페이스 최적화",
+    "dataUse3": "도움을 요청할 때 기술 지원 및 문제 해결",
+    "dataUse4": "무단 액세스로부터 계정을 보호하는 보안 모니터링"
   },
   "Archive": {
     "title": "아카이브",
@@ -542,5 +558,13 @@
         ]
       }
     }
+  },
+  "PaymentSuccess": {
+    "title": "결제 성공!",
+    "thankYouSummit": "{plan} 플랜으로 정상에 도달할 시간을 구매해 주셔서 감사합니다. 계정이 업그레이드되었습니다.",
+    "thankYouGeneral": "정상에 도달할 시간을 구매해 주셔서 감사합니다. 계정이 업그레이드되었습니다.",
+    "confirmationEmail": "곧 확인 이메일을 받으실 것입니다. 이제 모든 프리미엄 기능을 사용할 수 있습니다.",
+    "startUsingFeatures": "프리미엄 기능 사용 시작",
+    "backToPricing": "요금제로 돌아가기"
   }
 }

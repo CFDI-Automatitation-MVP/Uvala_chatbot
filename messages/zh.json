@@ -43,7 +43,10 @@
     "resultsFound": "找到 {count} 个结果",
     "youAreAnExpertIn": "您是{role}专家",
     "sharedBy": "{userName} 分享",
-    "greatForAllYourTasks": "适用于您的所有任务"
+    "greatForAllYourTasks": "适用于您的所有任务",
+    "fastAndDirect": "快速直接",
+    "reasoningModel": "推理模型",
+    "loading": "加载中..."
   },
   "Auth": {
     "SignIn": {
@@ -237,7 +240,6 @@
   },
   "Profile": {
     "title": "个人资料",
-    "account": "账户",
     "privacy": "隐私",
     "billing": "账单",
     "googleAccount": "Google 账户",
@@ -256,7 +258,21 @@
       "design": "设计",
       "legal": "法务",
       "other": "其他"
-    }
+    },
+    "subscriptionManage": "管理订阅",
+    "upgradePlan": "升级计划",
+    "changePlan": "更改计划",
+    "cancelSubscription": "取消订阅",
+    "canceling": "取消中...",
+    "termsAndConditions": "Uvala.AI平台使用条款",
+    "dataNotUsedForTraining": "您的数据不用于AI训练",
+    "dataNotUsedForTrainingDescription": "我们希望完全透明：您的对话、文档和个人信息永远不会用于训练我们的AI模型或任何第三方系统。您的数据保持私密，仅用于为您提供最佳的服务体验。",
+    "dataOperationalUse": "我们如何出于运营目的使用您的数据",
+    "dataOperationalUseDescription": "您的数据仅用于运营目的以增强您的体验：",
+    "dataUse1": "提供个性化回复并维护对话上下文",
+    "dataUse2": "改善应用程序性能和用户界面优化",
+    "dataUse3": "在您请求帮助时提供技术支持和故障排除",
+    "dataUse4": "安全监控以保护您的账户免受未经授权的访问"
   },
   "Archive": {
     "title": "归档",
@@ -543,5 +559,13 @@
         ]
       }
     }
+  },
+  "PaymentSuccess": {
+    "title": "付款成功！",
+    "thankYouSummit": "感谢您购买{plan}计划的登顶时间。您的账户已升级。",
+    "thankYouGeneral": "感谢您购买登顶时间。您的账户已升级。",
+    "confirmationEmail": "您很快就会收到确认邮件。现在您可以使用所有高级功能。",
+    "startUsingFeatures": "开始使用高级功能",
+    "backToPricing": "返回定价"
   }
 }

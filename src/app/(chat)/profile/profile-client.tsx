@@ -42,7 +42,6 @@ import { PDFViewer } from "@/components/pdf-viewer";
 
 const profileSections = [
   { id: "profile", icon: User, key: "title" },
-  { id: "account", icon: Settings, key: "account" },
   { id: "privacy", icon: Shield, key: "privacy" },
   { id: "billing", icon: CreditCard, key: "billing" },
 ] as const;
@@ -260,18 +259,6 @@ export function ProfilePageClient({ session }: Props) {
                 </div>
               )}
 
-              {activeSection === "account" && (
-                <div className="space-y-6">
-                  <h2 className="text-xl font-semibold text-foreground">
-                    {t("Profile.account")}
-                  </h2>
-                  <div className="text-muted-foreground">
-                    Account settings and security options will be displayed
-                    here.
-                  </div>
-                </div>
-              )}
-
               {activeSection === "privacy" && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
@@ -282,28 +269,41 @@ export function ProfilePageClient({ session }: Props) {
                   </div>
 
                   {/* Data Privacy Information */}
-                  <div className="bg-background/60 rounded-lg p-4 border border-border/20">
-                    <div className="flex items-center gap-3 mb-3">
+                  <div className="bg-background/60 rounded-lg p-4 border border-border/20 space-y-4">
+                    <div className="flex items-center gap-3">
                       <Shield className="w-5 h-5 text-blue-600" />
                       <h3 className="font-medium text-foreground">
-                        Data Privacy
+                        Data Privacy & Usage
                       </h3>
                     </div>
-                    <p className="text-muted-foreground text-sm mb-4">
-                      Anthropic believes in transparent data practices. Learn
-                      how your information is protected when using Anthropic
-                      products, and visit our Privacy Center and Privacy Policy
-                      for more details.
-                    </p>
-                    <div className="space-y-2 text-sm">
-                      <button className="text-blue-600 hover:text-blue-700 transition-colors">
-                        How we protect your data →
-                      </button>
-                      <br />
-                      <button className="text-blue-600 hover:text-blue-700 transition-colors">
-                        How we use your data →
-                      </button>
-                    </div>
+
+                    {/* Data Training Dropdown */}
+                    <details className="group">
+                      <summary className="flex items-center gap-2 cursor-pointer text-blue-600 hover:text-blue-700 transition-colors text-sm font-medium">
+                        <ChevronDown className="w-4 h-4 transition-transform group-open:rotate-180" />
+                        {t("Profile.dataNotUsedForTraining")}
+                      </summary>
+                      <div className="mt-3 pl-6 text-sm text-muted-foreground">
+                        <p>{t("Profile.dataNotUsedForTrainingDescription")}</p>
+                      </div>
+                    </details>
+
+                    {/* Operational Use Dropdown */}
+                    <details className="group">
+                      <summary className="flex items-center gap-2 cursor-pointer text-blue-600 hover:text-blue-700 transition-colors text-sm font-medium">
+                        <ChevronDown className="w-4 h-4 transition-transform group-open:rotate-180" />
+                        {t("Profile.dataOperationalUse")}
+                      </summary>
+                      <div className="mt-3 pl-6 text-sm text-muted-foreground space-y-2">
+                        <p>{t("Profile.dataOperationalUseDescription")}</p>
+                        <ul className="list-disc list-inside space-y-1 ml-2">
+                          <li>{t("Profile.dataUse1")}</li>
+                          <li>{t("Profile.dataUse2")}</li>
+                          <li>{t("Profile.dataUse3")}</li>
+                          <li>{t("Profile.dataUse4")}</li>
+                        </ul>
+                      </div>
+                    </details>
                   </div>
 
                   {/* Terms and Conditions PDF */}

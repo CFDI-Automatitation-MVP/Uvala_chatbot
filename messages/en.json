@@ -45,7 +45,8 @@
     "sharedBy": "Shared by {userName}",
     "greatForAllYourTasks": "Great for all your tasks",
     "fastAndDirect": "Fast & Direct",
-    "reasoningModel": "Reasoning Model"
+    "reasoningModel": "Reasoning Model",
+    "loading": "Loading..."
   },
   "Error": {},
   "onboarding": {
@@ -392,7 +393,6 @@
   },
   "Profile": {
     "title": "Profile",
-    "account": "Account",
     "privacy": "Privacy",
     "billing": "Billing",
     "googleAccount": "Google Account",
@@ -411,7 +411,21 @@
       "design": "Design",
       "legal": "Legal",
       "other": "Other"
-    }
+    },
+    "subscriptionManage": "Manage Subscription",
+    "upgradePlan": "Upgrade Plan",
+    "changePlan": "Change Plan",
+    "cancelSubscription": "Cancel Subscription",
+    "canceling": "Canceling...",
+    "termsAndConditions": "Terms and Conditions of Use of Uvala.AI Platform",
+    "dataNotUsedForTraining": "Your data is not used for AI training",
+    "dataNotUsedForTrainingDescription": "We want to be completely transparent: your conversations, documents, and personal information are never used to train our AI models or any third-party systems. Your data remains private and is only processed to provide you with the best possible service experience.",
+    "dataOperationalUse": "How we use your data for operational purposes",
+    "dataOperationalUseDescription": "Your data is used solely for operational purposes to enhance your experience:",
+    "dataUse1": "Providing personalized responses and maintaining conversation context",
+    "dataUse2": "Improving app performance and user interface optimization",
+    "dataUse3": "Technical support and troubleshooting when you request assistance",
+    "dataUse4": "Security monitoring to protect your account from unauthorized access"
   },
   "Archive": {
     "title": "Archive",
@@ -594,5 +608,13 @@
         ]
       }
     }
+  },
+  "PaymentSuccess": {
+    "title": "Payment Successful!",
+    "thankYouSummit": "Thank you for purchasing time to reach the summit with the {plan} plan. Your account has been upgraded.",
+    "thankYouGeneral": "Thank you for purchasing time to reach the summit. Your account has been upgraded.",
+    "confirmationEmail": "You should receive a confirmation email shortly. You can now access all premium features.",
+    "startUsingFeatures": "Start Using Premium Features",
+    "backToPricing": "Back to Pricing"
   }
 }

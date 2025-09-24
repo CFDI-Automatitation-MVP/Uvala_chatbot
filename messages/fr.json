@@ -44,7 +44,8 @@
     "sharedBy": "Partagé par {userName}",
     "greatForAllYourTasks": "Parfait pour toutes vos tâches",
     "fastAndDirect": "Rapide et Direct",
-    "reasoningModel": "Modèle de Raisonnement"
+    "reasoningModel": "Modèle de Raisonnement",
+    "loading": "Chargement..."
   },
   "Auth": {
     "SignIn": {
@@ -242,7 +243,6 @@
   },
   "Profile": {
     "title": "Profil",
-    "account": "Compte",
     "privacy": "Confidentialité",
     "billing": "Facturation",
     "googleAccount": "Compte Google",
@@ -261,7 +261,21 @@
       "design": "Design",
       "legal": "Juridique",
       "other": "Autre"
-    }
+    },
+    "subscriptionManage": "Gérer l'Abonnement",
+    "upgradePlan": "Mettre à Niveau le Plan",
+    "changePlan": "Changer de Plan",
+    "cancelSubscription": "Annuler l'Abonnement",
+    "canceling": "Annulation...",
+    "termsAndConditions": "Conditions d'Utilisation de la Plateforme Uvala.AI",
+    "dataNotUsedForTraining": "Vos données ne sont pas utilisées pour l'entraînement de l'IA",
+    "dataNotUsedForTrainingDescription": "Nous voulons être complètement transparents : vos conversations, documents et informations personnelles ne sont jamais utilisés pour entraîner nos modèles d'IA ou des systèmes tiers. Vos données restent privées et ne sont traitées que pour vous offrir la meilleure expérience de service possible.",
+    "dataOperationalUse": "Comment nous utilisons vos données à des fins opérationnelles",
+    "dataOperationalUseDescription": "Vos données sont utilisées uniquement à des fins opérationnelles pour améliorer votre expérience :",
+    "dataUse1": "Fournir des réponses personnalisées et maintenir le contexte de la conversation",
+    "dataUse2": "Améliorer les performances de l'application et l'optimisation de l'interface utilisateur",
+    "dataUse3": "Support technique et dépannage lorsque vous demandez de l'aide",
+    "dataUse4": "Surveillance de la sécurité pour protéger votre compte des accès non autorisés"
   },
   "Archive": {
     "title": "Archive",
@@ -554,5 +568,13 @@
         ]
       }
     }
+  },
+  "PaymentSuccess": {
+    "title": "Paiement Réussi !",
+    "thankYouSummit": "Merci d'avoir acheté du temps pour atteindre le sommet avec le plan {plan}. Votre compte a été mis à niveau.",
+    "thankYouGeneral": "Merci d'avoir acheté du temps pour atteindre le sommet. Votre compte a été mis à niveau.",
+    "confirmationEmail": "Vous devriez recevoir un email de confirmation sous peu. Vous pouvez maintenant accéder à toutes les fonctionnalités premium.",
+    "startUsingFeatures": "Commencer à Utiliser les Fonctionnalités Premium",
+    "backToPricing": "Retour aux Tarifs"
   }
 }
