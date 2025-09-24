@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -88,6 +89,20 @@ const pricingPlans: PricingPlan[] = [
     features: [],
   },
 ];
+
+// Helper function to get plan-specific icon
+const _getPlanIcon = (planId: string) => {
+  switch (planId) {
+    case "plus":
+      return "/uvala-plus.svg";
+    case "pro":
+      return "/uvala-pro.svg";
+    case "max":
+      return "/uvala-max.svg";
+    default:
+      return null;
+  }
+};
 
 // Function to get icon for feature
 const getFeatureIcon = (feature: string) => {
@@ -240,7 +255,6 @@ export default function PricingPage() {
               >
                 {isActivePlan && (
                   <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500">
-                    <Crown className="w-3 h-3 mr-1" />
                     {t("currentPlan")}
                   </Badge>
                 )}
@@ -255,7 +269,6 @@ export default function PricingPage() {
                   <CardTitle className="mb-4">
                     {isActivePlan && (
                       <div className="flex items-center justify-center text-green-600 mb-2">
-                        <Crown className="w-4 h-4 mr-1" />
                         <span className="text-sm font-medium">
                           {t("active")}
                         </span>
@@ -301,7 +314,6 @@ export default function PricingPage() {
                   {isActivePlan ? (
                     <div className="w-full p-3 text-center bg-green-500/20 border border-green-400 rounded-md backdrop-blur-sm">
                       <div className="flex items-center justify-center gap-2 text-green-300">
-                        <Crown className="w-4 h-4" />
                         <span className="font-medium">{t("currentPlan")}</span>
                       </div>
                       <p className="text-xs text-green-200 mt-1">

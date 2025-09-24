@@ -16,11 +16,21 @@ import {
   AlertCircle,
   Clock,
   XCircle,
+  CheckCircle,
+  ChevronDown,
+  MoreVertical,
 } from "lucide-react";
 import { cn } from "lib/utils";
 import { Label } from "ui/label";
 import { Button } from "ui/button";
 import { Badge } from "ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { supabase } from "@/lib/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
 import {
@@ -28,6 +38,7 @@ import {
   getRemainingTrialDays,
   isTrialExpired,
 } from "@/lib/subscription";
+import { PDFViewer } from "@/components/pdf-viewer";
 
 const profileSections = [
   { id: "profile", icon: User, key: "title" },
@@ -35,6 +46,20 @@ const profileSections = [
   { id: "privacy", icon: Shield, key: "privacy" },
   { id: "billing", icon: CreditCard, key: "billing" },
 ] as const;
+
+// Helper function to get plan-specific icon
+const getPlanIcon = (planType: string | undefined) => {
+  switch (planType) {
+    case "plus":
+      return "/uvala-plus.svg";
+    case "pro":
+      return "/uvala-pro.svg";
+    case "max":
+      return "/uvala-max.svg";
+    default:
+      return null;
+  }
+};
 
 interface Props {
   session?: {
@@ -52,6 +77,8 @@ export function ProfilePageClient({ session }: Props) {
   const router = useRouter();
   const [activeSection, setActiveSection] = useState<string>("profile");
   const [cancelingSubscription, setCancelingSubscription] = useState(false);
+  const [_termsAcknowledged, setTermsAcknowledged] = useState(false);
+  const [canProceed, setCanProceed] = useState(false);
   const {
     hasSubscription,
     planType,
@@ -108,6 +135,17 @@ export function ProfilePageClient({ session }: Props) {
       );
     } finally {
       setCancelingSubscription(false);
+    }
+  };
+
+  const handleTermsAcknowledged = () => {
+    setTermsAcknowledged(true);
+    setCanProceed(true);
+  };
+
+  const handleProceed = () => {
+    if (canProceed) {
+      router.push("/");
     }
   };
 
@@ -236,12 +274,71 @@ export function ProfilePageClient({ session }: Props) {
 
               {activeSection === "privacy" && (
                 <div className="space-y-6">
-                  <h2 className="text-xl font-semibold text-foreground">
-                    {t("Profile.privacy")}
-                  </h2>
-                  <div className="text-muted-foreground">
-                    Privacy settings and data management options will be
-                    displayed here.
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-semibold text-foreground">
+                      {t("Profile.privacy")}
+                    </h2>
+                    <Shield className="w-6 h-6 text-muted-foreground" />
+                  </div>
+
+                  {/* Data Privacy Information */}
+                  <div className="bg-background/60 rounded-lg p-4 border border-border/20">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Shield className="w-5 h-5 text-blue-600" />
+                      <h3 className="font-medium text-foreground">
+                        Data Privacy
+                      </h3>
+                    </div>
+                    <p className="text-muted-foreground text-sm mb-4">
+                      Anthropic believes in transparent data practices. Learn
+                      how your information is protected when using Anthropic
+                      products, and visit our Privacy Center and Privacy Policy
+                      for more details.
+                    </p>
+                    <div className="space-y-2 text-sm">
+                      <button className="text-blue-600 hover:text-blue-700 transition-colors">
+                        How we protect your data →
+                      </button>
+                      <br />
+                      <button className="text-blue-600 hover:text-blue-700 transition-colors">
+                        How we use your data →
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Terms and Conditions PDF */}
+                  <PDFViewer
+                    pdfUrl="/TÉRMINOS Y CONDICIONES DE USO DE PLATAFORMA UVALA.AI.pdf"
+                    title={
+                      t("Profile.termsAndConditions") ||
+                      "Términos y Condiciones de Uso de Plataforma Uvala.AI"
+                    }
+                    required={true}
+                    onAcknowledge={handleTermsAcknowledged}
+                    className="mt-6"
+                  />
+
+                  {/* Proceed Button */}
+                  <div className="pt-4">
+                    <Button
+                      onClick={handleProceed}
+                      disabled={!canProceed}
+                      className={cn(
+                        "w-full transition-all duration-200",
+                        canProceed
+                          ? "bg-green-600 hover:bg-green-700 text-white"
+                          : "bg-muted text-muted-foreground cursor-not-allowed",
+                      )}
+                    >
+                      {canProceed ? (
+                        <>
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          Continue to Application
+                        </>
+                      ) : (
+                        "Please acknowledge terms to continue"
+                      )}
+                    </Button>
                   </div>
                 </div>
               )}
@@ -265,8 +362,15 @@ export function ProfilePageClient({ session }: Props) {
                             Current Plan
                           </Label>
                           {hasSubscription &&
-                            subscription?.status === "active" && (
-                              <Crown className="w-4 h-4 text-yellow-500" />
+                            subscription?.status === "active" &&
+                            getPlanIcon(planType) && (
+                              <Image
+                                src={getPlanIcon(planType)!}
+                                alt={`${planType} plan icon`}
+                                width={32}
+                                height={32}
+                                className="flex-shrink-0"
+                              />
                             )}
                         </div>
 
@@ -416,33 +520,62 @@ export function ProfilePageClient({ session }: Props) {
                         </div>
                       )}
 
-                      {/* Manage Subscription */}
-                      <div className="pt-2 space-y-3">
-                        <Button
-                          onClick={() => router.push("/pricing")}
-                          variant="outline"
-                          className="flex items-center gap-2 w-full"
-                        >
-                          <CreditCard className="size-4" />
-                          Upgrade Plan
-                        </Button>
-
-                        {/* Cancel Subscription - Only show for active subscriptions */}
-                        {hasSubscription &&
-                          subscription?.status === "active" &&
-                          !subscription?.cancelAtPeriodEnd && (
+                      {/* Subscription Management Dropdown */}
+                      <div className="pt-2">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
                             <Button
-                              onClick={handleCancelSubscription}
-                              disabled={cancelingSubscription}
-                              variant="destructive"
-                              className="flex items-center gap-2 w-full bg-red-600 hover:bg-red-700"
+                              variant="outline"
+                              className="flex items-center gap-2 w-full"
                             >
-                              <XCircle className="size-4" />
-                              {cancelingSubscription
-                                ? "Canceling..."
-                                : "Cancel Subscription"}
+                              <Settings className="size-4" />
+                              {t("Profile.subscriptionManage") ||
+                                "Manage Subscription"}
+                              <ChevronDown className="size-4 ml-auto" />
                             </Button>
-                          )}
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent className="w-56" align="end">
+                            <DropdownMenuItem
+                              onClick={() => router.push("/pricing")}
+                              className="flex items-center gap-2"
+                            >
+                              <CreditCard className="size-4" />
+                              {t("Profile.upgradePlan") || "Upgrade Plan"}
+                            </DropdownMenuItem>
+
+                            {hasSubscription && (
+                              <>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    window.open("/pricing", "_blank")
+                                  }
+                                  className="flex items-center gap-2"
+                                >
+                                  <Settings className="size-4" />
+                                  {t("Profile.changePlan") || "Change Plan"}
+                                </DropdownMenuItem>
+
+                                <DropdownMenuSeparator />
+
+                                {subscription?.status === "active" &&
+                                  !subscription?.cancelAtPeriodEnd && (
+                                    <DropdownMenuItem
+                                      onClick={handleCancelSubscription}
+                                      disabled={cancelingSubscription}
+                                      className="flex items-center gap-2 text-red-600 focus:text-red-600"
+                                    >
+                                      <XCircle className="size-4" />
+                                      {cancelingSubscription
+                                        ? t("Profile.canceling") ||
+                                          "Canceling..."
+                                        : t("Profile.cancelSubscription") ||
+                                          "Cancel Subscription"}
+                                    </DropdownMenuItem>
+                                  )}
+                              </>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </div>
                   )}
