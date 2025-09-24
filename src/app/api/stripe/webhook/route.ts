@@ -5,6 +5,7 @@ import { pgDb as db } from "@/lib/db/pg/db.pg";
 import { SubscriptionRepository } from "@/lib/db/pg/repositories/subscription-repository.pg";
 import { pgUserRepository } from "@/lib/db/pg/repositories/user-repository.pg";
 import { getPlanTypeFromPriceId } from "@/lib/subscription";
+import { brevoEmailService } from "@/lib/email/brevo";
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
@@ -226,6 +227,29 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
     console.log("✅ Database insertion successful!");
     console.log("🎉 Created subscription record:", result);
 
+    // Send subscription confirmation email
+    try {
+      const user = await pgUserRepository.findById(userId);
+      if (user) {
+        brevoEmailService
+          .sendSubscriptionCreatedEmail(user.email, user.name, planType)
+          .then(() =>
+            console.log(
+              "✅ Subscription confirmation email sent to:",
+              user.email,
+            ),
+          )
+          .catch((emailError) =>
+            console.error("❌ Failed to send subscription email:", emailError),
+          );
+      }
+    } catch (emailError) {
+      console.error(
+        "⚠️ Error sending subscription confirmation email:",
+        emailError,
+      );
+    }
+
     console.log("Subscription created successfully:", {
       userId,
       subscriptionId: subscription.id,
@@ -290,6 +314,31 @@ async function handleSubscriptionCanceled(subscription: Stripe.Subscription) {
 
   try {
     await subscriptionRepo.cancelSubscription(subscription.id);
+
+    // Get subscription and user details for email
+    const existingSubscription =
+      await subscriptionRepo.getUserSubscriptionByStripeId(subscription.id);
+    if (existingSubscription) {
+      const user = await pgUserRepository.findById(existingSubscription.userId);
+      if (user) {
+        // Send cancellation email
+        brevoEmailService
+          .sendSubscriptionCancelledEmail(
+            user.email,
+            user.name,
+            existingSubscription.planType,
+          )
+          .then(() =>
+            console.log(
+              "✅ Subscription cancellation email sent to:",
+              user.email,
+            ),
+          )
+          .catch((emailError) =>
+            console.error("❌ Failed to send cancellation email:", emailError),
+          );
+      }
+    }
 
     console.log("Subscription canceled successfully:", {
       subscriptionId: subscription.id,

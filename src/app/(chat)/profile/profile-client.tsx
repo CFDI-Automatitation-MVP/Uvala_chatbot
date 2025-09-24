@@ -11,14 +11,14 @@ import {
   Settings,
   X,
   LogOut,
-  Crown,
+  // Crown, // Unused
   Calendar,
   AlertCircle,
   Clock,
   XCircle,
   CheckCircle,
   ChevronDown,
-  MoreVertical,
+  // MoreVertical, // Unused
 } from "lucide-react";
 import { cn } from "lib/utils";
 import { Label } from "ui/label";

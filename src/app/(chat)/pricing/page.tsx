@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+// import Image from "next/image"; // Commented out - unused
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Check,
   Zap,
-  Crown,
+  // Crown, // Unused
   Globe,
   Image as ImageIcon,
   Video,
@@ -90,7 +90,8 @@ const pricingPlans: PricingPlan[] = [
   },
 ];
 
-// Helper function to get plan-specific icon
+// Helper function to get plan-specific icon (currently unused)
+/*
 const _getPlanIcon = (planId: string) => {
   switch (planId) {
     case "plus":
@@ -103,6 +104,7 @@ const _getPlanIcon = (planId: string) => {
       return null;
   }
 };
+*/
 
 // Function to get icon for feature
 const getFeatureIcon = (feature: string) => {
