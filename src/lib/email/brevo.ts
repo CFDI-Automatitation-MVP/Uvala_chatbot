@@ -31,10 +31,10 @@ class BrevoEmailService {
 
     this.emailApi.setApiKey(TransactionalEmailsApiApiKeys.apiKey, apiKey);
 
-    // Default sender - using verified Brevo SMTP email
+    // Default sender - using authenticated domain
     this.defaultSender = {
       name: "Uvala",
-      email: "976f55001@smtp-brevo.com", // Your verified Brevo email
+      email: "no-reply@uvala.ai", // Your authenticated domain
     };
   }
 
@@ -115,7 +115,7 @@ class BrevoEmailService {
             </p>
 
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://uvala.com"}"
+              <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://uvala.ai"}"
                  style="background: #667eea; color: white; text-decoration: none; padding: 12px 30px; border-radius: 6px; display: inline-block; font-weight: bold;">
                 Get Started Now
               </a>
@@ -124,7 +124,7 @@ class BrevoEmailService {
             <div style="border-top: 1px solid #e9ecef; padding-top: 20px; margin-top: 30px; text-align: center; color: #6c757d; font-size: 14px;">
               <p>Best regards,<br>The Uvala Team</p>
               <p style="margin-top: 20px;">
-                <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://uvala.com"}" style="color: #667eea; text-decoration: none;">uvala.com</a>
+                <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://uvala.ai"}" style="color: #667eea; text-decoration: none;">uvala.ai</a>
               </p>
             </div>
           </div>
@@ -148,7 +148,7 @@ class BrevoEmailService {
 
       If you have any questions, don't hesitate to reach out to our support team.
 
-      Get started: ${process.env.NEXT_PUBLIC_APP_URL || "https://uvala.com"}
+      Get started: ${process.env.NEXT_PUBLIC_APP_URL || "https://uvala.ai"}
 
       Best regards,
       The Uvala Team
@@ -203,11 +203,11 @@ class BrevoEmailService {
             </p>
 
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://uvala.com"}/dashboard"
+              <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://uvala.ai"}/dashboard"
                  style="background: #28a745; color: white; text-decoration: none; padding: 12px 30px; border-radius: 6px; display: inline-block; font-weight: bold; margin-right: 10px;">
                 Go to Dashboard
               </a>
-              <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://uvala.com"}/billing"
+              <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://uvala.ai"}/billing"
                  style="background: #6c757d; color: white; text-decoration: none; padding: 12px 30px; border-radius: 6px; display: inline-block; font-weight: bold;">
                 Manage Billing
               </a>
@@ -216,7 +216,7 @@ class BrevoEmailService {
             <div style="border-top: 1px solid #e9ecef; padding-top: 20px; margin-top: 30px; text-align: center; color: #6c757d; font-size: 14px;">
               <p>Thank you for choosing Uvala!<br>The Uvala Team</p>
               <p style="margin-top: 20px;">
-                Questions? Reply to this email or contact <a href="mailto:support@uvala.com" style="color: #28a745;">support@uvala.com</a>
+                Questions? Reply to this email or contact <a href="mailto:support@uvala.ai" style="color: #28a745;">support@uvala.ai</a>
               </p>
             </div>
           </div>
@@ -239,13 +239,13 @@ class BrevoEmailService {
 
       Your subscription will renew automatically. You can manage your subscription settings in your account dashboard.
 
-      Dashboard: ${process.env.NEXT_PUBLIC_APP_URL || "https://uvala.com"}/dashboard
-      Billing: ${process.env.NEXT_PUBLIC_APP_URL || "https://uvala.com"}/billing
+      Dashboard: ${process.env.NEXT_PUBLIC_APP_URL || "https://uvala.ai"}/dashboard
+      Billing: ${process.env.NEXT_PUBLIC_APP_URL || "https://uvala.ai"}/billing
 
       Thank you for choosing Uvala!
       The Uvala Team
 
-      Questions? Contact support@uvala.com
+      Questions? Contact support@uvala.ai
     `;
 
     return this.sendEmail({
@@ -304,11 +304,11 @@ class BrevoEmailService {
             </p>
 
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://uvala.com"}/billing"
+              <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://uvala.ai"}/billing"
                  style="background: #2196f3; color: white; text-decoration: none; padding: 12px 30px; border-radius: 6px; display: inline-block; font-weight: bold; margin-right: 10px;">
                 Reactivate Subscription
               </a>
-              <a href="mailto:support@uvala.com?subject=Cancellation Feedback"
+              <a href="mailto:support@uvala.ai?subject=Cancellation Feedback"
                  style="background: #6c757d; color: white; text-decoration: none; padding: 12px 30px; border-radius: 6px; display: inline-block; font-weight: bold;">
                 Send Feedback
               </a>
@@ -317,7 +317,7 @@ class BrevoEmailService {
             <div style="border-top: 1px solid #e9ecef; padding-top: 20px; margin-top: 30px; text-align: center; color: #6c757d; font-size: 14px;">
               <p>Thank you for being part of the Uvala community.<br>The Uvala Team</p>
               <p style="margin-top: 20px;">
-                Questions? Contact <a href="mailto:support@uvala.com" style="color: #2196f3;">support@uvala.com</a>
+                Questions? Contact <a href="mailto:support@uvala.ai" style="color: #2196f3;">support@uvala.ai</a>
               </p>
             </div>
           </div>
@@ -342,13 +342,13 @@ class BrevoEmailService {
 
       You can always reactivate your subscription anytime from your account settings. We'll be here when you're ready to come back!
 
-      Reactivate: ${process.env.NEXT_PUBLIC_APP_URL || "https://uvala.com"}/billing
-      Send Feedback: support@uvala.com
+      Reactivate: ${process.env.NEXT_PUBLIC_APP_URL || "https://uvala.ai"}/billing
+      Send Feedback: support@uvala.ai
 
       Thank you for being part of the Uvala community.
       The Uvala Team
 
-      Questions? Contact support@uvala.com
+      Questions? Contact support@uvala.ai
     `;
 
     return this.sendEmail({

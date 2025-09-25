@@ -49,7 +49,11 @@ export async function middleware(request: NextRequest) {
     return new Response("pong", { status: 200 });
   }
 
-  // Allow public routes, API routes, and specific auth assets only
+  // Check if this is an OAuth callback (has 'code' parameter)
+  const searchParams = request.nextUrl.searchParams;
+  const isOAuthCallback = searchParams.has("code");
+
+  // Allow public routes, API routes, OAuth callbacks, and specific auth assets only
   if (
     pathname.startsWith("/sign-in") ||
     pathname.startsWith("/sign-up") ||
@@ -62,7 +66,8 @@ export async function middleware(request: NextRequest) {
     pathname.endsWith(".jpg") ||
     pathname.endsWith(".jpeg") ||
     pathname.endsWith(".gif") ||
-    pathname.endsWith(".webp")
+    pathname.endsWith(".webp") ||
+    isOAuthCallback
   ) {
     console.log(`[MIDDLEWARE] Allowing public path: ${pathname}`);
     const response = NextResponse.next();
