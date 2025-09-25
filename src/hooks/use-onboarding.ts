@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 const ONBOARDING_STORAGE_KEY = "uvala-onboarding-completed";
 const LANGUAGE_SELECTED_KEY = "uvala-language-selected";
+const TERMS_ACCEPTED_KEY = "uvala-terms-accepted";
 
 export function useOnboarding() {
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -69,8 +70,26 @@ export function useOnboarding() {
         `${ONBOARDING_STORAGE_KEY}-${session.user.id}`,
         "true",
       );
+      // Also mark terms as accepted when completing onboarding
+      localStorage.setItem(`${TERMS_ACCEPTED_KEY}-${session.user.id}`, "true");
     }
     setShowOnboarding(false);
+  };
+
+  const acceptTerms = () => {
+    if (session?.user) {
+      localStorage.setItem(`${TERMS_ACCEPTED_KEY}-${session.user.id}`, "true");
+    }
+  };
+
+  const hasAcceptedTerms = () => {
+    if (session?.user) {
+      return (
+        localStorage.getItem(`${TERMS_ACCEPTED_KEY}-${session.user.id}`) ===
+        "true"
+      );
+    }
+    return false;
   };
 
   const skipOnboarding = () => {
@@ -90,5 +109,7 @@ export function useOnboarding() {
     completeOnboarding,
     skipOnboarding,
     showOnboardingManually,
+    acceptTerms,
+    hasAcceptedTerms,
   };
 }
