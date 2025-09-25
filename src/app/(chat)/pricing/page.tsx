@@ -52,8 +52,8 @@ const pricingPlans: PricingPlan[] = [
     },
     interval: "month",
     stripePriceId: {
-      USD: "price_1S8ZQb1pY9V37Up5ZA7L5GdP",
-      MXN: "price_1S8XyI1pY9V37Up5iYJDKtqU",
+      USD: "price_1SBKW31pY9V37Up5PboQP89C",
+      MXN: "price_1SBKWN1pY9V37Up50umNoD2z",
     },
     popular: true,
     features: [],
@@ -68,8 +68,8 @@ const pricingPlans: PricingPlan[] = [
     },
     interval: "month",
     stripePriceId: {
-      USD: "price_1S8aVQ1pY9V37Up58mNbG5rA",
-      MXN: "price_1S8XzW1pY9V37Up5DIUux5pQ",
+      USD: "price_1SBKXN1pY9V37Up5rjDqiVO9",
+      MXN: "price_1SBKXb1pY9V37Up5wBTLeUOb",
     },
     features: [],
   },
@@ -83,8 +83,8 @@ const pricingPlans: PricingPlan[] = [
     },
     interval: "month",
     stripePriceId: {
-      USD: "price_1S8aWD1pY9V37Up57JJOhbk0",
-      MXN: "price_1S8aUO1pY9V37Up5TcfjXrNP",
+      USD: "price_1SBKYe1pY9V37Up5sqGbRZ6S",
+      MXN: "price_1SBKYl1pY9V37Up53EOievQ4",
     },
     features: [],
   },

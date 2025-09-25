@@ -63,7 +63,7 @@ export default function SignIn() {
             variant="outline"
             onClick={handleGoogleSignIn}
             disabled={loading}
-            className="w-full h-11 text-base bg-white/90 hover:bg-white text-black border-white/50 hover:border-white"
+            className="w-full h-11 text-base bg-white/90 hover:bg-white text-black border-white/50 hover:border-white disabled:opacity-50"
           >
             <GoogleIcon className="size-5 mr-3 fill-current" />
             {loading ? "Signing in..." : "Continue with Google"}
