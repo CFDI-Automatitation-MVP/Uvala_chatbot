@@ -308,7 +308,7 @@ export function ProfilePageClient({ session }: Props) {
 
                   {/* Terms and Conditions PDF */}
                   <PDFViewer
-                    pdfUrl="/TÉRMINOS Y CONDICIONES DE USO DE PLATAFORMA UVALA.AI.pdf"
+                    pdfUrl="/terminos-y-condiciones-uvala.pdf"
                     title={
                       t("Profile.termsAndConditions") ||
                       "Términos y Condiciones de Uso de Plataforma Uvala.AI"
