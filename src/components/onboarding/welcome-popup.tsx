@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Globe,
@@ -9,6 +9,7 @@ import {
   TrendingUp,
   Brain,
   ChevronRight,
+  ChevronLeft,
   Languages,
   FileText,
   Check,
@@ -74,6 +75,19 @@ export function WelcomePopup({
   const [termsAccepted, setTermsAccepted] = useState(false); // Track T&C acceptance
   const t = useTranslations();
   const { data: session } = useSession();
+
+  // Reset to beginning when popup opens for manual triggers
+  useEffect(() => {
+    if (isOpen && !isFirstTimeUser) {
+      setCurrentStep(0); // Always start from first feature for manual triggers
+    }
+  }, [isOpen, isFirstTimeUser]);
+
+  const handleBack = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
 
   const handleNext = () => {
     if (currentStep === -1) {
@@ -397,8 +411,21 @@ export function WelcomePopup({
                     ))}
                   </div>
 
-                  {/* Action Button */}
-                  <div className="flex justify-center">
+                  {/* Action Buttons */}
+                  <div className="flex justify-center gap-3">
+                    {/* Back Button - only show if not at first feature step */}
+                    {currentStep > 0 && (
+                      <Button
+                        onClick={handleBack}
+                        variant="outline"
+                        className="px-6 py-2 border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900"
+                      >
+                        <ChevronLeft className="w-4 h-4 mr-2" />
+                        Back
+                      </Button>
+                    )}
+
+                    {/* Next/Close Button */}
                     <Button
                       onClick={handleNext}
                       variant="outline"

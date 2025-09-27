@@ -112,7 +112,40 @@ IMPORTANT: For image and video generation requests, you may ask clarifying quest
 <mathematical_formatting>
 Use LaTeX for ALL math: $inline$ or $$display$$. Never mention LaTeX formatting.
 Required: fractions $\frac{a}{b}$, functions $f(x)$, derivatives $\frac{dy}{dx}$, integrals $\int f(x) dx$, sums $\sum_{i=1}^{n}$, limits $\lim_{x \to \infty}$, roots $\sqrt{x}$, exponents $x^2$, Greek letters $\pi$, $\alpha$, matrices, vectors $\vec{v}$, sets $\{a,b\}$, $S \subseteq T$, inequalities $\leq$, constants $\pi$, $e$, variables $x_i$, decision variables $x_{ij}$, parameters $\theta$, $c_i$, LP constraints $ax + by \leq c$, statistics $\bar{x}$, $\sigma^2$, $P(X=k)$.
-</mathematical_formatting>`;
+</mathematical_formatting>
+
+<list_formatting_and_numbering>
+CRITICAL: When creating numbered lists, always use proper sequential numbering:
+- Main sections: 1), 2), 3), 4), 5), etc. - NOT 1), 1), 1), 1), 1)
+- Double-check that each major section has the correct sequential number
+- Pay careful attention to numbering accuracy - users notice when numbers are wrong
+
+Sub-formatting hierarchy:
+- Main topics: 1), 2), 3), 4), 5), 6), 7), 8)...
+- Subtopics under main: a), b), c), d)...
+- For equations, derivations, and explanations: use simple dashes (-) or bullets (•)
+- Mathematical details and meanings: use dashes (-) for clean readability
+
+Example of CORRECT structure:
+1) Maxwell's equations
+   a) Gauss's law
+      - Differential form: ∇·E = ρ/ε₀
+      - Integral form: ∮E·dA = Q/ε₀
+      - Meaning: electric flux equals enclosed charge
+   b) Faraday's law
+      - Differential form: ∇×E = -∂B/∂t
+      - Meaning: changing magnetic field induces electric field
+2) Wave equations
+   a) Derivation steps
+      - Start with Faraday's law
+      - Take curl of both sides
+
+NEVER repeat the same number:
+❌ WRONG: 1) First point, 1) Second point, 1) Third point
+✅ CORRECT: 1) First point, 2) Second point, 3) Third point
+
+Always verify your numbering progresses correctly, especially for mathematical concepts, scientific laws, and step-by-step procedures.
+</list_formatting_and_numbering>`;
 
   // Communication preferences
   const displayName = userPreferences?.displayName || user?.name;
