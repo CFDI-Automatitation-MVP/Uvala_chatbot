@@ -59,10 +59,10 @@ const features = [
 ];
 
 const languages = [
-  { code: "es", name: "Español", flag: "🇪🇸" },
-  { code: "en", name: "English", flag: "🇺🇸" },
-  { code: "fr", name: "Français", flag: "🇫🇷" },
-  { code: "ja", name: "日本語", flag: "🇯🇵" },
+  { code: "es", name: "Español" },
+  { code: "en", name: "English" },
+  { code: "fr", name: "Français" },
+  { code: "ja", name: "日本語" },
 ];
 
 export function WelcomePopup({
@@ -70,16 +70,28 @@ export function WelcomePopup({
   onClose,
   isFirstTimeUser = false,
 }: WelcomePopupProps) {
-  const [currentStep, setCurrentStep] = useState(isFirstTimeUser ? -1 : 0); // Start at -1 for language selection for first-time users
+  const [currentStep, setCurrentStep] = useState(0); // Will be set correctly by useEffect
   const [selectedLanguage, setSelectedLanguage] = useState("es"); // Default to Spanish
   const [termsAccepted, setTermsAccepted] = useState(false); // Track T&C acceptance
   const t = useTranslations();
   const { data: session } = useSession();
 
-  // Reset to beginning when popup opens for manual triggers
+  // Reset step when popup opens based on user type
   useEffect(() => {
-    if (isOpen && !isFirstTimeUser) {
-      setCurrentStep(0); // Always start from first feature for manual triggers
+    if (isOpen) {
+      console.log("🔄 WelcomePopup opened, isFirstTimeUser:", isFirstTimeUser);
+      console.log("🔄 WelcomePopup currentStep before:", currentStep);
+      if (isFirstTimeUser) {
+        // First-time users start with language selection
+        console.log("🆕 First-time user: starting at language step (-1)");
+        setCurrentStep(-1);
+        setTermsAccepted(false);
+        setSelectedLanguage("es");
+      } else {
+        // Manual trigger (? button) starts at features
+        console.log("🎯 Manual trigger: starting at features step (0)");
+        setCurrentStep(0);
+      }
     }
   }, [isOpen, isFirstTimeUser]);
 
@@ -88,7 +100,6 @@ export function WelcomePopup({
       setCurrentStep(currentStep - 1);
     }
   };
-
   const handleNext = () => {
     if (currentStep === -1) {
       // Language selection step - save language and move to T&C
@@ -112,11 +123,12 @@ export function WelcomePopup({
     } else if (currentStep < features.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // At the end, show trial step only for first-time users
+      // At the end of features
       if (isFirstTimeUser) {
+        // First-time users go to trial step
         setCurrentStep(features.length);
       } else {
-        // For manual trigger, just close
+        // Manual trigger (? button) just closes
         onClose();
       }
     }
@@ -149,7 +161,7 @@ export function WelcomePopup({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-md"
           onClick={(e) => e.stopPropagation()} // Prevent closing by clicking outside
         >
           <motion.div
@@ -161,7 +173,7 @@ export function WelcomePopup({
             onClick={(e) => e.stopPropagation()}
           >
             {/* Main Card */}
-            <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 overflow-hidden rounded-xl">
+            <div className="bg-white/95 dark:bg-gray-950/95 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 overflow-hidden rounded-2xl shadow-2xl shadow-black/10">
               {isLanguageStep ? (
                 // Language Selection Step
                 <div className="p-12 text-center">
@@ -196,20 +208,19 @@ export function WelcomePopup({
                     initial={{ y: 10, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.3 }}
-                    className="grid grid-cols-2 gap-3 mb-8"
+                    className="grid grid-cols-2 gap-4 mb-10"
                   >
                     {languages.map((language) => (
                       <button
                         key={language.code}
                         onClick={() => setSelectedLanguage(language.code)}
-                        className={`p-4 border rounded-lg transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-800 ${
+                        className={`p-6 border rounded-xl transition-all duration-300 backdrop-blur-sm ${
                           selectedLanguage === language.code
-                            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                            : "border-gray-200 dark:border-gray-700"
+                            ? "border-blue-400/60 bg-blue-500/10 shadow-lg shadow-blue-500/20 dark:border-blue-400/40 dark:bg-blue-400/10"
+                            : "border-white/20 bg-white/10 hover:bg-white/20 hover:border-white/30 dark:border-gray-600/30 dark:bg-gray-800/20 dark:hover:bg-gray-700/30"
                         }`}
                       >
-                        <div className="text-2xl mb-2">{language.flag}</div>
-                        <div className="font-medium text-gray-900 dark:text-white">
+                        <div className="font-semibold text-gray-800 dark:text-gray-200 text-lg">
                           {language.name}
                         </div>
                       </button>
@@ -219,7 +230,7 @@ export function WelcomePopup({
                   <Button
                     onClick={handleNext}
                     variant="outline"
-                    className="px-8 py-2 border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900"
+                    className="px-8 py-3 border-white/30 dark:border-gray-600/30 bg-white/10 hover:bg-white/20 backdrop-blur-sm hover:border-white/40 dark:bg-gray-700/20 dark:hover:bg-gray-600/30 text-gray-800 dark:text-gray-200 font-medium rounded-xl"
                   >
                     Continuar
                     <ChevronRight className="w-4 h-4 ml-2" />
