@@ -11,6 +11,7 @@ const TERMS_ACCEPTED_KEY = "uvala-terms-accepted";
 export function useOnboarding() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [isTrueFirstTimeUser, setIsTrueFirstTimeUser] = useState(false);
+  const [isManualTrigger, setIsManualTrigger] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { data: session, isLoading: sessionLoading } = useSession();
   const router = useRouter();
@@ -65,7 +66,8 @@ export function useOnboarding() {
   }, [session, sessionLoading, router]);
 
   const completeOnboarding = () => {
-    if (session?.user) {
+    // Only mark as completed in localStorage if it's not a manual trigger
+    if (session?.user && !isManualTrigger) {
       localStorage.setItem(
         `${ONBOARDING_STORAGE_KEY}-${session.user.id}`,
         "true",
@@ -74,6 +76,7 @@ export function useOnboarding() {
       localStorage.setItem(`${TERMS_ACCEPTED_KEY}-${session.user.id}`, "true");
     }
     setShowOnboarding(false);
+    setIsManualTrigger(false); // Reset manual trigger flag
   };
 
   const acceptTerms = () => {
@@ -96,19 +99,23 @@ export function useOnboarding() {
     completeOnboarding();
   };
 
-  // Function to manually trigger onboarding (for testing or help menu)
-  const showOnboardingManually = () => {
-    console.log("🚀 Manually triggering onboarding popup");
+  // Function to show only features tutorial (for ? button)
+  const showFeaturesOnly = () => {
+    console.log("🎯 FEATURES TUTORIAL TRIGGERED");
+    setIsManualTrigger(true);
     setShowOnboarding(true);
+    console.log(
+      "✅ States set: manual=true, showOnboarding=true (features only)",
+    );
   };
 
   return {
     showOnboarding,
-    isTrueFirstTimeUser,
+    isTrueFirstTimeUser: isManualTrigger ? false : isTrueFirstTimeUser, // Manual triggers are not first-time users
     isLoading,
     completeOnboarding,
     skipOnboarding,
-    showOnboardingManually,
+    showFeaturesOnly,
     acceptTerms,
     hasAcceptedTerms,
   };

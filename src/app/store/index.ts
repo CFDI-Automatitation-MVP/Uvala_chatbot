@@ -46,6 +46,7 @@ export interface AppState {
   };
   pendingThreadMention?: ChatMention;
   profileDropdownOpen: boolean;
+  threadDropdownOpen: boolean;
 }
 
 export interface AppDispatch {
@@ -95,6 +96,7 @@ const initialState: AppState = {
   },
   pendingThreadMention: undefined,
   profileDropdownOpen: false,
+  threadDropdownOpen: false,
 };
 
 export const appStore = create<AppState & AppDispatch>()(

@@ -112,7 +112,6 @@ export function PreBlock({ children }: { children: any }) {
       .watch(() => setLoading(false));
   }, [theme, language, code]);
 
-  // For other code blocks, render as before
   return (
     <div
       className={cn(

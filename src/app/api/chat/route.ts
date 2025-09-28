@@ -180,6 +180,43 @@ export async function POST(request: Request) {
         );
         logger.info(`model: ${chatModel?.provider}/${chatModel?.model}`);
 
+        // Collect file attachments before truncation for persistence
+        const allAttachments: Array<{
+          name: string;
+          contentType: string;
+          url: string;
+        }> = [];
+
+        // Only process files if messages exist and are valid
+        if (messages && Array.isArray(messages)) {
+          for (const msg of messages) {
+            if (
+              msg?.role === "user" &&
+              msg?.parts &&
+              Array.isArray(msg.parts)
+            ) {
+              for (const part of msg.parts) {
+                try {
+                  if (
+                    part?.type === "file" &&
+                    part?.file &&
+                    (part.file.data || part.file.url)
+                  ) {
+                    allAttachments.push({
+                      name: part.file.name || "unknown",
+                      contentType: part.file.type || "application/octet-stream",
+                      url: part.file.data || part.file.url,
+                    });
+                  }
+                } catch (_partError) {
+                  // Skip invalid file parts silently
+                  continue;
+                }
+              }
+            }
+          }
+        }
+
         // Context truncation optimization
         const truncationResult = truncateConversation(messages, chatModel!);
         logTruncationResult(truncationResult, logger);
@@ -237,10 +274,40 @@ export async function POST(request: Request) {
           }
         }
 
+        // Debug: Log final message structure after truncation
+        logger.info(
+          `Processing ${optimizedMessages.length} messages after truncation`,
+        );
+        logger.info(
+          `Final files to include: ${allAttachments.length > 0 ? allAttachments.map((f) => f.name).join(", ") : "none"}`,
+        );
+
+        // Verify files are preserved even if messages were truncated
+        if (allAttachments.length > 0 && truncationResult.truncated) {
+          logger.info(
+            `Truncation occurred but ${allAttachments.length} files preserved for persistent access`,
+          );
+        }
+
+        // Update system prompt to include file information if files are available
+        const enhancedSystemPrompt =
+          allAttachments.length > 0
+            ? `${systemPrompt}
+
+<conversation_files>
+You have access to the following files uploaded earlier in this conversation:
+${allAttachments.map((f) => `- ${f.name} (${f.contentType})`).join("\n")}
+
+You can reference and analyze these files throughout the conversation. The files remain available for the entire chat session.
+</conversation_files>`
+            : systemPrompt;
+
         const result = streamText({
           model,
-          system: systemPrompt,
+          system: enhancedSystemPrompt,
           messages: convertToModelMessages(optimizedMessages),
+          experimental_attachments:
+            allAttachments.length > 0 ? allAttachments : undefined,
           experimental_transform: smoothStream({ chunking: "word" }),
           maxRetries: 2,
           tools: vercelAITooles,

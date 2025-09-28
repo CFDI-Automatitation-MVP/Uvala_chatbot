@@ -5,26 +5,32 @@ import { ChevronDown, HelpCircle } from "lucide-react";
 import { Button } from "ui/button";
 import { Separator } from "ui/separator";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { ThreadDropdown } from "../thread-dropdown";
 import { appStore } from "@/app/store";
 import { usePathname } from "next/navigation";
 import { useShallow } from "zustand/shallow";
 import { TextShimmer } from "ui/text-shimmer";
 import { useOnboarding } from "@/hooks/use-onboarding";
-import { WelcomePopup } from "@/components/onboarding/welcome-popup";
 
 export function AppHeader() {
   const [_appStoreMutate] = appStore(useShallow((state) => [state.mutate]));
   const currentPaths = usePathname();
-  const { showOnboardingManually } = useOnboarding();
-  const [showPopup, setShowPopup] = useState(false);
+  const { showFeaturesOnly } = useOnboarding();
 
   const componentByPage = useMemo(() => {
     if (currentPaths.startsWith("/chat/")) {
       return <ThreadDropdownComponent />;
     }
   }, [currentPaths]);
+
+  // Hide header on pricing page and archive pages - after all hooks are called
+  if (currentPaths === "/pricing" || currentPaths.startsWith("/archive/")) {
+    console.log("🚫 Header hidden for path:", currentPaths);
+    return null;
+  }
+
+  console.log("✅ Header rendering for path:", currentPaths);
 
   return (
     <>
@@ -41,11 +47,11 @@ export function AppHeader() {
                 size="sm"
                 onClick={(e) => {
                   e.preventDefault();
-                  console.log("🔘 Button clicked, triggering onboarding...");
-                  showOnboardingManually();
-                  setShowPopup(true);
+                  e.stopPropagation();
+                  console.log("🖱️ ? button clicked!");
+                  showFeaturesOnly();
                 }}
-                className="h-8 w-8 p-0 hover:bg-accent text-muted-foreground hover:text-foreground"
+                className="h-8 w-8 p-0 hover:bg-accent text-muted-foreground hover:text-foreground relative z-50"
               >
                 <HelpCircle className="w-4 h-4" />
               </Button>
@@ -56,13 +62,6 @@ export function AppHeader() {
           </Tooltip>
         </div>
       </header>
-
-      {/* Fallback popup */}
-      <WelcomePopup
-        isOpen={showPopup}
-        onClose={() => setShowPopup(false)}
-        isFirstTimeUser={false}
-      />
     </>
   );
 }

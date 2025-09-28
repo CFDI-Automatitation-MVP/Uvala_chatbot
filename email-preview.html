@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Uvala Email Preview</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+      font-family: Arial, sans-serif;
+    }
+    .preview-container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .email-preview {
+      background: white;
+      margin: 20px 0;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .email-header {
+      background: #333;
+      color: white;
+      padding: 10px 20px;
+      font-weight: bold;
+    }
+    .device-toggle {
+      text-align: center;
+      margin: 20px 0;
+    }
+    .device-toggle button {
+      margin: 0 5px;
+      padding: 8px 16px;
+      border: 1px solid #ddd;
+      background: white;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .device-toggle button.active {
+      background: #007bff;
+      color: white;
+    }
+    .email-frame {
+      width: 100%;
+      border: none;
+      min-height: 600px;
+    }
+    .mobile-view {
+      max-width: 375px;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-container">
+    <h1>📧 Uvala Email Templates Preview</h1>
+
+    <div class="device-toggle">
+      <button onclick="setView('desktop')" class="active" id="desktop-btn">🖥️ Desktop</button>
+      <button onclick="setView('mobile')" id="mobile-btn">📱 Mobile</button>
+    </div>
+
+    <!-- Welcome Email -->
+    <div class="email-preview">
+      <div class="email-header">Welcome Email</div>
+      <div id="welcome-email-container">
+        <iframe class="email-frame" id="welcome-frame"></iframe>
+      </div>
+    </div>
+
+    <!-- Subscription Email -->
+    <div class="email-preview">
+      <div class="email-header">Subscription Confirmation Email</div>
+      <div id="subscription-email-container">
+        <iframe class="email-frame" id="subscription-frame"></iframe>
+      </div>
+    </div>
+
+    <!-- Cancellation Email -->
+    <div class="email-preview">
+      <div class="email-header">Subscription Cancellation Email</div>
+      <div id="cancellation-email-container">
+        <iframe class="email-frame" id="cancellation-frame"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Welcome Email Template
+    const welcomeTemplate = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Welcome to Uvala!</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0; font-size: 28px;">🎉 Welcome to Uvala!</h1>
+          </div>
+
+          <div style="background: #f8f9fa; padding: 40px 20px; border-radius: 0 0 10px 10px;">
+            <h2 style="color: #333; margin-top: 0;">Hi John Doe,</h2>
+
+            <p style="font-size: 16px; margin-bottom: 20px;">
+              Welcome to Uvala! We're thrilled to have you on board. 🚀
+            </p>
+
+            <p style="font-size: 16px; margin-bottom: 20px;">
+              You've just joined thousands of users who are already using our AI-powered chat platform to enhance their productivity and creativity.
+            </p>
+
+            <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea;">
+              <h3 style="margin-top: 0; color: #667eea;">🚀 Getting Started</h3>
+              <ul style="margin: 0;">
+                <li>Start your first conversation with our AI assistant</li>
+                <li>Explore different AI models and find your favorite</li>
+                <li>Customize your chat experience in settings</li>
+              </ul>
+            </div>
+
+            <p style="font-size: 16px; margin-bottom: 30px;">
+              If you have any questions, don't hesitate to reach out to our support team.
+            </p>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="#"
+                 style="background: #667eea; color: white; text-decoration: none; padding: 12px 30px; border-radius: 6px; display: inline-block; font-weight: bold;">
+                Get Started Now
+              </a>
+            </div>
+
+            <div style="border-top: 1px solid #e9ecef; padding-top: 20px; margin-top: 30px; text-align: center; color: #6c757d; font-size: 14px;">
+              <p>Best regards,<br>The Uvala Team</p>
+              <p style="margin-top: 20px;">
+                <a href="#" style="color: #667eea; text-decoration: none;">uvala.com</a>
+              </p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    // Subscription Email Template
+    const subscriptionTemplate = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Subscription Confirmed!</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); padding: 40px 20px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0; font-size: 28px;">✅ Subscription Confirmed!</h1>
+          </div>
+
+          <div style="background: #f8f9fa; padding: 40px 20px; border-radius: 0 0 10px 10px;">
+            <h2 style="color: #333; margin-top: 0;">Hi John Doe,</h2>
+
+            <p style="font-size: 16px; margin-bottom: 20px;">
+              🎉 Congratulations! Your <strong>Premium Plan</strong> subscription has been activated successfully.
+            </p>
+
+            <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #28a745;">
+              <h3 style="margin-top: 0; color: #28a745;">🚀 What's Next?</h3>
+              <ul style="margin: 0;">
+                <li>Access to premium AI models and features</li>
+                <li>Higher usage limits and priority support</li>
+                <li>Advanced customization options</li>
+                <li>Export and collaboration features</li>
+              </ul>
+            </div>
+
+            <p style="font-size: 16px; margin-bottom: 30px;">
+              Your subscription will renew automatically. You can manage your subscription settings in your account dashboard.
+            </p>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="#"
+                 style="background: #28a745; color: white; text-decoration: none; padding: 12px 30px; border-radius: 6px; display: inline-block; font-weight: bold; margin-right: 10px;">
+                Go to Dashboard
+              </a>
+              <a href="#"
+                 style="background: #6c757d; color: white; text-decoration: none; padding: 12px 30px; border-radius: 6px; display: inline-block; font-weight: bold;">
+                Manage Billing
+              </a>
+            </div>
+
+            <div style="border-top: 1px solid #e9ecef; padding-top: 20px; margin-top: 30px; text-align: center; color: #6c757d; font-size: 14px;">
+              <p>Thank you for choosing Uvala!<br>The Uvala Team</p>
+              <p style="margin-top: 20px;">
+                Questions? Reply to this email or contact <a href="mailto:support@uvala.com" style="color: #28a745;">support@uvala.com</a>
+              </p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    // Cancellation Email Template
+    const cancellationTemplate = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Subscription Cancelled</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%); padding: 40px 20px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0; font-size: 28px;">Subscription Cancelled</h1>
+          </div>
+
+          <div style="background: #f8f9fa; padding: 40px 20px; border-radius: 0 0 10px 10px;">
+            <h2 style="color: #333; margin-top: 0;">Hi John Doe,</h2>
+
+            <p style="font-size: 16px; margin-bottom: 20px;">
+              We're sorry to see you go! Your <strong>Premium Plan</strong> subscription has been cancelled as requested.
+            </p>
+
+            <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc3545;">
+              <h3 style="margin-top: 0; color: #dc3545;">📋 What This Means</h3>
+              <ul style="margin: 0;">
+                <li>Your subscription will remain active until the end of your current billing period</li>
+                <li>You'll continue to have access to premium features until then</li>
+                <li>No future charges will be made to your account</li>
+                <li>Your account and data will be preserved</li>
+              </ul>
+            </div>
+
+            <div style="background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2196f3;">
+              <h3 style="margin-top: 0; color: #1976d2;">💙 We'd Love Your Feedback</h3>
+              <p style="margin: 0;">
+                Help us improve by letting us know why you cancelled. Your feedback is valuable to us and helps us serve our users better.
+              </p>
+            </div>
+
+            <p style="font-size: 16px; margin-bottom: 30px;">
+              You can always reactivate your subscription anytime from your account settings. We'll be here when you're ready to come back!
+            </p>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="#"
+                 style="background: #2196f3; color: white; text-decoration: none; padding: 12px 30px; border-radius: 6px; display: inline-block; font-weight: bold; margin-right: 10px;">
+                Reactivate Subscription
+              </a>
+              <a href="mailto:support@uvala.com?subject=Cancellation Feedback"
+                 style="background: #6c757d; color: white; text-decoration: none; padding: 12px 30px; border-radius: 6px; display: inline-block; font-weight: bold;">
+                Send Feedback
+              </a>
+            </div>
+
+            <div style="border-top: 1px solid #e9ecef; padding-top: 20px; margin-top: 30px; text-align: center; color: #6c757d; font-size: 14px;">
+              <p>Thank you for being part of the Uvala community.<br>The Uvala Team</p>
+              <p style="margin-top: 20px;">
+                Questions? Contact <a href="mailto:support@uvala.com" style="color: #2196f3;">support@uvala.com</a>
+              </p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    function setView(view) {
+      const containers = document.querySelectorAll('[id$="-email-container"]');
+      const buttons = document.querySelectorAll('.device-toggle button');
+
+      buttons.forEach(btn => btn.classList.remove('active'));
+      document.getElementById(view + '-btn').classList.add('active');
+
+      containers.forEach(container => {
+        if (view === 'mobile') {
+          container.classList.add('mobile-view');
+        } else {
+          container.classList.remove('mobile-view');
+        }
+      });
+    }
+
+    function loadEmails() {
+      // Load templates into iframes
+      const welcomeFrame = document.getElementById('welcome-frame');
+      const subscriptionFrame = document.getElementById('subscription-frame');
+      const cancellationFrame = document.getElementById('cancellation-frame');
+
+      welcomeFrame.srcdoc = welcomeTemplate;
+      subscriptionFrame.srcdoc = subscriptionTemplate;
+      cancellationFrame.srcdoc = cancellationTemplate;
+    }
+
+    // Load emails when page loads
+    window.onload = loadEmails;
+  </script>
+</body>
+</html>

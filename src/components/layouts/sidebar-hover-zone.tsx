@@ -4,22 +4,28 @@ import { useSidebar } from "ui/sidebar";
 import { useEffect, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { appStore } from "@/app/store";
+import { useShallow } from "zustand/shallow";
 
 export function SidebarHoverZone() {
   const { open, setOpen, openMobile, setOpenMobile } = useSidebar();
   const isMobile = useIsMobile();
-  const profileDropdownOpen = appStore((state) => state.profileDropdownOpen);
+  const [profileDropdownOpen, threadDropdownOpen] = appStore(
+    useShallow((state) => [
+      state.profileDropdownOpen,
+      state.threadDropdownOpen,
+    ]),
+  );
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       const currentX = e.clientX;
       const screenWidth = window.innerWidth;
-      
+
       // Much tighter zones for immediate response
       const sidebarZone = screenWidth * 0.08; // Very narrow 8% zone for opening
       const closeZone = screenWidth * 0.25; // Close when past 25% (just outside sidebar area)
-      
+
       const currentlyOpen = isMobile ? openMobile : open;
       const isInSidebarZone = currentX <= sidebarZone;
       const isPastSidebar = currentX >= closeZone;
@@ -38,10 +44,15 @@ export function SidebarHoverZone() {
           setOpen(true);
         }
       }
-      
+
       // Close sidebar immediately when leaving sidebar area
-      // BUT don't close if the profile dropdown is open
-      if (isPastSidebar && currentlyOpen && !profileDropdownOpen) {
+      // BUT don't close if any dropdown is open
+      if (
+        isPastSidebar &&
+        currentlyOpen &&
+        !profileDropdownOpen &&
+        !threadDropdownOpen
+      ) {
         // Clear any existing timeout
         if (closeTimeoutRef.current) {
           clearTimeout(closeTimeoutRef.current);
@@ -59,15 +70,23 @@ export function SidebarHoverZone() {
     };
 
     // High frequency event listening for smooth experience
-    document.addEventListener('mousemove', handleMouseMove, { passive: true });
+    document.addEventListener("mousemove", handleMouseMove, { passive: true });
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener("mousemove", handleMouseMove);
       if (closeTimeoutRef.current) {
         clearTimeout(closeTimeoutRef.current);
       }
     };
-  }, [open, setOpen, openMobile, setOpenMobile, isMobile, profileDropdownOpen]);
+  }, [
+    open,
+    setOpen,
+    openMobile,
+    setOpenMobile,
+    isMobile,
+    profileDropdownOpen,
+    threadDropdownOpen,
+  ]);
 
   return null;
 }

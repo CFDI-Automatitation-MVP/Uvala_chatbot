@@ -58,11 +58,21 @@ export function ThreadDropdown({
   const t = useTranslations();
   const push = useToRef(router.push);
 
-  const [currentThreadId, archiveList] = appStore(
-    useShallow((state) => [state.currentThreadId, state.archiveList]),
+  const [currentThreadId, archiveList, appStoreMutate] = appStore(
+    useShallow((state) => [
+      state.currentThreadId,
+      state.archiveList,
+      state.mutate,
+    ]),
   );
 
   const [open, setOpen] = useState(false);
+
+  // Use a dedicated flag for thread dropdown to block sidebar closing
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    appStoreMutate({ threadDropdownOpen: isOpen });
+  };
 
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -89,7 +99,7 @@ export function ThreadDropdown({
       .watch(() => setIsDeleting(true))
       .ifOk(() => deleteThreadAction(threadId))
       .watch(() => setIsDeleting(false))
-      .watch(() => setOpen(false))
+      .watch(() => handleOpenChange(false))
       .watch(({ isOk, error }) => {
         if (isOk) {
           toast.success(t("Chat.Thread.threadDeleted"));
@@ -124,7 +134,7 @@ export function ThreadDropdown({
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>{children}</PopoverTrigger>
       <PopoverContent className="p-0 w-[220px]" side={side} align={align}>
         <Command>

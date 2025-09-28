@@ -190,10 +190,63 @@ const NonMemoizedMarkdown = ({ children }: { children: string }) => {
       {isJson(children) ? (
         <JsonView data={children} />
       ) : (
-        <ReactMarkdown 
-          components={components} 
-          remarkPlugins={[remarkGfm, remarkMath]}
-          rehypePlugins={[rehypeKatex]}
+        <ReactMarkdown
+          components={components}
+          remarkPlugins={[
+            remarkGfm,
+            [
+              remarkMath,
+              {
+                singleDollarTextMath: true,
+              },
+            ],
+          ]}
+          rehypePlugins={[
+            [
+              rehypeKatex,
+              {
+                // Enhanced KaTeX options for better rendering
+                throwOnError: false,
+                errorColor: "#cc0000",
+                strict: "ignore",
+                trust: true,
+                fleqn: false,
+                leqno: false,
+                displayMode: false,
+                output: "html",
+                macros: {
+                  "\\RR": "\\mathbb{R}",
+                  "\\CC": "\\mathbb{C}",
+                  "\\NN": "\\mathbb{N}",
+                  "\\ZZ": "\\mathbb{Z}",
+                  "\\QQ": "\\mathbb{Q}",
+                  "\\FF": "\\mathbb{F}",
+                  // Additional physics/math macros
+                  "\\grad": "\\nabla",
+                  "\\curl": "\\nabla \\times",
+                  "\\divg": "\\nabla \\cdot",
+                  "\\laplacian": "\\nabla^2",
+                  // Partial derivatives
+                  "\\pdv": "\\frac{\\partial #1}{\\partial #2}",
+                  "\\ddx": "\\frac{d}{dx}",
+                  "\\ddt": "\\frac{d}{dt}",
+                  // Common functions
+                  "\\Re": "\\operatorname{Re}",
+                  "\\Im": "\\operatorname{Im}",
+                  "\\tr": "\\operatorname{tr}",
+                  "\\det": "\\operatorname{det}",
+                  "\\rank": "\\operatorname{rank}",
+                  "\\span": "\\operatorname{span}",
+                  "\\dim": "\\operatorname{dim}",
+                  "\\ker": "\\operatorname{ker}",
+                  "\\img": "\\operatorname{im}",
+                  // Units and constants
+                  "\\unit": "\\,\\mathrm{#1}",
+                  "\\SI": "#1\\,\\mathrm{#2}",
+                },
+              },
+            ],
+          ]}
         >
           {children}
         </ReactMarkdown>

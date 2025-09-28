@@ -7,17 +7,16 @@ export function OnboardingProvider() {
   const { showOnboarding, isTrueFirstTimeUser, completeOnboarding, isLoading } =
     useOnboarding();
 
-  console.log("🎭 OnboardingProvider render:", { showOnboarding, isLoading });
-
-  // Don't render anything while loading
   if (isLoading) {
-    console.log("⏳ OnboardingProvider: Still loading...");
     return null;
   }
 
-  if (showOnboarding) {
-    console.log("🎉 OnboardingProvider: Rendering welcome popup");
-  }
+  console.log(
+    "🎭 OnboardingProvider - showOnboarding:",
+    showOnboarding,
+    "isFirstTimeUser:",
+    isTrueFirstTimeUser,
+  );
 
   return (
     <WelcomePopup
