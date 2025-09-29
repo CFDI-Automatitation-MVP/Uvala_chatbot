@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+// import { cookies } from "next/headers"; // Commented out due to Next.js 15 changes
 
 export interface UserPreferences {
   language: string;
@@ -9,23 +9,24 @@ export interface UserPreferences {
  * Get user's preferred language from various sources
  * Priority: Cookie > Browser Headers > Default (en)
  */
-export function getUserLanguage(): string {
-  try {
-    // 1. Check cookie first (set by language selection)
-    const cookieStore = cookies();
-    const localeCookie = cookieStore.get("i18n:locale");
-
-    if (localeCookie?.value) {
-      return localeCookie.value;
-    }
-
-    // 2. Fallback to English if no preference found
-    return "en";
-  } catch (error) {
-    console.warn("Failed to get user language preference:", error);
-    return "en";
-  }
-}
+// Commented out due to Next.js 15 async cookies() API change
+// export function getUserLanguage(): string {
+//   try {
+//     // 1. Check cookie first (set by language selection)
+//     const cookieStore = cookies();
+//     const localeCookie = cookieStore.get("i18n:locale");
+//
+//     if (localeCookie?.value) {
+//       return localeCookie.value;
+//     }
+//
+//     // 2. Fallback to English if no preference found
+//     return "en";
+//   } catch (error) {
+//     console.warn("Failed to get user language preference:", error);
+//     return "en";
+//   }
+// }
 
 /**
  * Get user's preferred language from client-side
@@ -78,7 +79,7 @@ export function setUserLanguage(language: string): void {
  */
 export function getUserPreferences(): UserPreferences {
   return {
-    language: getUserLanguage(),
+    language: "en", // Default to English for now
   };
 }
 
@@ -88,7 +89,7 @@ export function getUserPreferences(): UserPreferences {
  */
 export async function getUserLanguageFromDB(userId?: string): Promise<string> {
   if (!userId) {
-    return getUserLanguage();
+    return "en"; // Default to English
   }
 
   try {
@@ -97,9 +98,9 @@ export async function getUserLanguageFromDB(userId?: string): Promise<string> {
     // return user.preferences?.language || getUserLanguage();
 
     // For now, fallback to cookie/default
-    return getUserLanguage();
+    return "en"; // Default to English
   } catch (error) {
     console.warn("Failed to get user language from database:", error);
-    return getUserLanguage();
+    return "en"; // Default to English
   }
 }

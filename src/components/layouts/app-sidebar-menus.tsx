@@ -24,7 +24,6 @@ import {
   Waypoints,
   MessageCircleDashed,
   Brain,
-  Mail,
 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Skeleton } from "ui/skeleton";

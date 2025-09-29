@@ -5,9 +5,14 @@ import { Button } from "ui/button";
 import Image from "next/image";
 import { PlusIcon, Loader, FileIcon, X } from "lucide-react";
 import { toast } from "sonner";
-import { validateFile, getFileValidation } from "@/lib/file-upload";
+import {
+  validateFile,
+  getFileValidation,
+  isDocumentFile,
+} from "@/lib/file-upload";
 import { cn } from "lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
+import { createClient } from "@/lib/supabase/client";
 
 export interface AttachmentFile {
   type: "file";
@@ -41,6 +46,93 @@ export function FileAttachmentInput({
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
+  };
+
+  // Upload document to RAG system for processing and embedding generation
+  const uploadToRAGSystem = async (file: File): Promise<void> => {
+    console.log(
+      `🔄 RAG Upload: ${file.name} (${file.type}, ${Math.round(file.size / 1024)}KB)`,
+    );
+
+    try {
+      // Get Supabase client to access user session
+      const supabase = createClient();
+
+      // Get current session for authentication - use getUser() instead of getSession()
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        console.error("❌ RAG Auth Error:", userError?.message || "No user");
+        throw new Error("User not authenticated");
+      }
+
+      // Get the session to access the token
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError || !session?.access_token) {
+        console.error(
+          "❌ RAG Session Error:",
+          sessionError?.message || "No access token",
+        );
+        throw new Error("No valid session token");
+      }
+
+      console.log("✅ RAG Auth: User authenticated");
+
+      // Create form data - server will handle all text extraction
+      const formData = new FormData();
+      formData.append("file", file);
+
+      console.log("📤 RAG Upload: Sending to API (server-side processing)...");
+
+      // Upload to RAG system
+      const response = await fetch("/api/files/upload", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: formData,
+      });
+
+      console.log(`📊 RAG Response: ${response.status} ${response.statusText}`);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("❌ RAG Failed:", errorText.substring(0, 200) + "...");
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          throw new Error(
+            `Upload failed: ${response.status} ${response.statusText}`,
+          );
+        }
+        throw new Error(errorData.error || "Upload failed");
+      }
+
+      const result = await response.json();
+      console.log("✅ RAG Success:", {
+        fileId: result?.fileId,
+        status: result?.status,
+      });
+      toast.success(
+        `Document "${file.name}" uploaded and processed for search!`,
+      );
+    } catch (error) {
+      console.error(
+        "❌ RAG Error:",
+        error instanceof Error ? error.message : "Unknown error",
+      );
+      toast.error(
+        `Failed to process document: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+    }
   };
 
   const processFiles = async (files: FileList) => {
@@ -77,6 +169,18 @@ export function FileAttachmentInput({
             mediaType: file.type,
             url, // Data URL format: "data:image/jpeg;base64,..."
           });
+
+          // For documents, also upload to RAG system for processing and search
+          if (isDocumentFile(file)) {
+            console.log(
+              `Uploading document to RAG system: ${file.name} (${file.type})`,
+            );
+            await uploadToRAGSystem(file);
+          } else {
+            console.log(
+              `Skipping RAG upload for non-document: ${file.name} (${file.type})`,
+            );
+          }
         } catch (_error) {
           toast.error(`Failed to process file: ${file.name}`);
         }

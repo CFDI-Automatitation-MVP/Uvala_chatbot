@@ -28,4 +28,8 @@ export const APP_DEFAULT_TOOL_KIT: Record<
   [AppDefaultToolkit.VideoGeneration]: {
     [DefaultToolName.GenerateVideo]: generateVideoTool,
   },
+  [AppDefaultToolkit.FileSearch]: {
+    // FileSearch tools temporarily removed to fix schema validation errors
+    // Will be replaced dynamically in shared.chat.ts when userId is available
+  },
 };

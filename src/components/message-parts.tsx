@@ -823,6 +823,16 @@ export const ToolMessagePart = memo(
     );
 
     const CustomToolComponent = useMemo(() => {
+      // Hide file search tools from UI - they work in background
+      if (
+        toolName === DefaultToolName.FileSearch ||
+        toolName === DefaultToolName.FileContent ||
+        toolName === DefaultToolName.FileChunkRange ||
+        toolName === DefaultToolName.FilesList
+      ) {
+        return <div style={{ display: "none" }} />; // Completely hidden
+      }
+
       if (
         toolName === DefaultToolName.WebSearch ||
         toolName === DefaultToolName.WebContent

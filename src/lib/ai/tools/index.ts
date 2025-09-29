@@ -3,6 +3,7 @@ export enum AppDefaultToolkit {
   WebSearch = "webSearch",
   ImageGeneration = "imageGeneration",
   VideoGeneration = "videoGeneration",
+  FileSearch = "fileSearch",
 }
 
 export enum DefaultToolName {
@@ -14,6 +15,10 @@ export enum DefaultToolName {
   WebContent = "webContent",
   GenerateImage = "generateImage",
   GenerateVideo = "generateVideo",
+  FileSearch = "fileSearch",
+  FileContent = "fileContent",
+  FileChunkRange = "fileChunkRange",
+  FilesList = "filesList",
 }
 
 export const SequentialThinkingToolName = "sequential-thinking";

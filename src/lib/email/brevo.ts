@@ -7,7 +7,7 @@ import {
   getSubscriptionEmailTemplate,
   getCancellationEmailTemplate,
 } from "./email-templates";
-import { getUserLanguage, getUserLanguageFromDB } from "../user-preferences";
+import { getUserLanguageFromDB } from "../user-preferences";
 
 interface EmailSender {
   name: string;

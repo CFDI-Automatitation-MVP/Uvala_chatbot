@@ -17,11 +17,13 @@ import {
 import { errorToString, exclude, objectFlow } from "lib/utils";
 import logger from "logger";
 import { MANUAL_REJECT_RESPONSE_PROMPT } from "lib/ai/prompts";
+import { createFileTools } from "@/lib/tools/file-search-tool";
 
 import { safe } from "ts-safe";
 import { APP_DEFAULT_TOOL_KIT } from "lib/ai/tools/tool-kit";
 import { AppDefaultToolkit } from "lib/ai/tools";
 import { checkUserLimits, formatLimitError } from "@/lib/subscription-limits";
+import { DefaultToolName } from "lib/ai/tools";
 
 export function excludeToolExecution(
   tool: Record<string, Tool>,
@@ -245,7 +247,7 @@ export const loadAppDefaultTools = (opt?: {
       const allowedAppDefaultToolkit =
         opt?.allowedAppDefaultToolkit ?? Object.values(AppDefaultToolkit);
 
-      // Always include ImageGeneration, VideoGeneration, and WebSearch toolkits regardless of user settings
+      // Always include ImageGeneration, VideoGeneration, WebSearch, and FileSearch toolkits regardless of user settings
       const toolkitsToInclude = [
         ...allowedAppDefaultToolkit,
         ...(allowedAppDefaultToolkit.includes(AppDefaultToolkit.ImageGeneration)
@@ -257,11 +259,25 @@ export const loadAppDefaultTools = (opt?: {
         ...(allowedAppDefaultToolkit.includes(AppDefaultToolkit.WebSearch)
           ? []
           : [AppDefaultToolkit.WebSearch]),
+        ...(allowedAppDefaultToolkit.includes(AppDefaultToolkit.FileSearch)
+          ? []
+          : [AppDefaultToolkit.FileSearch]),
       ];
 
       const loadedTools =
         toolkitsToInclude.reduce(
           (acc, key) => {
+            if (key === AppDefaultToolkit.FileSearch && opt?.userId) {
+              // Special handling for file tools - create them with userId
+              const fileTools = createFileTools(opt.userId);
+              return {
+                ...acc,
+                [DefaultToolName.FileSearch]: fileTools.fileSearch,
+                [DefaultToolName.FileContent]: fileTools.fileContent,
+                [DefaultToolName.FileChunkRange]: fileTools.fileChunkRange,
+                [DefaultToolName.FilesList]: fileTools.filesList,
+              };
+            }
             return { ...acc, ...tools[key] };
           },
           {} as Record<string, Tool>,
