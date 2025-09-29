@@ -5,18 +5,18 @@ import { ChevronDown, HelpCircle } from "lucide-react";
 import { Button } from "ui/button";
 import { Separator } from "ui/separator";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ThreadDropdown } from "../thread-dropdown";
 import { appStore } from "@/app/store";
 import { usePathname } from "next/navigation";
 import { useShallow } from "zustand/shallow";
 import { TextShimmer } from "ui/text-shimmer";
-import { useOnboarding } from "@/hooks/use-onboarding";
+import { FeaturesPopup } from "../features-popup";
 
 export function AppHeader() {
   const [_appStoreMutate] = appStore(useShallow((state) => [state.mutate]));
   const currentPaths = usePathname();
-  const { showFeaturesOnly } = useOnboarding();
+  const [showFeaturesPopup, setShowFeaturesPopup] = useState(false);
 
   const componentByPage = useMemo(() => {
     if (currentPaths.startsWith("/chat/")) {
@@ -49,7 +49,7 @@ export function AppHeader() {
                   e.preventDefault();
                   e.stopPropagation();
                   console.log("🖱️ ? button clicked!");
-                  showFeaturesOnly();
+                  setShowFeaturesPopup(true);
                 }}
                 className="h-8 w-8 p-0 hover:bg-accent text-muted-foreground hover:text-foreground relative z-50"
               >
@@ -62,6 +62,12 @@ export function AppHeader() {
           </Tooltip>
         </div>
       </header>
+
+      {/* Features Popup */}
+      <FeaturesPopup
+        isOpen={showFeaturesPopup}
+        onClose={() => setShowFeaturesPopup(false)}
+      />
     </>
   );
 }
