@@ -117,7 +117,7 @@ export const exaSearchSchema: JSONSchema7 = {
     maxCharacters: {
       type: "number",
       description: "Maximum characters to extract from each result",
-      default: 1500, // Reduced from 3000 for cost optimization  
+      default: 1500, // Reduced from 3000 for cost optimization
       minimum: 100,
       maximum: 2000, // Reduced from 10000 for cost optimization
     },
@@ -182,60 +182,8 @@ const fetchExa = async (endpoint: string, body: any): Promise<any> => {
   return await response.json();
 };
 
-export const exaSearchToolForWorkflow = createTool({
-  description:
-    "Search the web using Exa AI - performs real-time keyword-based web searches. Returns high-quality, relevant results with full content extraction.",
-  inputSchema: jsonSchemaToZod(exaSearchSchema),
-  execute: async (params) => {
-    const searchRequest: ExaSearchRequest = {
-      query: params.query,
-      type: params.type || "keyword",
-      numResults: params.numResults || 2,
-      contents: {
-        text: {
-          maxCharacters: params.maxCharacters || 1500,
-        },
-        livecrawl: "preferred",
-      },
-    };
-
-    // Add optional parameters if provided
-    if (params.category) searchRequest.category = params.category;
-    if (params.includeDomains?.length)
-      searchRequest.includeDomains = params.includeDomains;
-    if (params.excludeDomains?.length)
-      searchRequest.excludeDomains = params.excludeDomains;
-    if (params.startPublishedDate)
-      searchRequest.startPublishedDate = params.startPublishedDate;
-    if (params.endPublishedDate)
-      searchRequest.endPublishedDate = params.endPublishedDate;
-
-    return fetchExa("/search", searchRequest);
-  },
-});
-
-export const exaContentsToolForWorkflow = createTool({
-  description:
-    "Extract detailed content from specific URLs using Exa AI - retrieves full text content, metadata, and structured information from web pages with live crawling capabilities.",
-  inputSchema: jsonSchemaToZod(exaContentsSchema),
-  execute: async (params) => {
-    const contentsRequest: ExaContentsRequest = {
-      ids: params.urls,
-      contents: {
-        text: {
-          maxCharacters: params.maxCharacters || 1500,
-        },
-        livecrawl: params.livecrawl || "preferred",
-      },
-    };
-
-    return fetchExa("/contents", contentsRequest);
-  },
-});
-
 export const exaSearchTool = createTool({
-  description:
-    "Search the web using Exa AI - performs real-time keyword-based web searches. Returns high-quality, relevant results with full content extraction.",
+  description: "Search the web for real-time information.",
   inputSchema: jsonSchemaToZod(exaSearchSchema),
   execute: (params) => {
     return safe(async () => {
@@ -282,8 +230,7 @@ export const exaSearchTool = createTool({
 });
 
 export const exaContentsTool = createTool({
-  description:
-    "Extract detailed content from specific URLs using Exa AI - retrieves full text content, metadata, and structured information from web pages with live crawling capabilities.",
+  description: "Extract content from URLs.",
   inputSchema: jsonSchemaToZod(exaContentsSchema),
   execute: async (params) => {
     return safe(async () => {

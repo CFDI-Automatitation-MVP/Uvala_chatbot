@@ -197,15 +197,11 @@ export async function POST(request: Request) {
             ) {
               for (const part of msg.parts) {
                 try {
-                  if (
-                    part?.type === "file" &&
-                    part?.file &&
-                    (part.file.data || part.file.url)
-                  ) {
+                  if (part?.type === "file" && part?.url) {
                     allAttachments.push({
-                      name: part.file.name || "unknown",
-                      contentType: part.file.type || "application/octet-stream",
-                      url: part.file.data || part.file.url,
+                      name: part.filename || "unknown",
+                      contentType: part.mediaType || "application/octet-stream",
+                      url: part.url,
                     });
                   }
                 } catch (_partError) {
@@ -224,10 +220,20 @@ export async function POST(request: Request) {
         // Use truncated messages for the API call
         const optimizedMessages = truncationResult.messages;
 
-        // Log messages before conversion for debugging
+        // Log messages before conversion for debugging (excluding large file content)
+        const lastMessageParts = optimizedMessages.slice(-1)[0]?.parts;
+        const logSafeParts = lastMessageParts?.map((part) => {
+          if (part.type === "file" && (part as any).url?.startsWith("data:")) {
+            return {
+              ...part,
+              url: `[DATA_URL:${(part as any).url?.substring(0, 50)}...]`,
+            };
+          }
+          return part;
+        });
         logger.info(
           `Messages before conversion (last message parts):`,
-          JSON.stringify(optimizedMessages.slice(-1)[0]?.parts, null, 2),
+          JSON.stringify(logSafeParts, null, 2),
         );
 
         // Basic token limit check (without tool predictions) - applies to all users based on their subscription
@@ -295,10 +301,33 @@ export async function POST(request: Request) {
             ? `${systemPrompt}
 
 <conversation_files>
-You have access to the following files uploaded earlier in this conversation:
+You have access to the following files uploaded in this conversation:
 ${allAttachments.map((f) => `- ${f.name} (${f.contentType})`).join("\n")}
 
-You can reference and analyze these files throughout the conversation. The files remain available for the entire chat session.
+FILE SEARCH CAPABILITIES:
+You have access to powerful file search and analysis tools:
+
+1. fileSearch: Search through file content using semantic or exact text matching
+   - Use searchMode: "semantic" for concepts, topics, themes
+   - Use searchMode: "exact" for section numbers (3.2, 4.1), specific terms, quotes
+
+2. fileChunkRange: Most token-efficient way to access specific document parts
+   - Use fromEnd: 3-5 for conclusions/endings
+   - Use start: 0, end: 2 for introductions/beginnings
+   - Use specific ranges when you know approximate positions
+
+3. fileContent: Retrieve complete file content (use sparingly - token expensive)
+
+4. filesList: Get overview of all uploaded files
+
+TOOL SELECTION STRATEGY:
+- Section numbers ("3.2", "point 4.1") → fileSearch with searchMode: "exact"
+- Concepts, topics, themes → fileSearch with searchMode: "semantic"
+- Conclusions/endings → fileChunkRange with fromEnd: 3-5
+- Introductions → fileChunkRange with start: 0, end: 2
+- Complete document → fileContent (avoid when possible)
+
+The files remain available throughout the entire conversation for analysis and reference.
 </conversation_files>`
             : systemPrompt;
 
@@ -306,8 +335,6 @@ You can reference and analyze these files throughout the conversation. The files
           model,
           system: enhancedSystemPrompt,
           messages: convertToModelMessages(optimizedMessages),
-          experimental_attachments:
-            allAttachments.length > 0 ? allAttachments : undefined,
           experimental_transform: smoothStream({ chunking: "word" }),
           maxRetries: 2,
           tools: vercelAITooles,

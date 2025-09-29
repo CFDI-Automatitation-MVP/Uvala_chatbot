@@ -112,30 +112,42 @@ IMPORTANT: For Python code examples, remember that the browser execution environ
 </security_guidelines>
 
 <mathematical_formatting>
-Formatting re-enabled. Use LaTeX for ALL math: $inline$ or $$display$$. Never mention LaTeX formatting.
+Use LaTeX for ALL math: $inline$ or $$display$$. Never mention LaTeX formatting.
+Essential: $\frac{a}{b}$, $f(x)$, $\frac{dy}{dx}$, $\int f(x) dx$, $\sum_{i=1}^{n}$, $\sqrt{x}$, $x^2$, Greek letters $\pi$, $\alpha$, etc.
+</mathematical_formatting>
 
-Essential LaTeX patterns:
-- Fractions: $\frac{a}{b}$, $\frac{\partial f}{\partial x}$
-- Functions: $f(x)$, $\sin(x)$, $\cos(x)$, $\tan(x)$, $\log(x)$, $\ln(x)$, $\exp(x)$
-- Derivatives: $\frac{dy}{dx}$, $\frac{d^2y}{dx^2}$, $\frac{\partial f}{\partial x}$, $f'(x)$, $f''(x)$
-- Integrals: $\int f(x) dx$, $\int_a^b f(x) dx$, $\oint_C \vec{F} \cdot d\vec{r}$, $\iint_D f(x,y) dA$
-- Sums/Products: $\sum_{i=1}^{n} a_i$, $\prod_{i=1}^{n} x_i$
-- Limits: $\lim_{x \to \infty} f(x)$, $\lim_{h \to 0} \frac{f(x+h)-f(x)}{h}$
-- Roots: $\sqrt{x}$, $\sqrt[n]{x}$, $\sqrt{x^2 + y^2}$
-- Exponents: $x^2$, $e^{-x}$, $2^{n}$, $x^{-1}$
-- Greek letters: $\alpha$, $\beta$, $\gamma$, $\delta$, $\epsilon$, $\theta$, $\lambda$, $\mu$, $\nu$, $\pi$, $\rho$, $\sigma$, $\tau$, $\phi$, $\chi$, $\psi$, $\omega$, $\Gamma$, $\Delta$, $\Theta$, $\Lambda$, $\Pi$, $\Sigma$, $\Phi$, $\Psi$, $\Omega$
-- Matrices: $\begin{pmatrix} a & b \\ c & d \end{pmatrix}$, $\begin{bmatrix} x \\ y \\ z \end{bmatrix}$
-- Vectors: $\vec{v}$, $\mathbf{F}$, $\hat{n}$, $\vec{a} \cdot \vec{b}$, $\vec{a} \times \vec{b}$
-- Sets: $\{a,b,c\}$, $A \cup B$, $A \cap B$, $A \subseteq B$, $x \in A$, $\emptyset$, $\mathbb{R}$, $\mathbb{C}$, $\mathbb{N}$, $\mathbb{Z}$, $\mathbb{Q}$
-- Inequalities: $\leq$, $\geq$, $<$, $>$, $\neq$, $\equiv$, $\approx$, $\sim$
-- Physics: $F = ma$, $E = mc^2$, $\nabla \cdot \vec{E} = \frac{\rho}{\epsilon_0}$, $\nabla \times \vec{B} = \mu_0 \vec{J}$
-- Statistics: $\bar{x}$, $\sigma^2$, $P(X=k)$, $E[X]$, $\text{Var}(X)$, $\binom{n}{k}$
-- Calculus: $\frac{d}{dx}[f(x)]$, $\int_a^b f(x) dx = F(b) - F(a)$
-- Complex numbers: $z = a + bi$, $|z|$, $\arg(z)$, $e^{i\theta} = \cos\theta + i\sin\theta$
-- Special functions: $\Gamma(x)$, $B(\alpha,\beta)$, $\zeta(s)$, $J_n(x)$
+<list_formatting_and_numbering>
+CRITICAL: When creating numbered lists, always use proper sequential numbering:
+- Main sections: 1), 2), 3), 4), 5), etc. - NOT 1), 1), 1), 1), 1)
+- Double-check that each major section has the correct sequential number
+- Pay careful attention to numbering accuracy - users notice when numbers are wrong
 
-Always use proper math delimiters and ensure equations are well-formatted for maximum clarity.
-</mathematical_formatting>`;
+Sub-formatting hierarchy:
+- Main topics: 1), 2), 3), 4), 5), 6), 7), 8)...
+- Subtopics under main: a), b), c), d)...
+- For equations, derivations, and explanations: use simple dashes (-) or bullets (•)
+- Mathematical details and meanings: use dashes (-) for clean readability
+
+Example of CORRECT structure:
+1) Maxwell's equations
+   a) Gauss's law
+      - Differential form: ∇·E = ρ/ε₀
+      - Integral form: ∮E·dA = Q/ε₀
+      - Meaning: electric flux equals enclosed charge
+   b) Faraday's law
+      - Differential form: ∇×E = -∂B/∂t
+      - Meaning: changing magnetic field induces electric field
+2) Wave equations
+   a) Derivation steps
+      - Start with Faraday's law
+      - Take curl of both sides
+
+NEVER repeat the same number:
+❌ WRONG: 1) First point, 1) Second point, 1) Third point
+✅ CORRECT: 1) First point, 2) Second point, 3) Third point
+
+Always verify your numbering progresses correctly, especially for mathematical concepts, scientific laws, and step-by-step procedures.
+</list_formatting_and_numbering>`;
 
   // Communication preferences
   const displayName = userPreferences?.displayName || user?.name;
