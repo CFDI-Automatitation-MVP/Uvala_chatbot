@@ -42,6 +42,7 @@ import { useSidebar } from "ui/sidebar";
 import Link from "next/link";
 import { useSubscription } from "@/hooks/useSubscription";
 import { HoverBorderGradient } from "ui/hover-border-gradient";
+import { useIsMobile } from "@/hooks/use-mobile";
 type SessionUser = {
   id: string;
   email?: string;
@@ -184,11 +185,86 @@ export function AppSidebarUser({
 
 function SelectTheme() {
   const t = useTranslations("Layout");
+  const isMobile = useIsMobile();
 
   const { theme = "light", setTheme } = useTheme();
 
   const { themeStyle = "default", setThemeStyle } = useThemeStyle();
 
+  // Mobile version - use regular dropdown instead of submenu
+  if (isMobile) {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <DropdownMenuItem className="flex items-center justify-between cursor-pointer">
+            <div className="flex items-center">
+              <Palette className="mr-2 size-4" />
+              <span>{t("theme")}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground text-xs">
+                {`${capitalizeFirstLetter(theme)} ${capitalizeFirstLetter(themeStyle)}`}
+              </span>
+              <ChevronRight className="size-4" />
+            </div>
+          </DropdownMenuItem>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          className="bg-background/80 backdrop-blur-md border-border/20 w-48 rounded-lg"
+          side="top"
+          align="center"
+          sideOffset={8}
+        >
+          <DropdownMenuLabel className="text-muted-foreground w-full flex items-center">
+            <span className="text-muted-foreground text-xs mr-2 select-none">
+              {capitalizeFirstLetter(theme)}
+            </span>
+            <div className="flex-1" />
+            <div
+              onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+              className="cursor-pointer border rounded-full flex items-center"
+            >
+              <div
+                className={cn(
+                  theme === "dark" &&
+                    "bg-accent ring ring-muted-foreground/40 text-foreground",
+                  "p-1 rounded-full",
+                )}
+              >
+                <MoonStar className="size-3" />
+              </div>
+              <div
+                className={cn(
+                  theme === "light" &&
+                    "bg-accent ring ring-muted-foreground/40 text-foreground",
+                  "p-1 rounded-full",
+                )}
+              >
+                <Sun className="size-3" />
+              </div>
+            </div>
+          </DropdownMenuLabel>
+          <div className="max-h-96 overflow-y-auto">
+            {BASE_THEMES.map((t) => (
+              <DropdownMenuCheckboxItem
+                key={t}
+                checked={themeStyle === t}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setThemeStyle(t);
+                }}
+                className="text-sm"
+              >
+                {capitalizeFirstLetter(t)}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </div>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  }
+
+  // Desktop version - original submenu structure
   return (
     <DropdownMenuSub>
       <DropdownMenuSubTrigger
@@ -208,7 +284,13 @@ function SelectTheme() {
         <span className="mr-auto">{t("theme")}</span>
       </DropdownMenuSubTrigger>
       <DropdownMenuPortal>
-        <DropdownMenuSubContent className="bg-background/80 backdrop-blur-md border-border/20 w-48 rounded-lg">
+        <DropdownMenuSubContent
+          className="bg-background/80 backdrop-blur-md border-border/20 w-48 rounded-lg"
+          side="right"
+          align="start"
+          sideOffset={8}
+          alignOffset={-4}
+        >
           <DropdownMenuLabel className="text-muted-foreground w-full flex items-center">
             <span className="text-muted-foreground text-xs mr-2 select-none">
               {capitalizeFirstLetter(theme)}
@@ -262,6 +344,7 @@ function SelectTheme() {
 
 function SelectLanguage() {
   const t = useTranslations("Layout");
+  const isMobile = useIsMobile();
   const { data: currentLocale } = useSWR(COOKIE_KEY_LOCALE, getLocaleAction, {
     fallbackData: SUPPORTED_LOCALES[0].code,
     revalidateOnFocus: false,
@@ -271,6 +354,45 @@ function SelectLanguage() {
     window.location.reload();
   }, []);
 
+  // Mobile version - use regular dropdown instead of submenu
+  if (isMobile) {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <DropdownMenuItem className="flex items-center justify-between cursor-pointer">
+            <div className="flex items-center">
+              <Languages className="mr-2 size-4" />
+              <span>{t("language")}</span>
+            </div>
+            <ChevronRight className="size-4" />
+          </DropdownMenuItem>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          className="bg-background/80 backdrop-blur-md border-border/20 w-48 max-h-96 overflow-y-auto rounded-lg"
+          side="top"
+          align="center"
+          sideOffset={8}
+        >
+          <DropdownMenuLabel className="text-muted-foreground">
+            {t("language")}
+          </DropdownMenuLabel>
+          {SUPPORTED_LOCALES.map((locale) => (
+            <DropdownMenuCheckboxItem
+              key={locale.code}
+              checked={locale.code === currentLocale}
+              onCheckedChange={() =>
+                locale.code !== currentLocale && handleOnChange(locale.code)
+              }
+            >
+              {locale.name}
+            </DropdownMenuCheckboxItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  }
+
+  // Desktop version - original submenu structure
   return (
     <DropdownMenuSub>
       <DropdownMenuSubTrigger>
@@ -278,7 +400,13 @@ function SelectLanguage() {
         <span>{t("language")}</span>
       </DropdownMenuSubTrigger>
       <DropdownMenuPortal>
-        <DropdownMenuSubContent className="bg-background/80 backdrop-blur-md border-border/20 w-48 max-h-96 overflow-y-auto rounded-lg">
+        <DropdownMenuSubContent
+          className="bg-background/80 backdrop-blur-md border-border/20 w-48 max-h-96 overflow-y-auto rounded-lg"
+          side="right"
+          align="start"
+          sideOffset={8}
+          alignOffset={-4}
+        >
           <DropdownMenuLabel className="text-muted-foreground">
             {t("language")}
           </DropdownMenuLabel>

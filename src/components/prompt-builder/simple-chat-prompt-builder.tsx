@@ -129,18 +129,20 @@ export function SimpleChatPromptBuilder() {
       >
         {!messages.length && !error && (
           <div className="flex-1 items-center flex">
-            <div className="max-w-3xl mx-auto my-4 p-6">
-              <div className="rounded-xl p-6 flex flex-col gap-2 leading-relaxed text-center">
-                <div className="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
-                  <Brain className="w-8 h-8 text-primary" />
+            <div className="max-w-3xl mx-auto my-4 p-4 md:p-6">
+              <div className="rounded-xl p-4 md:p-6 flex flex-col gap-2 leading-relaxed text-center">
+                <div className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
+                  <Brain className="w-6 h-6 md:w-8 md:h-8 text-primary" />
                 </div>
-                <h1 className="text-2xl font-semibold">
+                <h1 className="text-xl md:text-2xl font-semibold">
                   {t("aiPromptBuilder")}
                 </h1>
-                <p className="text-muted-foreground mb-4">{t("description")}</p>
-                <div className="text-left space-y-2 text-sm">
+                <p className="text-muted-foreground mb-4 text-sm md:text-base">
+                  {t("description")}
+                </p>
+                <div className="text-left space-y-2 text-xs md:text-sm">
                   <p className="font-medium">{t("examples")}:</p>
-                  <div className="bg-muted rounded-lg p-3 space-y-1">
+                  <div className="bg-muted rounded-lg p-2 md:p-3 space-y-1">
                     <p>• {t("example1")}</p>
                     <p>• {t("example2")}</p>
                     <p>• {t("example3")}</p>
@@ -153,7 +155,9 @@ export function SimpleChatPromptBuilder() {
         )}
 
         <div
-          className={"flex flex-col gap-2 overflow-y-auto py-6"}
+          className={
+            "flex flex-col gap-2 overflow-y-auto py-3 md:py-6 px-2 md:px-0"
+          }
           ref={containerRef}
         >
           {messages.map((message, index) => {
@@ -173,14 +177,14 @@ export function SimpleChatPromptBuilder() {
             );
           })}
           {isLoading && (
-            <div className="w-full mx-auto max-w-3xl px-6">
+            <div className="w-full mx-auto max-w-3xl px-3 md:px-6">
               <Think />
             </div>
           )}
           {error && <ErrorMessage error={error} />}
         </div>
 
-        <div className={"w-full my-6 mt-auto"}>
+        <div className={"w-full my-3 md:my-6 mt-auto px-2 md:px-0"}>
           <PromptInput
             input={input}
             sendMessage={sendMessage}

@@ -37,9 +37,9 @@ export function PromptBuilderPopup() {
         style={{
           userSelect: "text",
         }}
-        className="w-full md:w-2xl px-2 flex flex-col"
+        className="w-full md:w-2xl px-2 flex flex-col h-[90vh] md:h-full"
       >
-        <DrawerHeader>
+        <DrawerHeader className="px-3 md:px-6">
           <DrawerTitle className="flex items-center gap-2">
             <Button
               variant={"ghost"}
@@ -49,7 +49,7 @@ export function PromptBuilderPopup() {
                 const resetEvent = new CustomEvent("promptBuilderReset");
                 window.dispatchEvent(resetEvent);
               }}
-              className="rounded-full"
+              className="rounded-full h-8 w-8 p-0"
             >
               <RotateCcw className="w-4 h-4" />
             </Button>
@@ -57,9 +57,9 @@ export function PromptBuilderPopup() {
             <DrawerClose asChild>
               <Button
                 variant={"secondary"}
-                className="flex items-center gap-1 rounded-full"
+                className="flex items-center gap-1 rounded-full h-8 w-8 p-0"
               >
-                <X />
+                <X className="w-4 h-4" />
               </Button>
             </DrawerClose>
           </DrawerTitle>

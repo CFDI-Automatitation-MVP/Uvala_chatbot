@@ -24,7 +24,8 @@ export function SidebarHoverZone() {
 
       // Much tighter zones for immediate response
       const sidebarZone = screenWidth * 0.08; // Very narrow 8% zone for opening
-      const closeZone = screenWidth * 0.25; // Close when past 25% (just outside sidebar area)
+      // Bigger close zone on mobile for easier return to chat
+      const closeZone = isMobile ? screenWidth * 0.4 : screenWidth * 0.25; // 40% on mobile, 25% on desktop
 
       const currentlyOpen = isMobile ? openMobile : open;
       const isInSidebarZone = currentX <= sidebarZone;

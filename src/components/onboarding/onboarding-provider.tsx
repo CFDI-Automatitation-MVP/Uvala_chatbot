@@ -8,6 +8,7 @@ export function OnboardingProvider() {
     useOnboarding();
 
   if (isLoading) {
+    console.log("⏳ OnboardingProvider: Still loading...");
     return null;
   }
 
@@ -17,6 +18,10 @@ export function OnboardingProvider() {
     "isFirstTimeUser:",
     isTrueFirstTimeUser,
   );
+
+  if (showOnboarding) {
+    console.log("🎉 OnboardingProvider: Rendering welcome popup");
+  }
 
   return (
     <WelcomePopup

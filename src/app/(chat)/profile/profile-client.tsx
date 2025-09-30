@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, lazy, Suspense } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -38,7 +38,14 @@ import {
   getRemainingTrialDays,
   isTrialExpired,
 } from "@/lib/subscription";
-import { PDFViewer } from "@/components/pdf-viewer";
+import { useIsMobile } from "@/hooks/use-mobile";
+
+// Lazy load the PDF viewer for better performance
+const PDFViewer = lazy(() =>
+  import("@/components/pdf-viewer").then((module) => ({
+    default: module.PDFViewer,
+  })),
+);
 
 const profileSections = [
   { id: "profile", icon: User, key: "title" },
@@ -74,10 +81,14 @@ interface Props {
 export function ProfilePageClient({ session }: Props) {
   const t = useTranslations();
   const router = useRouter();
+  const isMobile = useIsMobile();
   const [activeSection, setActiveSection] = useState<string>("profile");
   const [cancelingSubscription, setCancelingSubscription] = useState(false);
   const [_termsAcknowledged, setTermsAcknowledged] = useState(false);
   const [canProceed, setCanProceed] = useState(false);
+
+  // Only load subscription data when needed for billing section
+  const shouldLoadSubscription = activeSection === "billing";
   const {
     hasSubscription,
     planType,
@@ -87,6 +98,18 @@ export function ProfilePageClient({ session }: Props) {
   } = useSubscription();
 
   const user = session?.user;
+
+  // Memoize expensive calculations for mobile performance
+  const trialInfo = useMemo(() => {
+    if (!userCreatedAt || hasSubscription) return null;
+
+    const userCreationDate = new Date(userCreatedAt);
+    return {
+      isInTrial: isUserInTrialPeriod(userCreationDate),
+      remainingDays: getRemainingTrialDays(userCreationDate),
+      trialExpired: isTrialExpired(userCreationDate),
+    };
+  }, [userCreatedAt, hasSubscription]);
 
   const handleLogout = async () => {
     try {
@@ -149,16 +172,40 @@ export function ProfilePageClient({ session }: Props) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/20 flex items-center justify-center p-4">
-      {/* Semi-transparent container */}
-      <div className="w-full max-w-4xl bg-background/80 backdrop-blur-md border border-border/20 rounded-2xl shadow-2xl overflow-hidden relative">
-        {/* Exit Button */}
+    <div
+      className={cn(
+        "min-h-screen flex items-center justify-center p-4",
+        isMobile
+          ? "bg-background" // Simpler background on mobile
+          : "bg-gradient-to-br from-background via-background/95 to-muted/20",
+      )}
+    >
+      {/* Container with mobile optimizations */}
+      <div
+        className={cn(
+          "w-full max-w-4xl border rounded-2xl shadow-2xl overflow-hidden relative",
+          isMobile
+            ? "bg-background border-border/40" // Simplified styling on mobile
+            : "bg-background/80 backdrop-blur-md border-border/20",
+        )}
+      >
+        {/* Exit Button - Mobile optimized */}
         <button
           onClick={() => router.back()}
-          className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-muted/80 hover:bg-muted border border-border/40 backdrop-blur-sm transition-all duration-200 flex items-center justify-center group hover:scale-105 shadow-lg"
+          className={cn(
+            "absolute top-4 right-4 z-10 rounded-full border transition-all duration-200 flex items-center justify-center group shadow-lg touch-manipulation",
+            isMobile
+              ? "w-12 h-12 bg-muted hover:bg-muted/80 border-border/60" // Bigger on mobile
+              : "w-10 h-10 bg-muted/80 hover:bg-muted border-border/40 backdrop-blur-sm hover:scale-105",
+          )}
           aria-label="Close Profile"
         >
-          <X className="size-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+          <X
+            className={cn(
+              "text-muted-foreground group-hover:text-foreground transition-colors",
+              isMobile ? "size-6" : "size-5",
+            )}
+          />
         </button>
 
         {/* Header */}
@@ -171,10 +218,27 @@ export function ProfilePageClient({ session }: Props) {
           </p>
         </div>
 
-        <div className="flex flex-col lg:flex-row min-h-[600px]">
-          {/* Sidebar Navigation */}
-          <div className="lg:w-1/4 bg-background/30 border-r border-border/20 p-6">
-            <nav className="space-y-2">
+        <div
+          className={cn(
+            "flex min-h-[600px]",
+            isMobile ? "flex-col" : "flex-col lg:flex-row",
+          )}
+        >
+          {/* Sidebar Navigation - Mobile optimized */}
+          <div
+            className={cn(
+              "border-border/20 p-6",
+              isMobile
+                ? "bg-background/60 border-b" // Full width on mobile
+                : "lg:w-1/4 bg-background/30 border-r",
+            )}
+          >
+            <nav
+              className={cn(
+                "space-y-2",
+                isMobile && "flex gap-2 overflow-x-auto", // Horizontal scroll on mobile
+              )}
+            >
               {profileSections.map((section) => {
                 const Icon = section.icon;
                 const isActive = activeSection === section.id;
@@ -184,14 +248,17 @@ export function ProfilePageClient({ session }: Props) {
                     key={section.id}
                     onClick={() => setActiveSection(section.id)}
                     className={cn(
-                      "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-left",
+                      "flex items-center gap-3 rounded-lg transition-all duration-200 text-left touch-manipulation",
+                      isMobile
+                        ? "px-6 py-4 flex-shrink-0 min-w-fit" // Mobile horizontal layout
+                        : "w-full px-4 py-3", // Desktop full width
                       isActive
                         ? "bg-primary text-primary-foreground shadow-md"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
                     )}
                   >
                     <Icon className="size-5 flex-shrink-0" />
-                    <span className="font-medium">
+                    <span className="font-medium whitespace-nowrap">
                       {t(`Profile.${section.key}`)}
                     </span>
                   </button>
@@ -200,9 +267,16 @@ export function ProfilePageClient({ session }: Props) {
             </nav>
           </div>
 
-          {/* Main Content Area */}
+          {/* Main Content Area - Lazy render sections */}
           <div className="flex-1 p-6">
-            <div className="bg-background/40 rounded-xl p-6 border border-border/10">
+            <div
+              className={cn(
+                "rounded-xl p-6 border",
+                isMobile
+                  ? "bg-background/60 border-border/20" // More visible on mobile
+                  : "bg-background/40 border-border/10",
+              )}
+            >
               {activeSection === "profile" && (
                 <div className="space-y-6">
                   <h2 className="text-xl font-semibold text-foreground">
@@ -306,17 +380,26 @@ export function ProfilePageClient({ session }: Props) {
                     </details>
                   </div>
 
-                  {/* Terms and Conditions PDF */}
-                  <PDFViewer
-                    pdfUrl="/terminos-y-condiciones-uvala.pdf"
-                    title={
-                      t("Profile.termsAndConditions") ||
-                      "Términos y Condiciones de Uso de Plataforma Uvala.AI"
+                  {/* Terms and Conditions PDF - Lazy loaded */}
+                  <Suspense
+                    fallback={
+                      <div className="mt-6 p-4 bg-muted/20 rounded-lg animate-pulse">
+                        <div className="h-4 bg-muted rounded w-1/2 mb-2"></div>
+                        <div className="h-8 bg-muted rounded"></div>
+                      </div>
                     }
-                    required={true}
-                    onAcknowledge={handleTermsAcknowledged}
-                    className="mt-6"
-                  />
+                  >
+                    <PDFViewer
+                      pdfUrl="/terminos-y-condiciones-uvala.pdf"
+                      title={
+                        t("Profile.termsAndConditions") ||
+                        "Términos y Condiciones de Uso de Plataforma Uvala.AI"
+                      }
+                      required={true}
+                      onAcknowledge={handleTermsAcknowledged}
+                      className="mt-6"
+                    />
+                  </Suspense>
 
                   {/* Proceed Button */}
                   <div className="pt-4">
@@ -349,9 +432,17 @@ export function ProfilePageClient({ session }: Props) {
                     {t("Profile.billing")}
                   </h2>
 
-                  {subscriptionLoading ? (
-                    <div className="text-muted-foreground">
-                      Loading subscription details...
+                  {!shouldLoadSubscription || subscriptionLoading ? (
+                    <div className="space-y-4">
+                      {/* Loading skeleton optimized for mobile */}
+                      <div className="bg-background/60 rounded-lg p-4 border border-border/20 animate-pulse">
+                        <div className="h-4 bg-muted rounded w-1/3 mb-3"></div>
+                        <div className="h-6 bg-muted rounded w-1/2"></div>
+                      </div>
+                      <div className="bg-background/60 rounded-lg p-4 border border-border/20 animate-pulse">
+                        <div className="h-4 bg-muted rounded w-1/4 mb-3"></div>
+                        <div className="h-4 bg-muted rounded w-3/4"></div>
+                      </div>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -423,65 +514,49 @@ export function ProfilePageClient({ session }: Props) {
                         )}
                       </div>
 
-                      {/* Trial Status - Show for free users only */}
-                      {!hasSubscription && userCreatedAt && (
+                      {/* Trial Status - Show for free users only with memoized calculation */}
+                      {!hasSubscription && userCreatedAt && trialInfo && (
                         <div className="bg-background/60 rounded-lg p-4 border border-border/20">
                           <Label className="text-sm font-medium text-foreground mb-3 block">
                             Trial Status
                           </Label>
 
-                          {(() => {
-                            const userCreationDate = new Date(userCreatedAt);
-                            const isInTrial =
-                              isUserInTrialPeriod(userCreationDate);
-                            const remainingDays =
-                              getRemainingTrialDays(userCreationDate);
-                            const trialExpired =
-                              isTrialExpired(userCreationDate);
-
-                            if (isInTrial) {
-                              return (
-                                <div className="flex items-center gap-3">
-                                  <div className="flex items-center gap-2 text-blue-600">
-                                    <Clock className="w-4 h-4" />
-                                    <Badge
-                                      variant="default"
-                                      className="bg-blue-600"
-                                    >
-                                      Trial Active
-                                    </Badge>
-                                  </div>
-                                  <div className="text-sm text-foreground">
-                                    <span className="font-medium">
-                                      {remainingDays} day
-                                      {remainingDays !== 1 ? "s" : ""}
-                                    </span>{" "}
-                                    remaining
-                                  </div>
-                                </div>
-                              );
-                            } else if (trialExpired) {
-                              return (
-                                <div className="flex items-center gap-3">
-                                  <div className="flex items-center gap-2 text-red-600">
-                                    <AlertCircle className="w-4 h-4" />
-                                    <Badge variant="destructive">
-                                      Trial Expired
-                                    </Badge>
-                                  </div>
-                                  <div className="text-sm text-muted-foreground">
-                                    Upgrade to continue using the service
-                                  </div>
-                                </div>
-                              );
-                            } else {
-                              return (
-                                <div className="text-sm text-muted-foreground">
-                                  No trial information available
-                                </div>
-                              );
-                            }
-                          })()}
+                          {trialInfo.isInTrial ? (
+                            <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-2 text-blue-600">
+                                <Clock className="w-4 h-4" />
+                                <Badge
+                                  variant="default"
+                                  className="bg-blue-600"
+                                >
+                                  Trial Active
+                                </Badge>
+                              </div>
+                              <div className="text-sm text-foreground">
+                                <span className="font-medium">
+                                  {trialInfo.remainingDays} day
+                                  {trialInfo.remainingDays !== 1 ? "s" : ""}
+                                </span>{" "}
+                                remaining
+                              </div>
+                            </div>
+                          ) : trialInfo.trialExpired ? (
+                            <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-2 text-red-600">
+                                <AlertCircle className="w-4 h-4" />
+                                <Badge variant="destructive">
+                                  Trial Expired
+                                </Badge>
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                Upgrade to continue using the service
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-sm text-muted-foreground">
+                              No trial information available
+                            </div>
+                          )}
                         </div>
                       )}
 

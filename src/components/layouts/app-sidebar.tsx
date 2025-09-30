@@ -69,27 +69,27 @@ export function AppSidebar({ session }: { session?: { user: SessionUser } }) {
                   ? "/uvala-white-log.svg"
                   : "/uvala-black-log.svg"
               }
-              alt="Uvala"
+              alt="uvala"
               width={32}
               height={32}
               className="size-8 group-data-[collapsible=icon]:size-12"
             />
             <span className="ml-2 font-bold text-lg group-data-[collapsible=icon]:sr-only">
-              Uvala
+              uvala
             </span>
           </div>
         </div>
 
         {/* Mobile close trigger */}
         <div
-          className="absolute right-2 top-2 block sm:hidden z-50"
+          className="absolute right-2 top-2 block sm:hidden z-50 p-2 hover:bg-accent rounded-md cursor-pointer touch-manipulation"
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
             setOpenMobile(false);
           }}
         >
-          <PanelLeft className="size-4" />
+          <PanelLeft className="size-5" />
         </div>
       </SidebarHeader>
 

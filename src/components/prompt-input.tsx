@@ -131,15 +131,22 @@ export default function PromptInput({
 
   // Initialize optimal speech recognition
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined") {
+      console.log("🚫 Window undefined, skipping speech init");
+      return;
+    }
 
+    console.log("🎤 Initializing speech recognition...");
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
+
     if (!SpeechRecognition) {
+      console.log("🚫 Speech Recognition API not available in this browser");
       setSpeechSupported(false);
       return;
     }
 
+    console.log("✅ Speech Recognition API available");
     setSpeechSupported(true);
     const recognition = new SpeechRecognition();
 
@@ -225,18 +232,45 @@ export default function PromptInput({
         recognition.abort();
       }
     };
-  }, [speechLanguage, currentLocale]); // Re-initialize when language changes
+  }, [currentLocale]); // Re-initialize when language changes
 
   const startListening = useCallback(() => {
-    if (speechRecognition && !isDictating && speechSupported) {
-      try {
-        // Update language before starting
-        speechRecognition.lang = speechLanguage;
-        speechRecognition.start();
-      } catch (error) {
-        console.error("Failed to start speech recognition:", error);
-        setIsDictating(false);
+    if (!speechSupported) {
+      console.warn("Speech recognition not supported");
+      return;
+    }
+
+    if (!speechRecognition) {
+      console.warn("Speech recognition not initialized");
+      return;
+    }
+
+    if (isDictating) {
+      console.log("Already dictating, ignoring start request");
+      return;
+    }
+
+    try {
+      // Update language before starting
+      speechRecognition.lang = speechLanguage;
+      console.log(
+        `🎤 Starting speech recognition with language: ${speechLanguage}`,
+      );
+      speechRecognition.start();
+    } catch (error: any) {
+      console.error("Failed to start speech recognition:", error);
+      if (error.message?.includes("already started")) {
+        console.log("Recognition already started, stopping and restarting");
+        speechRecognition.stop();
+        setTimeout(() => {
+          try {
+            speechRecognition.start();
+          } catch (retryError) {
+            console.error("Failed to restart:", retryError);
+          }
+        }, 100);
       }
+      setIsDictating(false);
     }
   }, [speechRecognition, isDictating, speechSupported, speechLanguage]);
 

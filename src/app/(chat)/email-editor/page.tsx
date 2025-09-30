@@ -7,9 +7,12 @@ import {
   Eye,
   Save,
   Download,
+  // Upload,
   Smartphone,
   Monitor,
+  // Palette,
   Type,
+  // Layout,
   Send,
   Copy,
 } from "lucide-react";

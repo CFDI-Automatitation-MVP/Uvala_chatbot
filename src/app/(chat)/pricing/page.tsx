@@ -18,9 +18,11 @@ import {
   Globe,
   Image as ImageIcon,
   Video,
+  ArrowLeft,
 } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 
 type Currency = "USD" | "MXN";
 
@@ -136,6 +138,7 @@ const getFeatureIcon = (feature: string) => {
 export default function PricingPage() {
   const [isLoading, setIsLoading] = useState<string | null>(null);
   const [currency, setCurrency] = useState<Currency>("MXN");
+  const router = useRouter();
   const {
     hasSubscription,
     planType,
@@ -205,6 +208,19 @@ export default function PricingPage() {
       </div>
 
       <div className="relative z-20 container mx-auto px-4 py-12">
+        {/* Return button - Mobile */}
+        <div className="block sm:hidden mb-6">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.back()}
+            className="bg-white/20 backdrop-blur-sm border-white/30 text-white hover:bg-white/30 touch-manipulation"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+        </div>
+
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4 text-white">{t("title")}</h1>
           <p className="text-lg text-gray-300 max-w-2xl mx-auto mb-8">
