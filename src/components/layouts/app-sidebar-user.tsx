@@ -284,13 +284,7 @@ function SelectTheme() {
         <span className="mr-auto">{t("theme")}</span>
       </DropdownMenuSubTrigger>
       <DropdownMenuPortal>
-        <DropdownMenuSubContent
-          className="bg-background/80 backdrop-blur-md border-border/20 w-48 rounded-lg"
-          side="right"
-          align="start"
-          sideOffset={8}
-          alignOffset={-4}
-        >
+        <DropdownMenuSubContent className="bg-background/80 backdrop-blur-md border-border/20 w-48 rounded-lg">
           <DropdownMenuLabel className="text-muted-foreground w-full flex items-center">
             <span className="text-muted-foreground text-xs mr-2 select-none">
               {capitalizeFirstLetter(theme)}
@@ -400,13 +394,7 @@ function SelectLanguage() {
         <span>{t("language")}</span>
       </DropdownMenuSubTrigger>
       <DropdownMenuPortal>
-        <DropdownMenuSubContent
-          className="bg-background/80 backdrop-blur-md border-border/20 w-48 max-h-96 overflow-y-auto rounded-lg"
-          side="right"
-          align="start"
-          sideOffset={8}
-          alignOffset={-4}
-        >
+        <DropdownMenuSubContent className="bg-background/80 backdrop-blur-md border-border/20 w-48 max-h-96 overflow-y-auto rounded-lg">
           <DropdownMenuLabel className="text-muted-foreground">
             {t("language")}
           </DropdownMenuLabel>
