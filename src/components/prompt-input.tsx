@@ -308,7 +308,7 @@ export default function PromptInput({
     };
   }, [currentLocale]); // Re-initialize when language changes
 
-  const startListening = useCallback(() => {
+  const _startListening = useCallback(() => {
     console.log("🔘 startListening() called");
     console.log("📊 State check:", {
       speechSupported,
@@ -408,17 +408,79 @@ export default function PromptInput({
     externalSetFileAttachments ?? setInternalFileAttachments;
 
   const toggleDictation = useCallback(() => {
-    if (!speechSupported) {
-      console.warn("Speech recognition not supported");
+    console.log("🔘 toggleDictation called");
+
+    if (!isHttps) {
+      console.error("❌ Cannot toggle: HTTPS required");
+      alert(
+        "Speech recognition requires HTTPS. Please access this site via https://",
+      );
       return;
     }
 
-    if (isDictating) {
-      stopListening();
-    } else {
-      startListening();
+    if (!speechSupported) {
+      console.error("❌ Cannot toggle: Speech recognition not supported");
+      alert(
+        "Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari.",
+      );
+      return;
     }
-  }, [isDictating, speechSupported, startListening, stopListening]);
+
+    if (!speechRecognition) {
+      console.error("❌ Cannot toggle: Speech recognition not initialized");
+      return;
+    }
+
+    // Stop if already dictating
+    if (isDictating) {
+      console.log("🛑 Stopping dictation");
+      speechRecognition.stop();
+      return;
+    }
+
+    // Start dictation - MUST be synchronous for Chrome user gesture
+    console.log("🚀 Starting dictation synchronously");
+    try {
+      speechRecognition.lang = speechLanguage;
+      console.log(`🌐 Language: ${speechLanguage}`);
+      console.log("⚡ Calling start() SYNCHRONOUSLY in user gesture context");
+
+      speechRecognition.startTimestamp = Date.now();
+      speechRecognition.start(); // This MUST happen synchronously!
+
+      console.log("✅ start() called - waiting for permission/onstart event");
+    } catch (error: any) {
+      console.error("❌ Exception in toggleDictation:", error);
+      console.error("Error name:", error.name);
+      console.error("Error message:", error.message);
+
+      if (
+        error.message?.includes("already started") ||
+        error.name === "InvalidStateError"
+      ) {
+        console.log("🔄 Already started, stopping and retrying");
+        speechRecognition.stop();
+        setTimeout(() => {
+          try {
+            speechRecognition.start();
+          } catch (retryError) {
+            console.error("❌ Retry failed:", retryError);
+          }
+        }, 100);
+      } else {
+        alert(
+          `Failed to start speech recognition: ${error.message}\n\nPlease check:\n1. Microphone permissions in browser settings\n2. Browser compatibility (Chrome, Edge, Safari)\n3. HTTPS connection`,
+        );
+      }
+      setIsDictating(false);
+    }
+  }, [
+    isDictating,
+    speechSupported,
+    speechRecognition,
+    speechLanguage,
+    isHttps,
+  ]);
 
   const mentions = useMemo<ChatMention[]>(() => {
     if (!threadId) return [];
