@@ -19,7 +19,7 @@ import {
   Image as ImageIcon,
   Video,
   ArrowLeft,
-  Loader2,
+  // Loader2, // Unused
 } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useTranslations } from "next-intl";
