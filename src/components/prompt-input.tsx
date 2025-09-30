@@ -128,6 +128,10 @@ export default function PromptInput({
   const [speechRecognition, setSpeechRecognition] = useState<any>(null);
   const [isDictating, setIsDictating] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
+  const [permissionState, setPermissionState] = useState<
+    "prompt" | "granted" | "denied" | "checking"
+  >("checking");
+  const [isHttps, setIsHttps] = useState(true);
 
   // Initialize optimal speech recognition
   useEffect(() => {
@@ -136,23 +140,44 @@ export default function PromptInput({
       return;
     }
 
+    // Check HTTPS requirement
+    const isSecure =
+      window.location.protocol === "https:" ||
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
+    setIsHttps(isSecure);
+
+    if (!isSecure) {
+      console.error(
+        "❌ HTTPS required for speech recognition. Current protocol:",
+        window.location.protocol,
+      );
+      setSpeechSupported(false);
+      return;
+    }
+
     console.log("🎤 Initializing speech recognition...");
+    console.log("🔒 Protocol:", window.location.protocol);
+    console.log("🌐 Hostname:", window.location.hostname);
+
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
       console.log("🚫 Speech Recognition API not available in this browser");
       setSpeechSupported(false);
+      setPermissionState("denied");
       return;
     }
 
     console.log("✅ Speech Recognition API available");
     setSpeechSupported(true);
+    setPermissionState("prompt");
     const recognition = new SpeechRecognition();
 
-    // Optimal configuration for multilingual accuracy
-    recognition.continuous = false; // Better accuracy for short phrases
-    recognition.interimResults = false; // Only final results for better accuracy
+    // Professional configuration based on Google's demo
+    recognition.continuous = true; // Keep listening for better dictation
+    recognition.interimResults = true; // Show interim results for better UX
     recognition.maxAlternatives = 1; // Single best result
 
     // Use app's selected language, fallback to browser detection
@@ -174,55 +199,104 @@ export default function PromptInput({
 
     recognition.onstart = () => {
       setIsDictating(true);
-      console.log(`🎤 Listening in ${recognition.lang}`);
+      setPermissionState("granted");
+      console.log(
+        `✅ Speech recognition started successfully in ${recognition.lang}`,
+      );
+      console.log("🎤 Now listening... Speak into your microphone");
     };
 
     recognition.onend = () => {
       setIsDictating(false);
-      console.log("🎤 Stopped listening");
-    };
-
-    recognition.onresult = (event: any) => {
-      if (event.results && event.results.length > 0) {
-        const result = event.results[0];
-        if (result.isFinal && result[0]) {
-          const transcript = result[0].transcript.trim();
-          const confidence = result[0].confidence || 0;
-
-          console.log(
-            `🎯 Transcript: "${transcript}" (confidence: ${confidence})`,
-          );
-
-          if (transcript) {
-            // Smart input appending
-            const currentText = input.trim();
-            const newInput = currentText
-              ? `${currentText} ${transcript}`
-              : transcript;
-            setInput(newInput);
-          }
+      console.log("🎤 Speech recognition ended");
+      // Auto-restart if continuous mode is enabled and still supposed to be listening
+      if (recognition.continuous && isDictating) {
+        console.log("🔄 Auto-restarting continuous recognition");
+        try {
+          recognition.start();
+        } catch (e) {
+          console.log("Could not auto-restart:", e);
         }
       }
     };
 
+    recognition.onresult = (event: any) => {
+      console.log("📥 Received speech results, processing...");
+      let _interimTranscript = "";
+      let finalTranscript = "";
+
+      // Process all results (handles both interim and final)
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i];
+        const transcript = result[0].transcript;
+
+        if (result.isFinal) {
+          finalTranscript += transcript;
+          const confidence = result[0].confidence || 0;
+          console.log(
+            `🎯 Final transcript: "${transcript}" (confidence: ${Math.round(confidence * 100)}%)`,
+          );
+        } else {
+          _interimTranscript += transcript;
+          console.log(`💬 Interim: "${transcript}"`);
+        }
+      }
+
+      // Update input with final results
+      if (finalTranscript) {
+        const currentText = input.trim();
+        const newInput = currentText
+          ? `${currentText} ${finalTranscript.trim()}`
+          : finalTranscript.trim();
+        setInput(newInput);
+        console.log(`✍️ Updated input: "${newInput}"`);
+      }
+    };
+
     recognition.onerror = (event: any) => {
-      console.error("Speech recognition error:", event.error);
+      console.error("❌ Speech recognition error:", event.error);
+      console.error("Error details:", event);
       setIsDictating(false);
 
-      // Handle specific errors
-      if (event.error === "no-speech" || event.error === "audio-capture") {
-        // Silent fail for common user errors
+      // Handle specific errors with user-friendly messages
+      if (event.error === "no-speech") {
+        console.warn("⚠️ No speech detected. Try speaking again.");
+        return;
+      }
+
+      if (event.error === "audio-capture") {
+        console.error(
+          "🎤 No microphone found or microphone is being used by another application",
+        );
+        setPermissionState("denied");
         return;
       }
 
       if (event.error === "not-allowed") {
-        console.warn("Microphone permission denied");
+        console.error(
+          "🚫 Microphone permission denied. Please allow microphone access in your browser settings.",
+        );
+        setPermissionState("denied");
+        // Check if it's initial permission denial or subsequent
+        if (event.timeStamp - recognition.startTimestamp < 100) {
+          console.error("Permission was denied before recognition started");
+        } else {
+          console.error("Permission was denied after starting");
+        }
+        return;
       }
+
+      if (event.error === "aborted") {
+        console.log("Speech recognition was aborted");
+        return;
+      }
+
+      // Log any other errors
+      console.error(`Unhandled error type: ${event.error}`);
     };
 
     recognition.onnomatch = () => {
       console.log("🚫 No speech match found");
-      setIsDictating(false);
     };
 
     setSpeechRecognition(recognition);
@@ -235,44 +309,92 @@ export default function PromptInput({
   }, [currentLocale]); // Re-initialize when language changes
 
   const startListening = useCallback(() => {
+    console.log("🔘 startListening() called");
+    console.log("📊 State check:", {
+      speechSupported,
+      speechRecognition: !!speechRecognition,
+      isDictating,
+      permissionState,
+      isHttps,
+    });
+
+    if (!isHttps) {
+      console.error("❌ Cannot start: HTTPS required for speech recognition");
+      alert(
+        "Speech recognition requires HTTPS. Please access this site via https://",
+      );
+      return;
+    }
+
     if (!speechSupported) {
-      console.warn("Speech recognition not supported");
+      console.error("❌ Cannot start: Speech recognition not supported");
+      alert(
+        "Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari.",
+      );
       return;
     }
 
     if (!speechRecognition) {
-      console.warn("Speech recognition not initialized");
+      console.error("❌ Cannot start: Speech recognition not initialized");
       return;
     }
 
     if (isDictating) {
-      console.log("Already dictating, ignoring start request");
+      console.log("⚠️ Already dictating, ignoring start request");
       return;
     }
 
     try {
       // Update language before starting
       speechRecognition.lang = speechLanguage;
+      console.log("🚀 Attempting to start speech recognition...");
+      console.log(`🌐 Language: ${speechLanguage}`);
       console.log(
-        `🎤 Starting speech recognition with language: ${speechLanguage}`,
+        "⚡ Calling speechRecognition.start() - Permission prompt should appear now if not granted",
       );
+
+      // Store timestamp for error detection
+      speechRecognition.startTimestamp = Date.now();
       speechRecognition.start();
+
+      console.log(
+        "✅ speechRecognition.start() called successfully. Waiting for permission...",
+      );
     } catch (error: any) {
-      console.error("Failed to start speech recognition:", error);
-      if (error.message?.includes("already started")) {
-        console.log("Recognition already started, stopping and restarting");
+      console.error("❌ Exception when starting speech recognition:", error);
+      console.error("Error name:", error.name);
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+
+      if (
+        error.message?.includes("already started") ||
+        error.name === "InvalidStateError"
+      ) {
+        console.log("🔄 Recognition already started, stopping and restarting");
         speechRecognition.stop();
         setTimeout(() => {
           try {
+            console.log("🔄 Retry: calling start() again");
             speechRecognition.start();
           } catch (retryError) {
-            console.error("Failed to restart:", retryError);
+            console.error("❌ Failed to restart:", retryError);
           }
         }, 100);
+      } else {
+        alert(
+          `Failed to start speech recognition: ${error.message}\n\nPlease check:\n1. Microphone permissions\n2. Browser compatibility\n3. HTTPS connection`,
+        );
       }
       setIsDictating(false);
     }
-  }, [speechRecognition, isDictating, speechSupported, speechLanguage]);
+  }, [
+    speechRecognition,
+    isDictating,
+    speechSupported,
+    speechLanguage,
+    permissionState,
+    isHttps,
+  ]);
 
   const stopListening = useCallback(() => {
     if (speechRecognition && isDictating) {
@@ -700,19 +822,32 @@ export default function PromptInput({
                     <TooltipTrigger asChild>
                       <Button
                         size={"sm"}
-                        onClick={toggleDictation}
-                        className={`rounded-full p-2! mr-2 ${isDictating ? "bg-red-500 hover:bg-red-600 text-white" : ""}`}
-                        disabled={!speechSupported}
+                        onClick={(e) => {
+                          console.log("🖱️ Microphone button clicked!", e);
+                          toggleDictation();
+                        }}
+                        className={`rounded-full p-2! mr-2 ${
+                          isDictating
+                            ? "bg-red-500 hover:bg-red-600 text-white animate-pulse"
+                            : permissionState === "denied"
+                              ? "opacity-50"
+                              : ""
+                        }`}
+                        disabled={!speechSupported || !isHttps}
                       >
                         {isDictating ? <MicOff size={16} /> : <Mic size={16} />}
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      {speechSupported
-                        ? isDictating
-                          ? `Stop Dictation (${speechLanguage === "es-ES" ? "Español" : "English"})`
-                          : `Start Dictation (${speechLanguage === "es-ES" ? "Español" : "English"})`
-                        : "Speech recognition not supported in this browser"}
+                      {!isHttps
+                        ? "🔒 HTTPS required for speech recognition"
+                        : !speechSupported
+                          ? "Speech recognition not supported in this browser. Use Chrome, Edge, or Safari."
+                          : permissionState === "denied"
+                            ? "🚫 Microphone access denied. Please enable in browser settings."
+                            : isDictating
+                              ? `🔴 Stop Dictation (${speechLanguage === "es-ES" ? "Español" : "English"})`
+                              : `🎤 Start Dictation (${speechLanguage === "es-ES" ? "Español" : "English"})`}
                     </TooltipContent>
                   </Tooltip>
                 )}
