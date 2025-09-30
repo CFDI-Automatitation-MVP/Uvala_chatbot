@@ -506,8 +506,8 @@ export default function PromptInput({
     if (isLoading) return;
 
     // Stop dictation if it's running
-    if (isDictating) {
-      stopListening();
+    if (isDictating && speechRecognition) {
+      speechRecognition.stop();
     }
 
     const userMessage = input?.trim() || "";
