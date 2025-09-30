@@ -66,7 +66,7 @@ class BrevoEmailService {
 
     // Default sender - using authenticated domain
     this.defaultSender = {
-      name: "Uvala",
+      name: "uvala",
       email: "no-reply@uvala.ai", // Your authenticated domain
     };
   }

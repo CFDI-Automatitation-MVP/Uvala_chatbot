@@ -89,7 +89,7 @@ export function AppHeader() {
                 onClick={toggleSidebar}
                 className="sm:h-8 sm:w-8 h-10 w-10 p-0 hover:bg-accent text-foreground hover:text-foreground mr-2 border border-border/20 hover:border-border/40 touch-manipulation"
               >
-                <Menu className="sm:w-4 sm:h-4 w-5 h-5" />
+                <Menu className="sm:w-4 sm:h-4 w-5 h-5 text-foreground" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -117,7 +117,7 @@ export function AppHeader() {
                   }}
                   className="sm:h-8 sm:w-8 h-10 w-10 p-0 hover:bg-accent text-foreground hover:text-foreground relative z-50 border border-border/20 hover:border-border/40 touch-manipulation"
                 >
-                  <MessageCircleDashed className="sm:w-4 sm:h-4 w-5 h-5" />
+                  <MessageCircleDashed className="sm:w-4 sm:h-4 w-5 h-5 text-foreground" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -140,7 +140,7 @@ export function AppHeader() {
                 }}
                 className="sm:h-8 sm:w-8 h-10 w-10 p-0 hover:bg-accent text-foreground hover:text-foreground relative z-50 border border-border/20 hover:border-border/40 touch-manipulation"
               >
-                <Edit className="sm:w-4 sm:h-4 w-5 h-5" />
+                <Edit className="sm:w-4 sm:h-4 w-5 h-5 text-foreground" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -163,7 +163,7 @@ export function AppHeader() {
                 }}
                 className="sm:h-8 sm:w-8 h-10 w-10 p-0 hover:bg-accent text-foreground hover:text-foreground relative z-50 border border-border/20 hover:border-border/40 touch-manipulation"
               >
-                <HelpCircle className="sm:w-4 sm:h-4 w-5 h-5" />
+                <HelpCircle className="sm:w-4 sm:h-4 w-5 h-5 text-foreground" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>

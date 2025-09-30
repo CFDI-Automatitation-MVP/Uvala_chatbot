@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 // import Image from "next/image"; // Commented out - unused
 import { Button } from "@/components/ui/button";
 import {
@@ -19,10 +19,12 @@ import {
   Image as ImageIcon,
   Video,
   ArrowLeft,
+  Loader2,
 } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type Currency = "USD" | "MXN";
 
@@ -138,6 +140,9 @@ const getFeatureIcon = (feature: string) => {
 export default function PricingPage() {
   const [isLoading, setIsLoading] = useState<string | null>(null);
   const [currency, setCurrency] = useState<Currency>("MXN");
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const isMobile = useIsMobile();
   const router = useRouter();
   const {
     hasSubscription,
@@ -146,6 +151,22 @@ export default function PricingPage() {
     loading: subscriptionLoading,
   } = useSubscription();
   const t = useTranslations("Pricing");
+
+  // Lazy load video only on mobile after initial render
+  useEffect(() => {
+    if (isMobile && videoRef.current && !videoLoaded) {
+      // Delay video load to prioritize interactive content
+      const timer = setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.load();
+          setVideoLoaded(true);
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+    } else if (!isMobile) {
+      setVideoLoaded(true);
+    }
+  }, [isMobile, videoLoaded]);
 
   const handleSubscribe = async (plan: PricingPlan) => {
     if (plan.price[currency] === 0) return; // Free plan doesn't need checkout
@@ -158,9 +179,20 @@ export default function PricingPage() {
       return;
     }
 
+    // Prevent double clicks on mobile
+    if (isLoading === plan.id) {
+      console.log("Already processing, ignoring click");
+      return;
+    }
+
     setIsLoading(plan.id);
 
     try {
+      // Add immediate feedback on mobile
+      if (isMobile) {
+        console.log("🚀 Starting checkout for", plan.name);
+      }
+
       const response = await fetch("/api/stripe/create-checkout-session", {
         method: "POST",
         headers: {
@@ -180,31 +212,61 @@ export default function PricingPage() {
       const { url } = await response.json();
 
       if (url) {
-        window.location.href = url;
+        // Use router.push on mobile for better UX, window.location on desktop
+        if (isMobile) {
+          window.location.href = url;
+        } else {
+          window.location.href = url;
+        }
       }
     } catch (error) {
       console.error("Error creating checkout session:", error);
       alert("Failed to start checkout. Please try again later.");
-    } finally {
-      setIsLoading(null);
+      setIsLoading(null); // Reset loading state on error
     }
+    // Don't reset loading on success - let the redirect happen
   };
 
   return (
     <div className="relative min-h-full">
-      {/* Background video - only covers the content area, not the sidebar */}
+      {/* Background video - optimized for mobile */}
       <div className="absolute inset-0 w-full h-full bg-black -z-10">
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover"
-        >
-          <source src="/uvala-pricing-video.mp4" type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 bg-black/40 z-10" />{" "}
-        {/* Overlay for better contrast */}
+        {isMobile ? (
+          // Mobile: Show static background initially, load video after delay
+          <>
+            <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-800" />
+            {videoLoaded && (
+              <video
+                ref={videoRef}
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="none"
+                poster="/pricing-poster.jpg"
+                className="absolute inset-0 w-full h-full object-cover opacity-0 animate-fade-in"
+                style={{
+                  animationDelay: "100ms",
+                  animationFillMode: "forwards",
+                }}
+              >
+                <source src="/uvala-pricing-video.mp4" type="video/mp4" />
+              </video>
+            )}
+          </>
+        ) : (
+          // Desktop: Load video normally
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+          >
+            <source src="/uvala-pricing-video.mp4" type="video/mp4" />
+          </video>
+        )}
+        <div className="absolute inset-0 bg-black/40 z-10" />
       </div>
 
       <div className="relative z-20 container mx-auto px-4 py-12">
@@ -263,13 +325,19 @@ export default function PricingPage() {
             return (
               <Card
                 key={plan.id}
-                className={`relative bg-black/20 backdrop-blur-sm border-white/50 shadow-2xl text-white ${
+                className={`relative ${isMobile ? "bg-black/40 shadow-lg" : "bg-black/20 backdrop-blur-sm shadow-2xl"} border-white/50 text-white ${
                   isActivePlan
                     ? "border-green-500 ring-2 ring-green-200"
                     : plan.popular
                       ? "border-white ring-2 ring-white/30"
                       : ""
                 }`}
+                style={{
+                  ...(isMobile && {
+                    willChange: "auto",
+                    contain: "layout style paint",
+                  }),
+                }}
               >
                 {isActivePlan && (
                   <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500">
