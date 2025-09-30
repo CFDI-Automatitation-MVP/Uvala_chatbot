@@ -157,14 +157,11 @@ export async function searchFilesByContent(
   const { userId, threadId, matchThreshold = 0.7, matchCount = 5 } = options;
 
   try {
-    // Generate embedding for the query
-    const queryEmbedding = await generateEmbedding(query);
-
     // Call the Supabase RPC function to search files
     const { data, error } = await supabaseClient.rpc(
       "search_files_by_content",
       {
-        query_embedding: queryEmbedding.embedding,
+        query_text: query,
         user_id_param: userId,
         thread_id_param: threadId || null,
         match_threshold: matchThreshold,

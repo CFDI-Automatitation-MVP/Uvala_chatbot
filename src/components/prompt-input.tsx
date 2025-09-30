@@ -246,24 +246,6 @@ export default function PromptInput({
     }
   }, [speechRecognition, isDictating]);
 
-  const _toggleLanguage = useCallback(() => {
-    const newLang = speechLanguage === "es-ES" ? "en-US" : "es-ES";
-    setSpeechLanguage(newLang);
-    console.log(`🌐 Speech language switched to ${newLang}`);
-  }, [speechLanguage]);
-
-  // Get display info for current speech language
-  const _getLanguageDisplay = useCallback(() => {
-    switch (speechLanguage) {
-      case "es-ES":
-        return { flag: "🇪🇸", code: "ES" };
-      case "en-US":
-        return { flag: "🇺🇸", code: "EN" };
-      default:
-        return { flag: "🇪🇸", code: "ES" };
-    }
-  }, [speechLanguage]);
-
   // Use external props if provided, otherwise use internal state
   const fileAttachments = externalFileAttachments ?? internalFileAttachments;
   const setFileAttachments =
