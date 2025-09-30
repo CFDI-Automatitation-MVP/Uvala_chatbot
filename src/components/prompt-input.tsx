@@ -786,38 +786,23 @@ export default function PromptInput({
                 )}
                 {/* Dictation Button - Show when voice is enabled and not loading */}
                 {!isLoading && !voiceDisabled && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size={"sm"}
-                        onClick={(e) => {
-                          console.log("🖱️ Microphone button clicked!", e);
-                          toggleDictation();
-                        }}
-                        className={`rounded-full p-2! mr-2 ${
-                          isDictating
-                            ? "bg-red-500 hover:bg-red-600 text-white animate-pulse"
-                            : permissionState === "denied"
-                              ? "opacity-50"
-                              : ""
-                        }`}
-                        disabled={!speechSupported || !isHttps}
-                      >
-                        {isDictating ? <MicOff size={16} /> : <Mic size={16} />}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      {!isHttps
-                        ? "🔒 HTTPS required for speech recognition"
-                        : !speechSupported
-                          ? "Speech recognition not supported in this browser. Use Chrome, Edge, or Safari."
-                          : permissionState === "denied"
-                            ? "🚫 Microphone access denied. Please enable in browser settings."
-                            : isDictating
-                              ? `🔴 Stop Dictation (${speechLanguage === "es-ES" ? "Español" : "English"})`
-                              : `🎤 Start Dictation (${speechLanguage === "es-ES" ? "Español" : "English"})`}
-                    </TooltipContent>
-                  </Tooltip>
+                  <Button
+                    size={"sm"}
+                    onClick={(e) => {
+                      console.log("🖱️ Microphone button clicked!", e);
+                      toggleDictation();
+                    }}
+                    className={`rounded-full p-2! mr-2 ${
+                      isDictating
+                        ? "bg-red-500 hover:bg-red-600 text-white animate-pulse"
+                        : permissionState === "denied"
+                          ? "opacity-50"
+                          : ""
+                    }`}
+                    disabled={!speechSupported || !isHttps}
+                  >
+                    {isDictating ? <MicOff size={16} /> : <Mic size={16} />}
+                  </Button>
                 )}
 
                 {/* Send/Stop Button - Show when there's content or when loading */}
