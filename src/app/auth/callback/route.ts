@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
 
             // Send welcome email in background (don't block redirect)
             brevoEmailService
-              .sendWelcomeEmail(newUser.email, newUser.name)
+              .sendWelcomeEmail(newUser.email, newUser.name, newUser.id)
               .then(() =>
                 console.log("✅ Welcome email sent to:", newUser.email),
               )

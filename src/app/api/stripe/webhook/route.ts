@@ -232,7 +232,12 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
       const user = await pgUserRepository.findById(userId);
       if (user) {
         brevoEmailService
-          .sendSubscriptionCreatedEmail(user.email, user.name, planType)
+          .sendSubscriptionCreatedEmail(
+            user.email,
+            user.name,
+            planType,
+            user.id,
+          )
           .then(() =>
             console.log(
               "✅ Subscription confirmation email sent to:",
@@ -327,6 +332,7 @@ async function handleSubscriptionCanceled(subscription: Stripe.Subscription) {
             user.email,
             user.name,
             existingSubscription.planType,
+            user.id,
           )
           .then(() =>
             console.log(

@@ -228,6 +228,12 @@ const emailStrings: Record<string, TemplateStrings> = {
   },
 };
 
+// Email configuration - Logo para emails
+const EMAIL_CONFIG = {
+  // Logo que se reemplazará dinámicamente con la URL correcta
+  LOGO_URL: "{{logoUrl}}", // Se reemplaza dinámicamente
+};
+
 function getMinimalistTemplate(content: {
   subject: string;
   title: string;
@@ -236,8 +242,15 @@ function getMinimalistTemplate(content: {
   ctaText?: string;
   ctaUrl?: string;
   footer: string;
+  logoUrl?: string; // Nueva propiedad para el logo
 }): EmailContent {
-  const logoUrl = `{{appUrl}}/uvala-logo.png`;
+  // Usar logoUrl pasado o el de configuración
+  const logoUrl = content.logoUrl || EMAIL_CONFIG.LOGO_URL;
+
+  // Siempre usar el logo como imagen con link
+  const logoDisplay = `<a href="{{appUrl}}" style="text-decoration: none; display: inline-block;">
+      <img src="${logoUrl}" alt="uvala" style="height: 40px; width: auto; margin-bottom: 32px; display: block;">
+    </a>`;
 
   const htmlContent = `
     <!DOCTYPE html>
@@ -254,7 +267,7 @@ function getMinimalistTemplate(content: {
 
           <!-- Header -->
           <div style="text-align: center; padding: 0 0 48px 0;">
-            <img src="${logoUrl}" alt="uvala" style="height: 32px; width: auto; margin-bottom: 32px;">
+            ${logoDisplay}
             <h1 style="color: #000000; font-size: 32px; font-weight: 500; margin: 0; line-height: 1.2; letter-spacing: -0.02em;">
               ${content.title}
             </h1>
@@ -361,7 +374,10 @@ Visit: {{appUrl}}
   };
 }
 
-export function getWelcomeEmailTemplate(language: string = "en"): EmailContent {
+export function getWelcomeEmailTemplate(
+  language: string = "en",
+  logoUrl?: string,
+): EmailContent {
   const strings = emailStrings[language] || emailStrings.en;
   const content = strings.welcome;
 
@@ -389,11 +405,13 @@ export function getWelcomeEmailTemplate(language: string = "en"): EmailContent {
     ctaText: content.ctaText,
     ctaUrl: "{{appUrl}}",
     footer: content.footer,
+    logoUrl,
   });
 }
 
 export function getSubscriptionEmailTemplate(
   language: string = "en",
+  logoUrl?: string,
 ): EmailContent {
   const strings = emailStrings[language] || emailStrings.en;
   const content = strings.subscription;
@@ -440,11 +458,13 @@ export function getSubscriptionEmailTemplate(
     ctaText: content.ctaText,
     ctaUrl: "{{appUrl}}/dashboard",
     footer: content.footer,
+    logoUrl,
   });
 }
 
 export function getCancellationEmailTemplate(
   language: string = "en",
+  logoUrl?: string,
 ): EmailContent {
   const strings = emailStrings[language] || emailStrings.en;
   const content = strings.cancellation;
@@ -501,6 +521,7 @@ export function getCancellationEmailTemplate(
     ctaText: content.reactivateText,
     ctaUrl: "{{appUrl}}/billing",
     footer: content.footer,
+    logoUrl,
   });
 }
 

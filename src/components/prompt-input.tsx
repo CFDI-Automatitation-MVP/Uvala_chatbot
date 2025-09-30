@@ -1,54 +1,14 @@
 "use client";
 
-// Extend Window interface for Web Speech API
+// Optimized direct Web Speech API implementation
+
+// TypeScript declarations for Web Speech API
 declare global {
   interface Window {
-    SpeechRecognition: typeof SpeechRecognition;
-    webkitSpeechRecognition: typeof SpeechRecognition;
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
   }
 }
-
-interface SpeechRecognition extends EventTarget {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  start(): void;
-  stop(): void;
-  abort(): void;
-  onresult: (event: SpeechRecognitionEvent) => void;
-  onend: () => void;
-  onerror: (event: SpeechRecognitionErrorEvent) => void;
-}
-
-interface SpeechRecognitionEvent extends Event {
-  results: SpeechRecognitionResultList;
-}
-
-interface SpeechRecognitionErrorEvent extends Event {
-  error: string;
-}
-
-interface SpeechRecognitionResultList {
-  length: number;
-  item(index: number): SpeechRecognitionResult;
-  [index: number]: SpeechRecognitionResult;
-}
-
-interface SpeechRecognitionResult {
-  length: number;
-  item(index: number): SpeechRecognitionAlternative;
-  [index: number]: SpeechRecognitionAlternative;
-}
-
-interface SpeechRecognitionAlternative {
-  transcript: string;
-  confidence: number;
-}
-
-declare const SpeechRecognition: {
-  prototype: SpeechRecognition;
-  new (): SpeechRecognition;
-};
 
 import {
   ChevronDown,
@@ -82,6 +42,9 @@ import { OpenAIIcon } from "ui/openai-icon";
 import { GrokIcon } from "ui/grok-icon";
 import { ClaudeIcon } from "ui/claude-icon";
 import { GeminiIcon } from "ui/gemini-icon";
+import useSWR from "swr";
+import { COOKIE_KEY_LOCALE } from "@/lib/const";
+import { getLocaleAction } from "@/i18n/get-locale";
 
 import { EMOJI_DATA } from "lib/const";
 import { AgentSummary } from "app-types/agent";
@@ -151,106 +114,173 @@ export default function PromptInput({
   const [internalFileAttachments, setInternalFileAttachments] = useState<
     AttachmentFile[]
   >([]);
-  const [isDictating, setIsDictating] = useState(false);
-  const [recognition, setRecognition] = useState<SpeechRecognition | null>(
-    null,
+
+  // Get current app locale
+  const { data: currentLocale } = useSWR(COOKIE_KEY_LOCALE, getLocaleAction, {
+    fallbackData: "es", // Default to Spanish
+    revalidateOnFocus: false,
+  });
+
+  // Optimal Speech Recognition Implementation
+  const [speechLanguage, setSpeechLanguage] = useState<"es-ES" | "en-US">(
+    "es-ES",
   );
+  const [speechRecognition, setSpeechRecognition] = useState<any>(null);
+  const [isDictating, setIsDictating] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(false);
+
+  // Initialize optimal speech recognition
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setSpeechSupported(false);
+      return;
+    }
+
+    setSpeechSupported(true);
+    const recognition = new SpeechRecognition();
+
+    // Optimal configuration for multilingual accuracy
+    recognition.continuous = false; // Better accuracy for short phrases
+    recognition.interimResults = false; // Only final results for better accuracy
+    recognition.maxAlternatives = 1; // Single best result
+
+    // Use app's selected language, fallback to browser detection
+    const appLang = currentLocale || "es";
+    const initialLang =
+      appLang === "es"
+        ? "es-ES"
+        : appLang === "en"
+          ? "en-US"
+          : appLang === "fr"
+            ? "fr-FR"
+            : appLang === "ja"
+              ? "ja-JP"
+              : "es-ES";
+
+    recognition.lang = initialLang;
+    setSpeechLanguage(initialLang as "es-ES" | "en-US");
+    console.log(`🌐 Speech initialized: ${initialLang} (app: ${appLang})`);
+
+    recognition.onstart = () => {
+      setIsDictating(true);
+      console.log(`🎤 Listening in ${recognition.lang}`);
+    };
+
+    recognition.onend = () => {
+      setIsDictating(false);
+      console.log("🎤 Stopped listening");
+    };
+
+    recognition.onresult = (event: any) => {
+      if (event.results && event.results.length > 0) {
+        const result = event.results[0];
+        if (result.isFinal && result[0]) {
+          const transcript = result[0].transcript.trim();
+          const confidence = result[0].confidence || 0;
+
+          console.log(
+            `🎯 Transcript: "${transcript}" (confidence: ${confidence})`,
+          );
+
+          if (transcript) {
+            // Smart input appending
+            const currentText = input.trim();
+            const newInput = currentText
+              ? `${currentText} ${transcript}`
+              : transcript;
+            setInput(newInput);
+          }
+        }
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error("Speech recognition error:", event.error);
+      setIsDictating(false);
+
+      // Handle specific errors
+      if (event.error === "no-speech" || event.error === "audio-capture") {
+        // Silent fail for common user errors
+        return;
+      }
+
+      if (event.error === "not-allowed") {
+        console.warn("Microphone permission denied");
+      }
+    };
+
+    recognition.onnomatch = () => {
+      console.log("🚫 No speech match found");
+      setIsDictating(false);
+    };
+
+    setSpeechRecognition(recognition);
+
+    return () => {
+      if (recognition) {
+        recognition.abort();
+      }
+    };
+  }, [speechLanguage, currentLocale]); // Re-initialize when language changes
+
+  const startListening = useCallback(() => {
+    if (speechRecognition && !isDictating && speechSupported) {
+      try {
+        // Update language before starting
+        speechRecognition.lang = speechLanguage;
+        speechRecognition.start();
+      } catch (error) {
+        console.error("Failed to start speech recognition:", error);
+        setIsDictating(false);
+      }
+    }
+  }, [speechRecognition, isDictating, speechSupported, speechLanguage]);
+
+  const stopListening = useCallback(() => {
+    if (speechRecognition && isDictating) {
+      speechRecognition.stop();
+    }
+  }, [speechRecognition, isDictating]);
+
+  const _toggleLanguage = useCallback(() => {
+    const newLang = speechLanguage === "es-ES" ? "en-US" : "es-ES";
+    setSpeechLanguage(newLang);
+    console.log(`🌐 Speech language switched to ${newLang}`);
+  }, [speechLanguage]);
+
+  // Get display info for current speech language
+  const _getLanguageDisplay = useCallback(() => {
+    switch (speechLanguage) {
+      case "es-ES":
+        return { flag: "🇪🇸", code: "ES" };
+      case "en-US":
+        return { flag: "🇺🇸", code: "EN" };
+      default:
+        return { flag: "🇪🇸", code: "ES" };
+    }
+  }, [speechLanguage]);
 
   // Use external props if provided, otherwise use internal state
   const fileAttachments = externalFileAttachments ?? internalFileAttachments;
   const setFileAttachments =
     externalSetFileAttachments ?? setInternalFileAttachments;
-  // const _isDragOver = externalIsDragOver ?? false;
-
-  // Initialize speech recognition
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    // Check for HTTPS requirement in production
-    const isHttps = window.location.protocol === "https:";
-    const isLocalhost =
-      window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1";
-
-    if (!isHttps && !isLocalhost) {
-      console.warn("Speech recognition requires HTTPS in production");
-      return;
-    }
-
-    // Check for Speech Recognition API support
-    const SpeechRecognition =
-      window.webkitSpeechRecognition || window.SpeechRecognition;
-
-    if (!SpeechRecognition) {
-      console.warn("Speech Recognition API not supported in this browser");
-      return;
-    }
-
-    try {
-      const recognitionInstance = new SpeechRecognition();
-      recognitionInstance.continuous = true;
-      recognitionInstance.interimResults = true;
-      recognitionInstance.lang = "en-US";
-
-      let processedCount = 0;
-
-      recognitionInstance.onresult = (event) => {
-        try {
-          // Only process new final results
-          for (let i = processedCount; i < event.results.length; i++) {
-            if ((event.results[i] as any).isFinal) {
-              const transcript = event.results[i][0].transcript.trim();
-              if (transcript) {
-                const newInput = input ? `${input} ${transcript}` : transcript;
-                setInput(newInput);
-                processedCount = i + 1;
-              }
-            }
-          }
-        } catch (error) {
-          console.error("Error processing speech recognition result:", error);
-        }
-      };
-
-      (recognitionInstance as any).onstart = () => {
-        processedCount = 0; // Reset when starting
-      };
-
-      recognitionInstance.onend = () => {
-        setIsDictating(false);
-      };
-
-      recognitionInstance.onerror = (event) => {
-        console.error("Speech recognition error:", event.error);
-        setIsDictating(false);
-
-        // Handle specific error types
-        if (event.error === "not-allowed") {
-          console.error("Microphone permission denied");
-        } else if (event.error === "no-speech") {
-          console.warn("No speech detected");
-        } else if (event.error === "network") {
-          console.error("Network error during speech recognition");
-        }
-      };
-
-      setRecognition(recognitionInstance);
-    } catch (error) {
-      console.error("Failed to initialize speech recognition:", error);
-    }
-  }, [setInput]);
 
   const toggleDictation = useCallback(() => {
-    if (!recognition) return;
+    if (!speechSupported) {
+      console.warn("Speech recognition not supported");
+      return;
+    }
 
     if (isDictating) {
-      recognition.stop();
-      setIsDictating(false);
+      stopListening();
     } else {
-      recognition.start();
-      setIsDictating(true);
+      startListening();
     }
-  }, [recognition, isDictating]);
+  }, [isDictating, speechSupported, startListening, stopListening]);
 
   const mentions = useMemo<ChatMention[]>(() => {
     if (!threadId) return [];
@@ -370,9 +400,8 @@ export default function PromptInput({
     if (isLoading) return;
 
     // Stop dictation if it's running
-    if (isDictating && recognition) {
-      recognition.stop();
-      setIsDictating(false);
+    if (isDictating) {
+      stopListening();
     }
 
     const userMessage = input?.trim() || "";
@@ -657,21 +686,17 @@ export default function PromptInput({
                         size={"sm"}
                         onClick={toggleDictation}
                         className={`rounded-full p-2! mr-2 ${isDictating ? "bg-red-500 hover:bg-red-600 text-white" : ""}`}
-                        disabled={!recognition}
+                        disabled={!speechSupported}
                       >
                         {isDictating ? <MicOff size={16} /> : <Mic size={16} />}
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      {recognition
+                      {speechSupported
                         ? isDictating
-                          ? "Stop Dictation"
-                          : "Start Dictation"
-                        : typeof window !== "undefined" &&
-                            window.location.protocol !== "https:" &&
-                            window.location.hostname !== "localhost"
-                          ? "Dictation requires HTTPS"
-                          : "Dictation not supported in this browser"}
+                          ? `Stop Dictation (${speechLanguage === "es-ES" ? "Español" : "English"})`
+                          : `Start Dictation (${speechLanguage === "es-ES" ? "Español" : "English"})`
+                        : "Speech recognition not supported in this browser"}
                     </TooltipContent>
                   </Tooltip>
                 )}
