@@ -226,10 +226,79 @@ export function extractInProgressToolPart(message: UIMessage): ToolUIPart[] {
   ) as ToolUIPart[];
 }
 
+/**
+ * Detect context from messages to intelligently load only necessary tools
+ */
+function detectRequiredToolkits(
+  messages: UIMessage[],
+  _mentions?: ChatMention[],
+): Set<AppDefaultToolkit> {
+  const required = new Set<AppDefaultToolkit>();
+
+  // Always include WebSearch for general queries
+  required.add(AppDefaultToolkit.WebSearch);
+
+  // Check last 3 messages for context
+  const recentMessages = messages.slice(-3);
+  const messageText = recentMessages
+    .map((m) =>
+      m.parts
+        .map((p) => (p.type === "text" ? p.text : ""))
+        .join(" ")
+        .toLowerCase(),
+    )
+    .join(" ");
+
+  // Check for file attachments in recent messages
+  const hasFiles = recentMessages.some((m) =>
+    m.parts.some((p) => p.type === "file"),
+  );
+
+  // Data/visualization keywords
+  const dataKeywords = [
+    "chart",
+    "graph",
+    "plot",
+    "visualize",
+    "table",
+    "data",
+    "statistics",
+    "pie chart",
+    "bar chart",
+    "line chart",
+  ];
+  const hasDataRequest = dataKeywords.some((kw) => messageText.includes(kw));
+
+  // Image generation keywords
+  const imageKeywords = [
+    "image",
+    "picture",
+    "photo",
+    "generate image",
+    "create image",
+    "draw",
+    "illustrate",
+  ];
+  const hasImageRequest = imageKeywords.some((kw) => messageText.includes(kw));
+
+  // Video generation keywords
+  const videoKeywords = ["video", "generate video", "create video", "animate"];
+  const hasVideoRequest = videoKeywords.some((kw) => messageText.includes(kw));
+
+  // Add toolkits based on context
+  if (hasFiles) required.add(AppDefaultToolkit.FileSearch);
+  if (hasDataRequest) required.add(AppDefaultToolkit.Visualization);
+  if (hasImageRequest) required.add(AppDefaultToolkit.ImageGeneration);
+  if (hasVideoRequest) required.add(AppDefaultToolkit.VideoGeneration);
+
+  return required;
+}
+
 export const loadAppDefaultTools = (opt?: {
   mentions?: ChatMention[];
   allowedAppDefaultToolkit?: string[];
   userId?: string;
+  messages?: UIMessage[];
 }) =>
   safe(APP_DEFAULT_TOOL_KIT)
     .map((tools) => {
@@ -244,25 +313,42 @@ export const loadAppDefaultTools = (opt?: {
           return { ...acc, ...allowed };
         }, {});
       }
-      const allowedAppDefaultToolkit =
-        opt?.allowedAppDefaultToolkit ?? Object.values(AppDefaultToolkit);
 
-      // Always include ImageGeneration, VideoGeneration, WebSearch, and FileSearch toolkits regardless of user settings
-      const toolkitsToInclude = [
-        ...allowedAppDefaultToolkit,
-        ...(allowedAppDefaultToolkit.includes(AppDefaultToolkit.ImageGeneration)
-          ? []
-          : [AppDefaultToolkit.ImageGeneration]),
-        ...(allowedAppDefaultToolkit.includes(AppDefaultToolkit.VideoGeneration)
-          ? []
-          : [AppDefaultToolkit.VideoGeneration]),
-        ...(allowedAppDefaultToolkit.includes(AppDefaultToolkit.WebSearch)
-          ? []
-          : [AppDefaultToolkit.WebSearch]),
-        ...(allowedAppDefaultToolkit.includes(AppDefaultToolkit.FileSearch)
-          ? []
-          : [AppDefaultToolkit.FileSearch]),
-      ];
+      // Context-aware tool loading
+      let toolkitsToInclude: string[];
+
+      if (opt?.messages) {
+        // Dynamic loading based on message context
+        const requiredToolkits = detectRequiredToolkits(
+          opt.messages,
+          opt.mentions,
+        );
+        toolkitsToInclude = Array.from(requiredToolkits);
+      } else {
+        // Fallback to all tools if no messages provided
+        const allowedAppDefaultToolkit =
+          opt?.allowedAppDefaultToolkit ?? Object.values(AppDefaultToolkit);
+
+        toolkitsToInclude = [
+          ...allowedAppDefaultToolkit,
+          ...(allowedAppDefaultToolkit.includes(
+            AppDefaultToolkit.ImageGeneration,
+          )
+            ? []
+            : [AppDefaultToolkit.ImageGeneration]),
+          ...(allowedAppDefaultToolkit.includes(
+            AppDefaultToolkit.VideoGeneration,
+          )
+            ? []
+            : [AppDefaultToolkit.VideoGeneration]),
+          ...(allowedAppDefaultToolkit.includes(AppDefaultToolkit.WebSearch)
+            ? []
+            : [AppDefaultToolkit.WebSearch]),
+          ...(allowedAppDefaultToolkit.includes(AppDefaultToolkit.FileSearch)
+            ? []
+            : [AppDefaultToolkit.FileSearch]),
+        ];
+      }
 
       const loadedTools =
         toolkitsToInclude.reduce(

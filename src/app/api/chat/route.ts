@@ -122,6 +122,7 @@ export async function POST(request: Request) {
               mentions,
               allowedAppDefaultToolkit,
               userId: session.user.id,
+              messages, // Pass messages for context-aware tool loading
             }),
           )
           .orElse({});
@@ -350,12 +351,14 @@ The files remain available throughout the entire conversation for analysis and r
                   openai: {
                     reasoningEffort: "low",
                     textVerbosity: "low",
+                    includeReasoning: false,
                   },
                 }
               : {
                   openai: {
                     reasoningEffort: "medium",
                     textVerbosity: "medium",
+                    includeReasoning: false,
                   },
                 },
         });

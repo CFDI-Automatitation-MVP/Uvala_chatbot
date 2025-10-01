@@ -39,8 +39,8 @@ export interface PlanLimits {
 export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
   free: {
     // 3-day trial with Plus tier limits
-    maxTokensPerMonth: 1500000, // Same as Plus
-    maxTokensPerDay: 150000, // Increased from 50,000
+    maxTokensPerMonth: 6420000, // 214,000 tokens/day * 30 days
+    maxTokensPerDay: 214000, // Updated to 214k daily tokens
     maxApiCallsPerMonth: 1000, // Same as Plus
     maxToolCallsPerMonth: 1000, // Same as Plus
     maxImageGenerationsPerMonth: 35, // Same as Plus
@@ -56,8 +56,8 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     hasPrioritySupport: false, // No priority support during trial
   },
   plus: {
-    maxTokensPerMonth: 4500000, // 150,000 tokens/day * 30 days
-    maxTokensPerDay: 150000, // Increased from 50,000
+    maxTokensPerMonth: 6420000, // 214,000 tokens/day * 30 days
+    maxTokensPerDay: 214000, // Updated to 214k daily tokens
     maxApiCallsPerMonth: 1000, // Estimated based on token usage
     maxToolCallsPerMonth: 1000,
     // Tool-specific limits from updated tier image
@@ -76,8 +76,8 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     hasPrioritySupport: false,
   },
   pro: {
-    maxTokensPerMonth: 5100000, // 170,000 tokens/day * 30 days
-    maxTokensPerDay: 170000, // Increased from 65,000
+    maxTokensPerMonth: 9000000, // 300,000 tokens/day * 30 days
+    maxTokensPerDay: 300000, // Updated to 300k daily tokens
     maxApiCallsPerMonth: 1300, // Estimated based on token usage
     maxToolCallsPerMonth: 2000,
     // Tool-specific limits from updated tier image
@@ -96,8 +96,8 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     hasPrioritySupport: true,
   },
   max: {
-    maxTokensPerMonth: 6600000, // 220,000 tokens/day * 30 days
-    maxTokensPerDay: 220000, // Increased from 100,000
+    maxTokensPerMonth: 12840000, // 428,000 tokens/day * 30 days
+    maxTokensPerDay: 428000, // Updated to 428k daily tokens
     maxApiCallsPerMonth: 10000,
     maxToolCallsPerMonth: 5000,
     // Tool-specific limits from updated tier image

@@ -183,7 +183,20 @@ const fetchExa = async (endpoint: string, body: any): Promise<any> => {
 };
 
 export const exaSearchTool = createTool({
-  description: "Search the web for real-time information.",
+  description: `Search the web for real-time information using Exa's AI-powered search engine.
+
+Use this tool when users need:
+- Current information, news, or recent developments
+- Product prices, availability, or shopping information (flights, hotels, products)
+- Research on specific topics, companies, or people
+- Latest documentation or technical resources
+
+How to use effectively:
+- Use natural language queries (e.g., "cheapest flights from Mexico to Tokyo in November")
+- For price/product searches: be specific about what, where, and when
+- Use 'includeDomains' to search specific sites (e.g., ["amazon.com"] for products)
+- Use 'category' when searching for specific content types (news, research papers, etc.)
+- Default numResults is 2 (max 2) - use 2 for comprehensive results, 1 for quick answers`,
   inputSchema: jsonSchemaToZod(exaSearchSchema),
   execute: (params) => {
     return safe(async () => {
@@ -230,7 +243,18 @@ export const exaSearchTool = createTool({
 });
 
 export const exaContentsTool = createTool({
-  description: "Extract content from URLs.",
+  description: `Extract and read the full text content from specific web pages.
+
+Use this tool when you need to:
+- Read the full content of a specific webpage or article
+- Extract detailed information from URLs the user provides
+- Get more details from search results (after using web search)
+- Scrape content from multiple pages
+
+How to use:
+- Provide one or more URLs in the 'urls' parameter
+- Set maxCharacters based on need (default 3000, max 10000)
+- Use 'livecrawl' to force fresh content: "always" = always live, "fallback" = try cache first, "preferred" = try live first (default)`,
   inputSchema: jsonSchemaToZod(exaContentsSchema),
   execute: async (params) => {
     return safe(async () => {
