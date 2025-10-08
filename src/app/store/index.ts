@@ -36,6 +36,10 @@ export interface AppState {
     isOpen: boolean;
     chatModel?: ChatModel;
   };
+  coder: {
+    isOpen: boolean;
+    chatModel?: ChatModel;
+  };
   voiceChat: {
     isOpen: boolean;
     agentId?: string;
@@ -83,6 +87,9 @@ const initialState: AppState = {
     instructions: "",
   },
   promptBuilder: {
+    isOpen: false,
+  },
+  coder: {
     isOpen: false,
   },
   voiceChat: {

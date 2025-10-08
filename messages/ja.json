@@ -192,6 +192,7 @@
     "newChat": "新しいチャット",
     "temporaryChat": "一時的なチャット",
     "promptBuilder": "プロンプトビルダー",
+    "coder": "Coder",
     "mcpConfiguration": "MCP設定",
     "agents": "エージェント",
     "newAgent": "新しいエージェント",
@@ -508,6 +509,19 @@
     "example3": "\"顧客フィードバックを分析する必要がある\"",
     "example4": "\"創造的なストーリーのアイデアを生成して\"",
     "placeholder": "何をしたいかを説明してください。プロンプトを構築します..."
+  },
+  "Coder": {
+    "title": "Coder",
+    "copyLastResponse": "Copy last response",
+    "resetChat": "Reset chat",
+    "aiCodingAssistant": "AI Coding Assistant",
+    "description": "Expert coding help powered by Qwen3 Coder. Get code solutions, debugging help, and best practices.",
+    "examples": "Examples",
+    "example1": "\"Create a REST API with authentication\"",
+    "example2": "\"Debug this JavaScript error\"",
+    "example3": "\"Optimize this SQL query\"",
+    "example4": "\"Write unit tests for this function\"",
+    "placeholder": "Describe your coding task and I'll help you solve it..."
   },
   "Pricing": {
     "title": "プランを選択",

@@ -17,6 +17,7 @@ import {
   XIcon,
   Mic,
   MicOff,
+  Code,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "ui/button";
@@ -101,6 +102,7 @@ export default function PromptInput({
   isDragOver: _externalIsDragOver,
 }: PromptInputProps) {
   const t = useTranslations("Chat");
+  const tLayout = useTranslations("Layout");
 
   const [globalModel, threadMentions, appStoreMutate] = appStore(
     useShallow((state) => [
@@ -727,6 +729,22 @@ export default function PromptInput({
                 {!toolDisabled && (
                   <>
                     <ToolModeDropdown />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="rounded-full mx-1"
+                      onClick={() => {
+                        appStoreMutate((state) => ({
+                          coder: {
+                            ...state.coder,
+                            isOpen: !state.coder.isOpen,
+                          },
+                        }));
+                      }}
+                      title={tLayout("coder")}
+                    >
+                      <Code className="size-4" />
+                    </Button>
                     {false && (
                       <ToolSelectDropdown
                         className="mx-1"

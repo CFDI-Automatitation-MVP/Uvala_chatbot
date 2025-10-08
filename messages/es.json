@@ -192,6 +192,7 @@
     "newChat": "Nuevo Chat",
     "temporaryChat": "Chat Temporal",
     "promptBuilder": "Diseñador de Prompts",
+    "coder": "Programador",
     "mcpConfiguration": "Configuración MCP",
     "agents": "Agentes",
     "newAgent": "Nuevo Agente",
@@ -547,6 +548,19 @@
     "example3": "\"Necesito analizar comentarios de clientes\"",
     "example4": "\"Genera ideas creativas para historias\"",
     "placeholder": "Describe qué quieres hacer y te construiré un prompt..."
+  },
+  "Coder": {
+    "title": "Programador",
+    "copyLastResponse": "Copiar última respuesta",
+    "resetChat": "Reiniciar chat",
+    "aiCodingAssistant": "Asistente de Programación IA",
+    "description": "Ayuda experta en programación con Qwen3 Coder. Obtén soluciones de código, ayuda de depuración y mejores prácticas.",
+    "examples": "Ejemplos",
+    "example1": "\"Crea una API REST con autenticación\"",
+    "example2": "\"Depura este error de JavaScript\"",
+    "example3": "\"Optimiza esta consulta SQL\"",
+    "example4": "\"Escribe pruebas unitarias para esta función\"",
+    "placeholder": "Describe tu tarea de programación y te ayudaré a resolverla..."
   },
   "Pricing": {
     "title": "Elige tu Plan",

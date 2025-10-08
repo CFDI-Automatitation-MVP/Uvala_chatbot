@@ -216,6 +216,61 @@ export async function trackPromptBuilderUsage({
   }
 }
 
+export async function trackCoderUsage({
+  usage,
+  userId,
+  chatModel,
+}: {
+  usage: LanguageModelUsage;
+  userId: string;
+  chatModel: ChatModel;
+}) {
+  try {
+    // Calculate cost based on model and usage (Qwen3 Coder model)
+    const modelId = `${chatModel.provider}/${chatModel.model}`;
+    const cost = calculateTokenCost(usage, modelId, 0);
+
+    // Record detailed API usage
+    await usageRepository.recordApiUsage({
+      userId,
+      threadId: undefined, // Coder doesn't have threads
+      messageId: undefined,
+      modelProvider: chatModel.provider,
+      modelName: chatModel.model,
+      isPromptBuilder: false,
+      ...cost,
+    });
+
+    // Update aggregated usage data - add coder tokens to main totals (same as chat)
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+
+    // Update daily usage - coder tokens count towards main daily limits
+    await usageRepository.updateDailyUsage(userId, now, cost, undefined);
+
+    // Update monthly usage - coder tokens count towards main monthly limits
+    await usageRepository.updateMonthlyUsage(
+      userId,
+      year,
+      month,
+      cost,
+      undefined,
+    );
+
+    logger.info(`Coder usage tracked for user ${userId}:`, {
+      modelId,
+      totalTokens: cost.totalTokens,
+      totalCostUsd: cost.totalCostUsd,
+    });
+
+    return cost;
+  } catch (error) {
+    logger.error("Failed to track coder usage:", error);
+    return null;
+  }
+}
+
 /**
  * Check if user is approaching usage limits (can be expanded for quota management)
  */

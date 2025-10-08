@@ -439,3 +439,154 @@ export async function checkPromptBuilderLimits(
     return { canProceed: true };
   }
 }
+
+export async function checkCoderLimits(
+  userId: string,
+  plannedTokens: number,
+): Promise<LimitCheckResult> {
+  try {
+    // Get user's subscription
+    const subscription =
+      await subscriptionRepository.getUserActiveSubscription(userId);
+
+    // Get plan type (defaults to 'free' if no active subscription - free trial)
+    const planType = subscription?.planType || "free";
+
+    // Check if user's trial has expired (applies to users without active subscription)
+    if (!subscription) {
+      const user = await userRepository.findById(userId);
+      if (user && isTrialExpired((user as any).createdAt)) {
+        return {
+          canProceed: false,
+          limitExceeded:
+            "Your 3-day trial has expired. Please upgrade to continue using the service.",
+        };
+      }
+    }
+
+    // Get plan-specific limits
+    const planLimits = await getSubscriptionLimitsFromDb(planType);
+    if (!planLimits) {
+      return { canProceed: true }; // Allow operation if we can't check limits
+    }
+
+    // Coder uses the SAME limits as regular chat (Fuji/Everest models)
+    // Check against main daily token limits
+    const today = new Date();
+    const dailyUsage = await pgUsageRepository.getUserDailyUsage(userId, today);
+    const currentDailyTokens = dailyUsage?.totalTokens || 0;
+    const currentDailyCost = parseFloat(dailyUsage?.totalCostUsd || "0");
+
+    // Check against main monthly cost limits
+    const currentMonth = today.getMonth() + 1;
+    const currentYear = today.getFullYear();
+    const monthlyUsage = await pgUsageRepository.getUserMonthlyUsage(
+      userId,
+      currentYear,
+      currentMonth,
+    );
+    const currentMonthlyCost = parseFloat(monthlyUsage?.totalCostUsd || "0");
+
+    // Estimate cost for planned tokens (using Qwen3 Coder pricing)
+    const estimatedCost = (plannedTokens * (0.15 + 0.6)) / 1_000_000; // Input + Output pricing
+
+    // Add debugging
+    console.log(`🔍 CODER LIMITS DEBUG for user ${userId}:`, {
+      planType,
+      currentDailyTokens,
+      currentDailyCost,
+      currentMonthlyCost,
+      plannedTokens,
+      estimatedCost,
+      maxTokensPerDay: planLimits.maxTokensPerDay,
+      maxDailyCostUSD: planLimits.maxDailyCostUSD,
+      maxMonthlyCostUSD: planLimits.maxMonthlyCostUSD,
+    });
+
+    // Check limits (same as checkUserLimits but simplified for coder)
+    const wouldExceedDailyTokens = planLimits.maxTokensPerDay
+      ? currentDailyTokens + plannedTokens > planLimits.maxTokensPerDay
+      : false;
+    const wouldExceedDailyCost =
+      currentDailyCost + estimatedCost > planLimits.maxDailyCostUSD;
+    const wouldExceedMonthlyCost =
+      currentMonthlyCost + estimatedCost > planLimits.maxMonthlyCostUSD;
+
+    if (
+      wouldExceedDailyTokens ||
+      wouldExceedDailyCost ||
+      wouldExceedMonthlyCost
+    ) {
+      let limitExceeded = "Usage limit exceeded";
+      if (wouldExceedDailyTokens) {
+        limitExceeded = `Daily token limit exceeded (${planLimits.maxTokensPerDay}/day for ${planType.toUpperCase()} plan)`;
+      } else if (wouldExceedDailyCost) {
+        limitExceeded = `Daily cost limit exceeded ($${planLimits.maxDailyCostUSD}/day for ${planType.toUpperCase()} plan)`;
+      } else if (wouldExceedMonthlyCost) {
+        limitExceeded = `Monthly cost limit exceeded ($${planLimits.maxMonthlyCostUSD}/month for ${planType.toUpperCase()} plan)`;
+      }
+
+      return {
+        canProceed: false,
+        limitExceeded,
+        usage: {
+          current: {
+            dailyCost: currentDailyCost,
+            monthlyCost: currentMonthlyCost,
+            dailyTokens: currentDailyTokens,
+            imageGenerations: 0,
+            videoGenerations: 0,
+            webSearches: 0,
+          },
+          remaining: {
+            dailyCost: Math.max(
+              0,
+              planLimits.maxDailyCostUSD - currentDailyCost,
+            ),
+            monthlyCost: Math.max(
+              0,
+              planLimits.maxMonthlyCostUSD - currentMonthlyCost,
+            ),
+            dailyTokens: planLimits.maxTokensPerDay
+              ? Math.max(0, planLimits.maxTokensPerDay - currentDailyTokens)
+              : Number.MAX_SAFE_INTEGER,
+            imageGenerations: 0,
+            videoGenerations: 0,
+            webSearches: 0,
+          },
+        },
+      };
+    }
+
+    return {
+      canProceed: true,
+      usage: {
+        current: {
+          dailyCost: currentDailyCost,
+          monthlyCost: currentMonthlyCost,
+          dailyTokens: currentDailyTokens,
+          imageGenerations: 0,
+          videoGenerations: 0,
+          webSearches: 0,
+        },
+        remaining: {
+          dailyCost: Math.max(0, planLimits.maxDailyCostUSD - currentDailyCost),
+          monthlyCost: Math.max(
+            0,
+            planLimits.maxMonthlyCostUSD - currentMonthlyCost,
+          ),
+          dailyTokens: planLimits.maxTokensPerDay
+            ? Math.max(0, planLimits.maxTokensPerDay - currentDailyTokens)
+            : Number.MAX_SAFE_INTEGER,
+          imageGenerations: 0,
+          videoGenerations: 0,
+          webSearches: 0,
+        },
+      },
+    };
+  } catch (error) {
+    console.error("Error checking coder limits:", error);
+    // On error, allow the operation to prevent blocking users
+    return { canProceed: true };
+  }
+}

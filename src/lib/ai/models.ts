@@ -1,6 +1,7 @@
 import "server-only";
 
 import { openai } from "@ai-sdk/openai";
+import { createFireworks } from "@ai-sdk/fireworks";
 import { LanguageModel } from "ai";
 import {
   createOpenAICompatibleModels,
@@ -17,9 +18,17 @@ const staticModels = {
   },
 };
 
+// Fireworks AI provider for specialized models
+const fireworks = createFireworks({
+  apiKey: process.env.FIREWORKS_API_KEY ?? "",
+});
+
 // Internal models - not exposed in UI
 const internalModels = {
   "uvala-fuji-micro": openai("gpt-5-nano"),
+  "qwen3-coder-30b": fireworks(
+    "accounts/fireworks/models/qwen3-coder-30b-a3b-instruct",
+  ),
 };
 
 const staticUnsupportedModels = new Set([

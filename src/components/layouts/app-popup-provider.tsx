@@ -49,6 +49,13 @@ const PromptBuilderPopup = dynamic(
   },
 );
 
+const CoderPopup = dynamic(
+  () => import("@/components/coder-popup").then((mod) => mod.CoderPopup),
+  {
+    ssr: false,
+  },
+);
+
 export function AppPopupProvider() {
   return (
     <>
@@ -58,6 +65,7 @@ export function AppPopupProvider() {
       {false && <ChatBotVoice />}
       <ChatBotTemporary />
       <PromptBuilderPopup />
+      <CoderPopup />
     </>
   );
 }

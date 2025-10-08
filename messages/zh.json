@@ -189,6 +189,7 @@
     "newChat": "新聊天",
     "temporaryChat": "临时聊天",
     "promptBuilder": "提示构建器",
+    "coder": "Coder",
     "mcpConfiguration": "MCP 配置",
     "agents": "代理",
     "newAgent": "新代理",
@@ -506,6 +507,19 @@
     "example3": "\"我需要分析客户反馈\"",
     "example4": "\"生成创意故事想法\"",
     "placeholder": "描述您想要做什么，我会为您构建提示..."
+  },
+  "Coder": {
+    "title": "Coder",
+    "copyLastResponse": "Copy last response",
+    "resetChat": "Reset chat",
+    "aiCodingAssistant": "AI Coding Assistant",
+    "description": "Expert coding help powered by Qwen3 Coder. Get code solutions, debugging help, and best practices.",
+    "examples": "Examples",
+    "example1": "\"Create a REST API with authentication\"",
+    "example2": "\"Debug this JavaScript error\"",
+    "example3": "\"Optimize this SQL query\"",
+    "example4": "\"Write unit tests for this function\"",
+    "placeholder": "Describe your coding task and I'll help you solve it..."
   },
   "Pricing": {
     "title": "选择您的计划",
