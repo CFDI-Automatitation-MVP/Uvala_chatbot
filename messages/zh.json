@@ -567,5 +567,17 @@
     "confirmationEmail": "您很快就会收到确认邮件。现在您可以使用所有高级功能。",
     "startUsingFeatures": "开始使用高级功能",
     "backToPricing": "返回定价"
+  },
+  "Environmental": {
+    "buttonLabel": "我如何为环境做出贡献？",
+    "buttonTooltip": "查看您的环境影响",
+    "title": "我如何为环境做出贡献？",
+    "description": "追踪您的用水量和用电量。我们将根据您的消费量捐赠等量的资源。",
+    "waterUsage": "用水量",
+    "electricityUsage": "用电量",
+    "liters": "升",
+    "kwh": "千瓦时",
+    "max": "最大值：",
+    "donationMessage": "我们将把您使用的水和电的等量资源捐赠给环保事业！"
   }
 }

@@ -576,5 +576,17 @@
     "confirmationEmail": "Vous devriez recevoir un email de confirmation sous peu. Vous pouvez maintenant accéder à toutes les fonctionnalités premium.",
     "startUsingFeatures": "Commencer à Utiliser les Fonctionnalités Premium",
     "backToPricing": "Retour aux Tarifs"
+  },
+  "Environmental": {
+    "buttonLabel": "Comment je contribue à l'environnement ?",
+    "buttonTooltip": "Voir votre impact environnemental",
+    "title": "Comment je contribue à l'environnement ?",
+    "description": "Suivez votre consommation d'eau et d'électricité. Nous ferons don de ressources équivalentes en fonction de votre consommation.",
+    "waterUsage": "Consommation d'Eau",
+    "electricityUsage": "Consommation d'Électricité",
+    "liters": "litres",
+    "kwh": "kW/hr",
+    "max": "Max :",
+    "donationMessage": "Nous ferons don de l'équivalent en eau et en électricité que vous avez utilisé à des causes environnementales !"
   }
 }

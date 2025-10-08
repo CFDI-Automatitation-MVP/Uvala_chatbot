@@ -570,5 +570,17 @@
     "confirmationEmail": "まもなく確認メールを受信されます。プレミアム機能をすべてご利用いただけます。",
     "startUsingFeatures": "プレミアム機能の使用を開始",
     "backToPricing": "料金プランに戻る"
+  },
+  "Environmental": {
+    "buttonLabel": "環境にどのように貢献していますか？",
+    "buttonTooltip": "環境への影響を確認",
+    "title": "環境にどのように貢献していますか？",
+    "description": "水と電気の使用量を追跡します。消費量に基づいて同等のリソースを寄付します。",
+    "waterUsage": "水使用量",
+    "electricityUsage": "電気使用量",
+    "liters": "リットル",
+    "kwh": "kW/時",
+    "max": "最大:",
+    "donationMessage": "使用した水と電気に相当する量を環境保護活動に寄付します！"
   }
 }

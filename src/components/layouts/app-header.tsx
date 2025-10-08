@@ -21,6 +21,7 @@ import { useOnboarding } from "@/hooks/use-onboarding";
 import { WelcomePopup } from "@/components/onboarding/welcome-popup";
 import { useSidebar } from "ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { EnvironmentalImpactButton } from "@/components/environmental-impact/environmental-impact-button";
 
 export function AppHeader() {
   const [appStoreMutate] = appStore(useShallow((state) => [state.mutate]));
@@ -125,6 +126,9 @@ export function AppHeader() {
               </TooltipContent>
             </Tooltip>
           </div>
+
+          {/* Environmental Impact button */}
+          <EnvironmentalImpactButton />
 
           {/* New Chat button */}
           <Tooltip>

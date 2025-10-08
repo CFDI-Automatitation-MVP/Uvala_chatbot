@@ -616,5 +616,17 @@
     "confirmationEmail": "You should receive a confirmation email shortly. You can now access all premium features.",
     "startUsingFeatures": "Start Using Premium Features",
     "backToPricing": "Back to Pricing"
+  },
+  "Environmental": {
+    "buttonLabel": "How am I contributing to the environment?",
+    "buttonTooltip": "View your environmental impact",
+    "title": "How am I contributing to the environment?",
+    "description": "Track your water and electricity usage. We will donate equivalent resources based on your consumption.",
+    "waterUsage": "Water Usage",
+    "electricityUsage": "Electricity Usage",
+    "liters": "liters",
+    "kwh": "kW/hr",
+    "max": "Max:",
+    "donationMessage": "We will donate the equivalent water and electricity you've used to environmental causes!"
   }
 }

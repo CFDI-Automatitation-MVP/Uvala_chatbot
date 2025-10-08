@@ -566,5 +566,17 @@
     "confirmationEmail": "곧 확인 이메일을 받으실 것입니다. 이제 모든 프리미엄 기능을 사용할 수 있습니다.",
     "startUsingFeatures": "프리미엄 기능 사용 시작",
     "backToPricing": "요금제로 돌아가기"
+  },
+  "Environmental": {
+    "buttonLabel": "환경에 어떻게 기여하고 있나요?",
+    "buttonTooltip": "환경 영향 보기",
+    "title": "환경에 어떻게 기여하고 있나요?",
+    "description": "물과 전기 사용량을 추적합니다. 소비량에 따라 동등한 자원을 기부합니다.",
+    "waterUsage": "물 사용량",
+    "electricityUsage": "전기 사용량",
+    "liters": "리터",
+    "kwh": "kW/시간",
+    "max": "최대:",
+    "donationMessage": "사용한 물과 전기에 해당하는 양을 환경 보호 활동에 기부합니다!"
   }
 }

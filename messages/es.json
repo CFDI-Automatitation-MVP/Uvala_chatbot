@@ -603,5 +603,17 @@
     "confirmationEmail": "Deberías recibir un correo de confirmación en breve. Ahora puedes acceder a todas las funciones premium.",
     "startUsingFeatures": "Comenzar a Usar Funciones Premium",
     "backToPricing": "Volver a Precios"
+  },
+  "Environmental": {
+    "buttonLabel": "¿Cómo estoy contribuyendo al medio ambiente?",
+    "buttonTooltip": "Ver tu impacto ambiental",
+    "title": "¿Cómo estoy contribuyendo al medio ambiente?",
+    "description": "Rastrea tu uso de agua y electricidad. Donaremos recursos equivalentes basados en tu consumo.",
+    "waterUsage": "Uso de Agua",
+    "electricityUsage": "Uso de Electricidad",
+    "liters": "litros",
+    "kwh": "kW/hr",
+    "max": "Máx:",
+    "donationMessage": "¡Donaremos el agua y la electricidad equivalente que has usado a causas ambientales!"
   }
 }
