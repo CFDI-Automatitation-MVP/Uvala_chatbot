@@ -90,14 +90,14 @@ export function SimpleChatCoder() {
     }
   }, [isLoading]);
 
-  // Force qwen3-coder-30b model for coder
+  // Force uvala-coder model for coder
   useEffect(() => {
     appStoreMutate((state) => ({
       coder: {
         ...state.coder,
         chatModel: {
           provider: "Internal",
-          model: "qwen3-coder-30b",
+          model: "uvala-coder",
         },
       },
     }));

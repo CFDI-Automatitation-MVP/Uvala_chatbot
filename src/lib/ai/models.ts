@@ -25,8 +25,8 @@ const fireworks = createFireworks({
 
 // Internal models - not exposed in UI
 const internalModels = {
-  "uvala-fuji-micro": openai("gpt-5-nano"),
-  "qwen3-coder-30b": fireworks(
+  "uvala-prompter": openai("gpt-5-nano"),
+  "uvala-coder": fireworks(
     "accounts/fireworks/models/qwen3-coder-30b-a3b-instruct",
   ),
 };

@@ -48,6 +48,7 @@ import dynamic from "next/dynamic";
 import { useMounted } from "@/hooks/use-mounted";
 import { getStorageManager } from "lib/browser-stroage";
 import { AnimatePresence, motion } from "framer-motion";
+import { ChatModeBanner } from "./chat-mode-banner";
 
 type Props = {
   threadId: string;
@@ -79,6 +80,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
   const [
     appStoreMutate,
     model,
+    chatMode,
     toolChoice,
     allowedAppDefaultToolkit,
     threadList,
@@ -88,6 +90,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     useShallow((state) => [
       state.mutate,
       state.chatModel,
+      state.chatMode,
       state.toolChoice,
       state.allowedAppDefaultToolkit,
       state.threadList,
@@ -155,6 +158,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           id,
           chatModel:
             (body as { model: ChatModel })?.model ?? latestRef.current.model,
+          chatMode: latestRef.current.chatMode,
           toolChoice: latestRef.current.toolChoice,
           allowedAppDefaultToolkit: latestRef.current.mentions?.length
             ? []
@@ -185,6 +189,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
   const latestRef = useToRef({
     toolChoice,
     model,
+    chatMode,
     allowedAppDefaultToolkit,
     messages,
     threadList,
@@ -442,9 +447,15 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           </div>
         )}
         {emptyMessage ? (
-          <ChatGreeting />
+          <>
+            <ChatGreeting />
+          </>
         ) : (
           <>
+            {/* Mode Banner - Show when in special mode and no messages yet */}
+            <div className="px-4 pt-6 pb-2">
+              <ChatModeBanner messageCount={messages.length} />
+            </div>
             <div
               className={"flex flex-col gap-2 overflow-y-auto py-6 z-10"}
               ref={containerRef}
@@ -488,7 +499,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
               )}
 
               {error && <ErrorMessage error={error} />}
-              <div className="min-w-0 min-h-52" />
+              <div className="min-w-0 min-h-64" />
             </div>
           </>
         )}
@@ -521,6 +532,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
             fileAttachments={fileAttachments}
             setFileAttachments={setFileAttachments}
             isDragOver={isDragOver}
+            messageCount={messages.length}
           />
 
           {/* Disclaimer - Show only if there are messages */}

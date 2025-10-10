@@ -119,7 +119,7 @@ export async function POST(request: Request) {
     );
     const model = customModelProvider.getModel(chatModel);
     logger.info(
-      `🔧 CODER - Resolved to actual model: qwen3-coder-30b-a3b-instruct`,
+      `🔧 CODER - Resolved to actual model: uvala-coder (qwen3-coder-30b-a3b-instruct)`,
     );
 
     // Estimate token usage for limit checking (rough estimate)
@@ -174,7 +174,7 @@ export async function POST(request: Request) {
             userId: session.user.id,
             chatModel: chatModel || {
               provider: "Internal",
-              model: "qwen3-coder-30b",
+              model: "uvala-coder",
             },
           });
 

@@ -1,0 +1,376 @@
+<!-- PLANTILLAS DE EMAIL PARA BREVO -->
+<!-- Copia cada sección por separado en Brevo -->
+
+<!-- ========================================= -->
+<!-- 1. EMAIL DE BIENVENIDA - ESPAÑOL -->
+<!-- ========================================= -->
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bienvenido a uvala</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;">
+
+  <!-- Container -->
+  <div style="max-width: 560px; margin: 60px auto; background: #ffffff;">
+
+    <!-- Header -->
+    <div style="text-align: center; padding: 0 0 48px 0;">
+      <img src="https://uvala.ai/uvala-black-log.svg" alt="uvala" style="height: 32px; width: auto; margin-bottom: 32px;">
+      <h1 style="color: #000000; font-size: 32px; font-weight: 500; margin: 0; line-height: 1.2; letter-spacing: -0.02em;">
+        Bienvenido a uvala
+      </h1>
+    </div>
+
+    <!-- Content -->
+    <div style="padding: 0;">
+
+      <!-- Greeting -->
+      <p style="color: #000000; font-size: 18px; margin: 0 0 32px; font-weight: 400; line-height: 1.5;">
+        Hola {{params.userName}},
+      </p>
+
+      <!-- Body -->
+      <div style="color: #333333; font-size: 16px; line-height: 1.6; margin-bottom: 48px;">
+        <p style="margin-bottom: 32px; font-size: 16px; line-height: 1.6;">
+          ¡Bienvenido a uvala! Estamos emocionados de tenerte a bordo.
+        </p>
+
+        <div style="border: 1px solid #f0f0f0; padding: 32px; border-radius: 8px; margin: 32px 0;">
+          <div style="display: flex; align-items: center; margin-bottom: 16px;">
+            <span style="font-size: 18px; margin-right: 12px;">→</span>
+            <span style="color: #000000; font-size: 16px; font-weight: 500;">¿Listo para empezar?</span>
+          </div>
+          <p style="margin: 0; color: #666666; line-height: 1.5; font-size: 15px;">
+            Inicia tu primera conversación y experimenta el poder de la asistencia con IA.
+          </p>
+        </div>
+      </div>
+
+      <!-- CTA Button -->
+      <div style="text-align: center; margin: 48px 0;">
+        <a href="{{params.appUrl}}"
+           style="display: inline-block; background: #000000; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 500; font-size: 16px; letter-spacing: -0.01em;">
+          Comenzar
+        </a>
+      </div>
+
+      <!-- Footer -->
+      <div style="margin-top: 64px; padding-top: 32px; border-top: 1px solid #f0f0f0;">
+        <p style="color: #666666; font-size: 14px; margin: 0; line-height: 1.5; text-align: center;">
+          Saludos cordiales,<br>El equipo de uvala
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer Note -->
+  <div style="text-align: center; margin: 32px auto 60px; max-width: 560px;">
+    <p style="color: #999999; font-size: 12px; margin: 0; line-height: 1.4;">
+      <a href="{{params.appUrl}}" style="color: #333333; text-decoration: none;">uvala.ai</a>
+    </p>
+  </div>
+
+  <!-- Mobile Responsive Styles -->
+  <style>
+    @media only screen and (max-width: 600px) {
+      .email-container {
+        margin: 40px 20px !important;
+      }
+      .email-header {
+        padding: 0 0 40px 0 !important;
+      }
+      .email-title {
+        font-size: 28px !important;
+      }
+      .email-greeting {
+        font-size: 16px !important;
+      }
+      .email-body {
+        font-size: 15px !important;
+      }
+      .email-cta {
+        padding: 14px 28px !important;
+        font-size: 15px !important;
+      }
+    }
+  </style>
+</body>
+</html>
+
+<!-- ========================================= -->
+<!-- 2. EMAIL DE SUSCRIPCIÓN - ESPAÑOL -->
+<!-- ========================================= -->
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tu suscripción está activa</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;">
+
+  <!-- Container -->
+  <div style="max-width: 560px; margin: 60px auto; background: #ffffff;">
+
+    <!-- Header -->
+    <div style="text-align: center; padding: 0 0 48px 0;">
+      <img src="https://uvala.ai/uvala-black-log.svg" alt="uvala" style="height: 32px; width: auto; margin-bottom: 32px;">
+      <h1 style="color: #000000; font-size: 32px; font-weight: 500; margin: 0; line-height: 1.2; letter-spacing: -0.02em;">
+        Tu suscripción {{params.planType}} está activa
+      </h1>
+    </div>
+
+    <!-- Content -->
+    <div style="padding: 0;">
+
+      <!-- Greeting -->
+      <p style="color: #000000; font-size: 18px; margin: 0 0 32px; font-weight: 400; line-height: 1.5;">
+        Hola {{params.userName}},
+      </p>
+
+      <!-- Body -->
+      <div style="color: #333333; font-size: 16px; line-height: 1.6; margin-bottom: 48px;">
+        <p style="margin-bottom: 32px; font-size: 16px; line-height: 1.6;">
+          Tu suscripción {{params.planType}} ha sido activada exitosamente.
+        </p>
+
+        <div style="border: 1px solid #f0f0f0; padding: 32px; border-radius: 8px; margin: 32px 0;">
+          <div style="display: flex; align-items: center; margin-bottom: 24px;">
+            <span style="font-size: 18px; margin-right: 12px;">✓</span>
+            <span style="color: #000000; font-size: 16px; font-weight: 500;">Qué incluye</span>
+          </div>
+          <div style="margin: 0;">
+            <div style="display: flex; align-items: flex-start; margin-bottom: 16px;">
+              <span style="color: #000000; font-size: 16px; margin-right: 16px; margin-top: 2px; font-weight: 600;">•</span>
+              <span style="color: #333333; font-size: 16px; line-height: 1.5;">Acceso a modelos de IA premium</span>
+            </div>
+            <div style="display: flex; align-items: flex-start; margin-bottom: 16px;">
+              <span style="color: #000000; font-size: 16px; margin-right: 16px; margin-top: 2px; font-weight: 600;">•</span>
+              <span style="color: #333333; font-size: 16px; line-height: 1.5;">Límites de uso más altos</span>
+            </div>
+            <div style="display: flex; align-items: flex-start; margin-bottom: 16px;">
+              <span style="color: #000000; font-size: 16px; margin-right: 16px; margin-top: 2px; font-weight: 600;">•</span>
+              <span style="color: #333333; font-size: 16px; line-height: 1.5;">Soporte prioritario</span>
+            </div>
+            <div style="display: flex; align-items: flex-start; margin-bottom: 16px;">
+              <span style="color: #000000; font-size: 16px; margin-right: 16px; margin-top: 2px; font-weight: 600;">•</span>
+              <span style="color: #333333; font-size: 16px; line-height: 1.5;">Funciones avanzadas</span>
+            </div>
+          </div>
+        </div>
+
+        <p style="color: #666666; font-size: 14px; margin: 32px 0 0; line-height: 1.5;">
+          Tu suscripción se renovará automáticamente. Puedes administrar la configuración en tu panel en cualquier momento.
+        </p>
+      </div>
+
+      <!-- CTA Button -->
+      <div style="text-align: center; margin: 48px 0;">
+        <a href="{{params.appUrl}}/dashboard"
+           style="display: inline-block; background: #000000; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 500; font-size: 16px; letter-spacing: -0.01em;">
+          Ir al Panel
+        </a>
+      </div>
+
+      <!-- Footer -->
+      <div style="margin-top: 64px; padding-top: 32px; border-top: 1px solid #f0f0f0;">
+        <p style="color: #666666; font-size: 14px; margin: 0; line-height: 1.5; text-align: center;">
+          ¡Gracias por elegir uvala!<br>El equipo de uvala
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer Note -->
+  <div style="text-align: center; margin: 32px auto 60px; max-width: 560px;">
+    <p style="color: #999999; font-size: 12px; margin: 0; line-height: 1.4;">
+      <a href="{{params.appUrl}}" style="color: #333333; text-decoration: none;">uvala.ai</a>
+    </p>
+  </div>
+
+  <!-- Mobile Responsive Styles -->
+  <style>
+    @media only screen and (max-width: 600px) {
+      .email-container {
+        margin: 40px 20px !important;
+      }
+      .email-header {
+        padding: 0 0 40px 0 !important;
+      }
+      .email-title {
+        font-size: 28px !important;
+      }
+      .email-greeting {
+        font-size: 16px !important;
+      }
+      .email-body {
+        font-size: 15px !important;
+      }
+      .email-cta {
+        padding: 14px 28px !important;
+        font-size: 15px !important;
+      }
+    }
+  </style>
+</body>
+</html>
+
+<!-- ========================================= -->
+<!-- 3. EMAIL DE CANCELACIÓN - ESPAÑOL -->
+<!-- ========================================= -->
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Suscripción cancelada</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;">
+
+  <!-- Container -->
+  <div style="max-width: 560px; margin: 60px auto; background: #ffffff;">
+
+    <!-- Header -->
+    <div style="text-align: center; padding: 0 0 48px 0;">
+      <img src="https://uvala.ai/uvala-black-log.svg" alt="uvala" style="height: 32px; width: auto; margin-bottom: 32px;">
+      <h1 style="color: #000000; font-size: 32px; font-weight: 500; margin: 0; line-height: 1.2; letter-spacing: -0.02em;">
+        Suscripción cancelada
+      </h1>
+    </div>
+
+    <!-- Content -->
+    <div style="padding: 0;">
+
+      <!-- Greeting -->
+      <p style="color: #000000; font-size: 18px; margin: 0 0 32px; font-weight: 400; line-height: 1.5;">
+        Hola {{params.userName}},
+      </p>
+
+      <!-- Body -->
+      <div style="color: #333333; font-size: 16px; line-height: 1.6; margin-bottom: 48px;">
+        <p style="margin-bottom: 32px; font-size: 16px; line-height: 1.6;">
+          Tu suscripción {{params.planType}} ha sido cancelada.
+        </p>
+
+        <div style="border: 1px solid #f0f0f0; padding: 32px; border-radius: 8px; margin: 32px 0;">
+          <div style="display: flex; align-items: center; margin-bottom: 24px;">
+            <span style="font-size: 18px; margin-right: 12px;">ℹ</span>
+            <span style="color: #000000; font-size: 16px; font-weight: 500;">Qué significa esto</span>
+          </div>
+          <div style="margin: 0;">
+            <div style="display: flex; align-items: flex-start; margin-bottom: 16px;">
+              <span style="color: #000000; font-size: 16px; margin-right: 16px; margin-top: 2px; font-weight: 600;">•</span>
+              <span style="color: #333333; font-size: 16px; line-height: 1.5;">El acceso continúa hasta el final del período de facturación</span>
+            </div>
+            <div style="display: flex; align-items: flex-start; margin-bottom: 16px;">
+              <span style="color: #000000; font-size: 16px; margin-right: 16px; margin-top: 2px; font-weight: 600;">•</span>
+              <span style="color: #333333; font-size: 16px; line-height: 1.5;">No se realizarán cargos futuros</span>
+            </div>
+            <div style="display: flex; align-items: flex-start; margin-bottom: 16px;">
+              <span style="color: #000000; font-size: 16px; margin-right: 16px; margin-top: 2px; font-weight: 600;">•</span>
+              <span style="color: #333333; font-size: 16px; line-height: 1.5;">Tus datos permanecen seguros</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="border: 1px solid #f0f0f0; padding: 32px; border-radius: 8px; margin: 32px 0;">
+          <div style="display: flex; align-items: center; margin-bottom: 16px;">
+            <span style="font-size: 18px; margin-right: 12px;">?</span>
+            <span style="color: #000000; font-size: 16px; font-weight: 500;">Valoramos tus comentarios</span>
+          </div>
+          <p style="margin: 0; color: #666666; line-height: 1.5; font-size: 15px;">
+            Ayúdanos a mejorar compartiendo por qué cancelaste. Tus comentarios nos ayudan a servir mejor a los usuarios.
+          </p>
+        </div>
+
+        <p style="color: #666666; font-size: 14px; margin: 32px 0 0; line-height: 1.5;">
+          Puedes reactivar en cualquier momento desde la configuración de tu cuenta. Estaremos aquí cuando estés listo.
+        </p>
+      </div>
+
+      <!-- CTA Button -->
+      <div style="text-align: center; margin: 48px 0;">
+        <a href="{{params.appUrl}}/billing"
+           style="display: inline-block; background: #000000; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 500; font-size: 16px; letter-spacing: -0.01em;">
+          Reactivar Suscripción
+        </a>
+      </div>
+
+      <!-- Footer -->
+      <div style="margin-top: 64px; padding-top: 32px; border-top: 1px solid #f0f0f0;">
+        <p style="color: #666666; font-size: 14px; margin: 0; line-height: 1.5; text-align: center;">
+          Gracias por ser parte de uvala<br>El equipo de uvala
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer Note -->
+  <div style="text-align: center; margin: 32px auto 60px; max-width: 560px;">
+    <p style="color: #999999; font-size: 12px; margin: 0; line-height: 1.4;">
+      <a href="{{params.appUrl}}" style="color: #333333; text-decoration: none;">uvala.ai</a>
+    </p>
+  </div>
+
+  <!-- Mobile Responsive Styles -->
+  <style>
+    @media only screen and (max-width: 600px) {
+      .email-container {
+        margin: 40px 20px !important;
+      }
+      .email-header {
+        padding: 0 0 40px 0 !important;
+      }
+      .email-title {
+        font-size: 28px !important;
+      }
+      .email-greeting {
+        font-size: 16px !important;
+      }
+      .email-body {
+        font-size: 15px !important;
+      }
+      .email-cta {
+        padding: 14px 28px !important;
+        font-size: 15px !important;
+      }
+    }
+  </style>
+</body>
+</html>
+
+<!-- ========================================= -->
+<!-- INSTRUCCIONES PARA BREVO: -->
+<!-- ========================================= -->
+
+<!--
+PASOS PARA CREAR LAS PLANTILLAS EN BREVO:
+
+1. Ve a Brevo Dashboard → Campaigns → Email Templates
+2. Crea una nueva plantilla
+3. Selecciona "HTML Editor" o "Código HTML"
+4. Copia y pega cada sección HTML de arriba
+5. Crea 3 plantillas separadas:
+   - "Bienvenida ES"
+   - "Suscripción ES"
+   - "Cancelación ES"
+
+VARIABLES DE BREVO A USAR:
+- {{params.userName}} - Nombre del usuario
+- {{params.planType}} - Tipo de plan (Pro, Plus, etc.)
+- {{params.appUrl}} - URL de tu aplicación
+
+IMPORTANTE:
+- Cambia "https://uvala.ai" por tu dominio real
+- Sube el logo "uvala-black-log.svg" a Brevo primero
+- Usa la URL real del logo subido en Brevo
+-->

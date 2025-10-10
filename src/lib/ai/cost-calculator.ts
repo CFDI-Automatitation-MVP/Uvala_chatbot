@@ -59,7 +59,7 @@ export const MODEL_PRICING = {
   },
 
   // Internal models
-  "Internal/qwen3-coder-30b": {
+  "Internal/uvala-coder": {
     input: 0.15, // $0.15 per 1M input tokens (Fireworks pricing)
     output: 0.6, // $0.60 per 1M output tokens (Fireworks pricing)
     cachedInput: 0.15,
@@ -287,7 +287,8 @@ function normalizeModelId(modelId: string): string {
     "gpt-5-mini": "openai/gpt-5-mini",
     "uvala-fuji": "openai/gpt-5-mini", // Fast model using mini pricing
     "uvala-everest": "openai/gpt-5-mini", // Main Uvala model using mini pricing
-    "uvala-fuji-micro": "openai/gpt-5-nano", // Internal mapping only
+    "uvala-prompter": "openai/gpt-5-nano", // Prompt builder model
+    "uvala-coder": "Internal/uvala-coder", // Coder model
     "gpt-4.1": "openai/gpt-4.1",
     "gpt-4.1-mini": "openai/gpt-4.1-mini",
     o3: "openai/o3",

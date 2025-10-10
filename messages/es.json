@@ -629,5 +629,23 @@
     "kwh": "kW/hr",
     "max": "Máx:",
     "donationMessage": "¡Donaremos el agua y la electricidad equivalente que has usado a causas ambientales!"
+  },
+  "ChatMode": {
+    "normal": "Chat",
+    "coder": "Programador",
+    "promptBuilder": "Diseñador de Prompts",
+    "coderModeTitle": "Modo Programador",
+    "coderModeDescription": "Asistencia experta en programación impulsada por IA",
+    "coderSuggestion1": "Crea una API REST con autenticación",
+    "coderSuggestion2": "Depura este error de JavaScript",
+    "coderSuggestion3": "Optimiza esta consulta SQL",
+    "coderSuggestion4": "Escribe pruebas unitarias para esta función",
+    "promptBuilderModeTitle": "Modo Diseñador de Prompts",
+    "promptBuilderModeDescription": "Crea prompts optimizados para asistentes de IA",
+    "promptBuilderSuggestion1": "Ayúdame a escribir correos profesionales",
+    "promptBuilderSuggestion2": "Crea un prompt para revisión de código",
+    "promptBuilderSuggestion3": "Necesito analizar comentarios de clientes",
+    "promptBuilderSuggestion4": "Genera ideas creativas para historias",
+    "suggestedPrompts": "Prompts Sugeridos"
   }
 }

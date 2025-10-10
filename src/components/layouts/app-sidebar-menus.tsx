@@ -110,50 +110,55 @@ export function AppSidebarMenus() {
               </SidebarMenuButton>
             </SidebarMenuItem>
           </Tooltip>
-          <Tooltip>
-            <SidebarMenuItem className="mb-1">
-              <SidebarMenuButton
-                className="font-semibold group-data-[collapsible=icon]:w-12 group-data-[collapsible=icon]:h-12 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:mx-auto transition-all duration-200 sm:h-auto h-12 sm:py-2 py-3 sm:text-base text-lg"
-                tooltip={t("Layout.promptBuilder")}
-                onClick={() => {
-                  setOpenMobile(false);
-                  appStoreMutate((state) => ({
-                    promptBuilder: {
-                      ...state.promptBuilder,
-                      isOpen: !state.promptBuilder.isOpen,
-                    },
-                  }));
-                }}
-              >
-                <Brain className="sm:size-4 size-5 group-data-[collapsible=icon]:size-6 transition-all duration-200 flex-shrink-0" />
-                <span className="ml-2 whitespace-nowrap overflow-hidden transition-all duration-200 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:opacity-0">
-                  {t("Layout.promptBuilder")}
-                </span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </Tooltip>
-          <Tooltip>
-            <SidebarMenuItem className="mb-1">
-              <SidebarMenuButton
-                className="font-semibold group-data-[collapsible=icon]:w-12 group-data-[collapsible=icon]:h-12 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:mx-auto transition-all duration-200 sm:h-auto h-12 sm:py-2 py-3 sm:text-base text-lg"
-                tooltip={t("Layout.coder")}
-                onClick={() => {
-                  setOpenMobile(false);
-                  appStoreMutate((state) => ({
-                    coder: {
-                      ...state.coder,
-                      isOpen: !state.coder.isOpen,
-                    },
-                  }));
-                }}
-              >
-                <Code className="sm:size-4 size-5 group-data-[collapsible=icon]:size-6 transition-all duration-200 flex-shrink-0" />
-                <span className="ml-2 whitespace-nowrap overflow-hidden transition-all duration-200 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:opacity-0">
-                  {t("Layout.coder")}
-                </span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </Tooltip>
+          {/* Prompt Builder and Coder are now integrated into main chat via mode selector */}
+          {false && (
+            <>
+              <Tooltip>
+                <SidebarMenuItem className="mb-1">
+                  <SidebarMenuButton
+                    className="font-semibold group-data-[collapsible=icon]:w-12 group-data-[collapsible=icon]:h-12 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:mx-auto transition-all duration-200 sm:h-auto h-12 sm:py-2 py-3 sm:text-base text-lg"
+                    tooltip={t("Layout.promptBuilder")}
+                    onClick={() => {
+                      setOpenMobile(false);
+                      appStoreMutate((state) => ({
+                        promptBuilder: {
+                          ...state.promptBuilder,
+                          isOpen: !state.promptBuilder.isOpen,
+                        },
+                      }));
+                    }}
+                  >
+                    <Brain className="sm:size-4 size-5 group-data-[collapsible=icon]:size-6 transition-all duration-200 flex-shrink-0" />
+                    <span className="ml-2 whitespace-nowrap overflow-hidden transition-all duration-200 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:opacity-0">
+                      {t("Layout.promptBuilder")}
+                    </span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </Tooltip>
+              <Tooltip>
+                <SidebarMenuItem className="mb-1">
+                  <SidebarMenuButton
+                    className="font-semibold group-data-[collapsible=icon]:w-12 group-data-[collapsible=icon]:h-12 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:mx-auto transition-all duration-200 sm:h-auto h-12 sm:py-2 py-3 sm:text-base text-lg"
+                    tooltip={t("Layout.coder")}
+                    onClick={() => {
+                      setOpenMobile(false);
+                      appStoreMutate((state) => ({
+                        coder: {
+                          ...state.coder,
+                          isOpen: !state.coder.isOpen,
+                        },
+                      }));
+                    }}
+                  >
+                    <Code className="sm:size-4 size-5 group-data-[collapsible=icon]:size-6 transition-all duration-200 flex-shrink-0" />
+                    <span className="ml-2 whitespace-nowrap overflow-hidden transition-all duration-200 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:opacity-0">
+                      {t("Layout.coder")}
+                    </span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </Tooltip>
+            </>
+          )}
         </SidebarMenu>
 
         {/* Workflow - Hidden but preserved */}

@@ -575,6 +575,24 @@
     "example4": "\"Write unit tests for this function\"",
     "placeholder": "Describe your coding task and I'll help you solve it..."
   },
+  "ChatMode": {
+    "normal": "Chat",
+    "coder": "Coder",
+    "promptBuilder": "Prompt Builder",
+    "coderModeTitle": "Coder Mode",
+    "coderModeDescription": "Expert coding assistance powered by AI",
+    "coderSuggestion1": "Create a REST API with authentication",
+    "coderSuggestion2": "Debug this JavaScript error",
+    "coderSuggestion3": "Optimize this SQL query",
+    "coderSuggestion4": "Write unit tests for this function",
+    "promptBuilderModeTitle": "Prompt Builder Mode",
+    "promptBuilderModeDescription": "Create optimized prompts for AI assistants",
+    "promptBuilderSuggestion1": "Help me write professional emails",
+    "promptBuilderSuggestion2": "Create a prompt for code review",
+    "promptBuilderSuggestion3": "I need to analyze customer feedback",
+    "promptBuilderSuggestion4": "Generate creative story ideas",
+    "suggestedPrompts": "Suggested Prompts"
+  },
   "Pricing": {
     "title": "Choose Your Plan",
     "description": "Unlock the full potential of AI-powered conversations with our flexible pricing plans.",

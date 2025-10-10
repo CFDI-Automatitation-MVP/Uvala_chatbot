@@ -90,14 +90,14 @@ export function SimpleChatPromptBuilder() {
     }
   }, [isLoading]);
 
-  // Force uvala-fuji-micro model for prompt builder
+  // Force uvala-prompter model for prompt builder
   useEffect(() => {
     appStoreMutate((state) => ({
       promptBuilder: {
         ...state.promptBuilder,
         chatModel: {
           provider: "Internal",
-          model: "uvala-fuji-micro",
+          model: "uvala-prompter",
         },
       },
     }));

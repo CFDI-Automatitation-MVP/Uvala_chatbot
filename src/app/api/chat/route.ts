@@ -14,6 +14,7 @@ import { agentRepository, chatRepository } from "lib/db/repository";
 import globalLogger from "logger";
 import { buildUserSystemPrompt } from "lib/ai/prompts";
 import { chatApiSchemaRequestBodySchema, ChatMetadata } from "app-types/chat";
+import { CODER_SYSTEM, PROMPT_BUILDER_SYSTEM } from "lib/ai/mode-prompts";
 
 import { errorIf, safe } from "ts-safe";
 
@@ -29,7 +30,11 @@ import { rememberAgentAction } from "./actions";
 import { getSession } from "@/lib/auth/supabase-auth";
 import { colorize } from "consola/utils";
 import { generateUUID } from "lib/utils";
-import { trackUsage } from "lib/ai/usage-tracker";
+import {
+  trackUsage,
+  trackCoderUsage,
+  trackPromptBuilderUsage,
+} from "lib/ai/usage-tracker";
 import {
   truncateConversation,
   logTruncationResult,
@@ -53,6 +58,7 @@ export async function POST(request: Request) {
       id,
       message,
       chatModel,
+      chatMode = "normal",
       toolChoice,
       allowedAppDefaultToolkit,
       mentions = [],
@@ -148,11 +154,19 @@ export async function POST(request: Request) {
 
         const userPreferences = thread?.userPreferences || undefined;
 
-        const systemPrompt = buildUserSystemPrompt(
-          session.user,
-          userPreferences,
-          agent,
-        );
+        // Use mode-based system prompts or default user system prompt
+        let systemPrompt: string;
+        if (chatMode === "coder") {
+          systemPrompt = CODER_SYSTEM;
+        } else if (chatMode === "promptBuilder") {
+          systemPrompt = PROMPT_BUILDER_SYSTEM;
+        } else {
+          systemPrompt = buildUserSystemPrompt(
+            session.user,
+            userPreferences,
+            agent,
+          );
+        }
 
         const vercelAITooles = safe({ ...WORKFLOW_TOOLS })
           .map((t) => {
@@ -457,19 +471,41 @@ The files remain available throughout the entire conversation for analysis and r
             }
           });
 
-          await trackUsage({
-            usage: metadata.usage,
-            userId: session.user.id,
-            threadId: thread?.id,
-            messageId: responseMessage.id,
-            chatModel: metadata.chatModel,
-            toolCallsCount,
-            toolUsage: {
-              imageGenerations,
-              videoGenerations,
-              webSearches,
-            },
-          });
+          // Use mode-specific tracking functions
+          if (chatMode === "coder") {
+            await trackCoderUsage({
+              usage: metadata.usage,
+              userId: session.user.id,
+              chatModel: metadata.chatModel || {
+                provider: "Internal",
+                model: "uvala-coder",
+              },
+            });
+          } else if (chatMode === "promptBuilder") {
+            await trackPromptBuilderUsage({
+              usage: metadata.usage,
+              userId: session.user.id,
+              chatModel: metadata.chatModel || {
+                provider: "Internal",
+                model: "uvala-prompter",
+              },
+            });
+          } else {
+            // Normal mode tracking with full features
+            await trackUsage({
+              usage: metadata.usage,
+              userId: session.user.id,
+              threadId: thread?.id,
+              messageId: responseMessage.id,
+              chatModel: metadata.chatModel,
+              toolCallsCount,
+              toolUsage: {
+                imageGenerations,
+                videoGenerations,
+                webSearches,
+              },
+            });
+          }
         }
 
         if (agent) {

@@ -85,7 +85,7 @@ export async function POST(request: Request) {
     );
     const model = customModelProvider.getModel(chatModel);
     logger.info(
-      `🔧 PROMPT BUILDER - Resolved to actual model: gpt-5-nano (uvala-fuji-micro)`,
+      `🔧 PROMPT BUILDER - Resolved to actual model: gpt-5-nano (uvala-prompter)`,
     );
 
     // Estimate token usage for limit checking (rough estimate)
@@ -143,7 +143,7 @@ export async function POST(request: Request) {
             userId: session.user.id,
             chatModel: chatModel || {
               provider: "Internal",
-              model: "uvala-fuji-micro",
+              model: "uvala-prompter",
             },
           });
 

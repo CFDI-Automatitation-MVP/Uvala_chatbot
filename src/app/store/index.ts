@@ -8,6 +8,8 @@ import { AppDefaultToolkit } from "lib/ai/tools";
 import { AgentSummary } from "app-types/agent";
 import { ArchiveWithItemCount } from "app-types/archive";
 
+export type ChatMode = "normal" | "coder" | "promptBuilder";
+
 export interface AppState {
   threadList: ChatThread[];
   agentList: AgentSummary[];
@@ -25,6 +27,7 @@ export interface AppState {
     name: string;
   }[];
   chatModel?: ChatModel;
+  chatMode: ChatMode;
   openShortcutsPopup: boolean;
   openChatPreferences: boolean;
   temporaryChat: {
@@ -80,6 +83,7 @@ const initialState: AppState = {
     provider: "Fast & Direct",
     model: "uvala-fuji",
   },
+  chatMode: "normal",
   openShortcutsPopup: false,
   openChatPreferences: false,
   temporaryChat: {
@@ -116,6 +120,7 @@ export const appStore = create<AppState & AppDispatch>()(
       name: "mc-app-store-v2.0.1",
       partialize: (state) => ({
         chatModel: state.chatModel || initialState.chatModel,
+        chatMode: state.chatMode || initialState.chatMode,
         toolChoice: state.toolChoice || initialState.toolChoice,
         allowedAppDefaultToolkit: (
           state.allowedAppDefaultToolkit ??

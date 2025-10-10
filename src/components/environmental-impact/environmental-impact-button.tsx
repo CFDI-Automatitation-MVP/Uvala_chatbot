@@ -55,7 +55,7 @@ export function EnvironmentalImpactButton() {
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="sm:max-w-md">
-          <DialogHeader>
+          <DialogHeader className="pr-8">
             <DialogTitle className="flex items-center gap-2 font-bold">
               <Leaf className="w-5 h-5 text-green-600 dark:text-green-400" />
               {t("title")}

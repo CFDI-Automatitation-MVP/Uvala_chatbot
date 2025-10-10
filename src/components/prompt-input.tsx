@@ -17,7 +17,6 @@ import {
   XIcon,
   Mic,
   MicOff,
-  Code,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "ui/button";
@@ -53,6 +52,7 @@ import {
   AttachmentPreview,
   type AttachmentFile,
 } from "./file-attachment";
+import { ChatModeSelectorInline } from "./chat-mode-selector-inline";
 
 interface PromptInputProps {
   placeholder?: string;
@@ -74,6 +74,7 @@ interface PromptInputProps {
     files: AttachmentFile[] | ((prev: AttachmentFile[]) => AttachmentFile[]),
   ) => void;
   isDragOver?: boolean;
+  messageCount?: number;
 }
 
 const ChatMentionInput = dynamic(() => import("./chat-mention-input"), {
@@ -100,14 +101,16 @@ export default function PromptInput({
   fileAttachments: externalFileAttachments,
   setFileAttachments: externalSetFileAttachments,
   isDragOver: _externalIsDragOver,
+  messageCount = 0,
 }: PromptInputProps) {
   const t = useTranslations("Chat");
-  const tLayout = useTranslations("Layout");
+  const _tLayout = useTranslations("Layout");
 
-  const [globalModel, threadMentions, appStoreMutate] = appStore(
+  const [globalModel, threadMentions, chatMode, appStoreMutate] = appStore(
     useShallow((state) => [
       state.chatModel,
       state.threadMentions,
+      state.chatMode,
       state.mutate,
     ]),
   );
@@ -622,6 +625,28 @@ export default function PromptInput({
     if (!editorRef.current) return;
   }, [editorRef.current]);
 
+  // Handle suggested prompt insertion from mode banner
+  useEffect(() => {
+    const handleSuggestedPrompt = (event: CustomEvent) => {
+      const { prompt } = event.detail;
+      if (prompt) {
+        setInput(prompt);
+        editorRef.current?.commands.focus();
+      }
+    };
+
+    window.addEventListener(
+      "insertSuggestedPrompt" as any,
+      handleSuggestedPrompt as any,
+    );
+    return () => {
+      window.removeEventListener(
+        "insertSuggestedPrompt" as any,
+        handleSuggestedPrompt as any,
+      );
+    };
+  }, [setInput]);
+
   return (
     <div className="max-w-3xl mx-auto fade-in animate-in">
       {/* File Attachments Preview - Above Input */}
@@ -647,6 +672,8 @@ export default function PromptInput({
       <div className="z-10 mx-auto w-full max-w-3xl relative">
         <fieldset className="flex w-full min-w-0 max-w-full flex-col px-4">
           <div className="shadow-lg overflow-hidden rounded-4xl backdrop-blur-sm transition-all duration-200 bg-muted/60 relative flex w-full flex-col cursor-text z-10 items-stretch focus-within:bg-muted hover:bg-muted focus-within:ring-muted hover:ring-muted">
+            {/* Chat Mode Selector inside chatbox at the top */}
+            <ChatModeSelectorInline messageCount={messageCount} />
             {mentions.length > 0 && (
               <div className="bg-input rounded-b-sm rounded-t-3xl p-3 mx-2 my-2">
                 <div className="flex flex-col gap-4">
@@ -719,32 +746,18 @@ export default function PromptInput({
                 />
               </div>
               <div className="flex w-full items-center z-30">
-                {!fileUploadDisabled && (
+                {/* Disable file upload in coder and promptBuilder modes */}
+                {!fileUploadDisabled && chatMode === "normal" && (
                   <FileAttachmentInput
                     onFilesSelected={handleFilesSelected}
                     disabled={isLoading}
                   />
                 )}
 
-                {!toolDisabled && (
+                {/* Disable tools in coder and promptBuilder modes */}
+                {!toolDisabled && chatMode === "normal" && (
                   <>
                     <ToolModeDropdown />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="rounded-full mx-1"
-                      onClick={() => {
-                        appStoreMutate((state) => ({
-                          coder: {
-                            ...state.coder,
-                            isOpen: !state.coder.isOpen,
-                          },
-                        }));
-                      }}
-                      title={tLayout("coder")}
-                    >
-                      <Code className="size-4" />
-                    </Button>
                     {false && (
                       <ToolSelectDropdown
                         className="mx-1"
@@ -760,7 +773,8 @@ export default function PromptInput({
 
                 <div className="flex-1" />
 
-                {setModel && (
+                {/* Only show model selector in normal mode */}
+                {setModel && chatMode === "normal" && (
                   <SelectModel onSelect={setChatModel} currentModel={chatModel}>
                     <Button
                       variant={"ghost"}
