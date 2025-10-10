@@ -145,7 +145,7 @@ export function WelcomePopup({
 
   const handleStartTrial = () => {
     // Here you can add trial activation logic
-    console.log("🚀 Starting 3-day free trial");
+    console.log("🚀 Starting 5-day free trial");
     onClose();
   };
 
