@@ -1,6 +1,6 @@
 "use client";
 
-import { appStore, ChatMode } from "@/app/store";
+import { appStore } from "@/app/store";
 import { useShallow } from "zustand/shallow";
 import { useTranslations } from "next-intl";
 import { Code, Brain, X } from "lucide-react";

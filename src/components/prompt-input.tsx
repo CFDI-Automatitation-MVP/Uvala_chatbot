@@ -104,7 +104,6 @@ export default function PromptInput({
   messageCount = 0,
 }: PromptInputProps) {
   const t = useTranslations("Chat");
-  const _tLayout = useTranslations("Layout");
 
   const [globalModel, threadMentions, chatMode, appStoreMutate] = appStore(
     useShallow((state) => [
