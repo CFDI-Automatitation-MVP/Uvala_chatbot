@@ -99,6 +99,9 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|.*\\.svg$|.*\\.png$|.*\\.jpg$|.*\\.jpeg$|.*\\.gif$|.*\\.webp$|api/|sign-in|sign-up|auth/).*)",
+    // Include API routes for rate limiting and CSRF protection
+    "/api/:path*",
+    // Include all other routes except static files, sign-in, sign-up, auth
+    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|.*\\.svg$|.*\\.png$|.*\\.jpg$|.*\\.jpeg$|.*\\.gif$|.*\\.webp$|sign-in|sign-up|auth/).*)",
   ],
 };

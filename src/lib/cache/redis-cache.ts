@@ -22,20 +22,30 @@ export class RedisCache implements Cache {
     if (options.redis) {
       this.redis = options.redis;
     } else if (options.restUrl && options.restToken) {
-      // Use Upstash REST API
+      // Use Upstash REST API (Vercel KV standard)
       this.redis = new Redis({
         url: options.restUrl,
         token: options.restToken,
       });
-    } else if (options.redisUrl) {
-      // Legacy fallback - won't work with Upstash
-      logger.warn(
-        "RedisCache: Using legacy redisUrl, this may not work with Upstash",
-      );
-      this.redis = Redis.fromEnv();
     } else {
-      // Use environment variables
-      this.redis = Redis.fromEnv();
+      // Fallback to environment variables
+      // Try Vercel KV variables first (KV_REST_API_*), then Upstash standard (UPSTASH_REDIS_REST_*)
+      const url =
+        process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+      const token =
+        process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+
+      if (!url || !token) {
+        const error = new Error(
+          "Redis credentials not found. Either pass restUrl/restToken or set environment variables: " +
+            "KV_REST_API_URL + KV_REST_API_TOKEN (Vercel) or UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN (Upstash)",
+        );
+        logger.error(error.message);
+        throw error;
+      }
+
+      this.redis = new Redis({ url, token });
+      logger.info("RedisCache: Initialized from environment variables");
     }
 
     this.defaultTtlMs = options.defaultTtlMs ?? Infinity;

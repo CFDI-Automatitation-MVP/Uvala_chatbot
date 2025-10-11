@@ -4,10 +4,30 @@ import { NextRequest } from "next/server";
 import logger from "logger";
 
 // Initialize Redis client using REST API (Edge Runtime compatible)
-const redis = new Redis({
-  url: process.env.KV_REST_API_URL!,
-  token: process.env.KV_REST_API_TOKEN!,
-});
+// Throws error if credentials are missing - rate limiting requires Redis
+function createRedisClient(): Redis {
+  const url = process.env.KV_REST_API_URL;
+  const token = process.env.KV_REST_API_TOKEN;
+
+  if (!url || !token) {
+    const error = new Error(
+      "Redis credentials not found. KV_REST_API_URL and KV_REST_API_TOKEN are required for rate limiting. " +
+        "Please set up Upstash Redis via Vercel Marketplace or add credentials to environment variables.",
+    );
+    logger.error(error.message);
+    throw error;
+  }
+
+  try {
+    logger.info("Initializing Redis client for rate limiting");
+    return new Redis({ url, token });
+  } catch (error) {
+    logger.error("Failed to initialize Redis client:", error);
+    throw error;
+  }
+}
+
+const redis = createRedisClient();
 
 // Rate limit configurations for different endpoint types
 export const rateLimits = {
