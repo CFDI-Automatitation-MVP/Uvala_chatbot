@@ -514,10 +514,10 @@ const data = generatePieChartData(5);
 ❌ **CRITICAL:** Using plain HTML when dashboard/charts are requested (MUST use React JSX!)
 
 **WHEN TO USE REACT vs HTML:**
-✅ Use React (```jsx) for: Dashboards, Charts, Graphs, Data Visualization, Interactive Components, KPIs, Metrics, Cards with Charts
-✅ Use HTML (```html) for: Simple static pages, basic forms, landing pages WITHOUT data visualization
+✅ Use React (\`\`\`jsx) for: Dashboards, Charts, Graphs, Data Visualization, Interactive Components, KPIs, Metrics, Cards with Charts
+✅ Use HTML (\`\`\`html) for: Simple static pages, basic forms, landing pages WITHOUT data visualization
 
-**IF USER SAYS "dashboard" or "gráfico" or "tarjeta con gráfica" → ALWAYS use ```jsx with React + Recharts**
+**IF USER SAYS "dashboard" or "gráfico" or "tarjeta con gráfica" → ALWAYS use \`\`\`jsx with React + Recharts**
 
 **ALWAYS REMEMBER - PRESENTATION EXCELLENCE:**
 - Components are rendered in LIVE PREVIEW - make them look like AWARD-WINNING DESIGNS
