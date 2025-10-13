@@ -394,6 +394,64 @@
     "mcpServerCustomizationPlaceholder": "例如：如果输入值是电子邮件，始终以 example@example.com 格式输入电子邮件。"
   },
   "Error": {},
+  "onboarding": {
+    "tutorials": {
+      "general": "常规功能",
+      "generalDesc": "了解 Uvala 的主要功能",
+      "coder": "编程模式",
+      "coderDesc": "掌握带实时预览的编程模式",
+      "components": "组件模式",
+      "componentsDesc": "使用AI创建UI组件"
+    },
+    "generalFeatures": {
+      "coder": {
+        "title": "编程模式",
+        "description": "生成带实时预览的交互式代码。支持React、Vue、HTML/CSS/JS等。即时查看运行结果并根据需要调整。",
+        "example": "创建带交互式图表的仪表板卡片"
+      },
+      "components": {
+        "title": "组件模式",
+        "description": "即时设计专业的用户界面。自动生成可重用的现代UI组件，包含样式和动画效果。",
+        "example": "我需要一个带动画效果的天气小部件"
+      }
+    },
+    "features": {
+      "webSearch": {
+        "title": "网络搜索",
+        "description": "通过网络搜索获取实时信息和答案。",
+        "example": "在斯德哥尔摩活动的初创公司有哪些？"
+      },
+      "videoGenerator": {
+        "title": "视频生成器",
+        "description": "用AI从您的想法创建引人入胜的视频。",
+        "example": "创建展示产品功能的产品演示"
+      },
+      "imageCreation": {
+        "title": "图像创作",
+        "description": "从描述中生成独特的图像和艺术作品。",
+        "example": "科技城市的未来景观"
+      },
+      "chartsAnalytics": {
+        "title": "图表与分析",
+        "description": "根据您的数据创建交互式图表和可视化。",
+        "example": "显示月度销售趋势的折线图"
+      },
+      "promptBuilder": {
+        "title": "提示构建器",
+        "description": "为特定任务创建优化的AI提示。",
+        "example": "帮我构建分析客户反馈的提示"
+      }
+    },
+    "welcome": {
+      "title": "欢迎来到 Uvala",
+      "subtitle": "您的AI驱动助手",
+      "getStarted": "开始使用",
+      "skip": "跳过",
+      "next": "下一步",
+      "previous": "上一步",
+      "finish": "完成"
+    }
+  },
   "Info": {
     "mcpAddingDisabled": "管理员已禁用MCP服务器添加功能。",
     "vercelSyncDelay": "在Vercel上运行\n\nMCP更改同步可能需要10-15秒。如果添加、编辑或删除服务器后更改未立即显示，请稍等片刻。"

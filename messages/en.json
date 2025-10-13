@@ -50,6 +50,26 @@
   },
   "Error": {},
   "onboarding": {
+    "tutorials": {
+      "general": "General Features",
+      "generalDesc": "Learn about Uvala's main features",
+      "coder": "Coder Mode",
+      "coderDesc": "Master coder mode with live preview",
+      "components": "Components Mode",
+      "componentsDesc": "Create UI components with AI"
+    },
+    "generalFeatures": {
+      "coder": {
+        "title": "Coder Mode",
+        "description": "Generate interactive code with real-time preview. Create components, dashboards, and complete applications just by describing what you need.",
+        "example": "Create a dashboard card with interactive charts"
+      },
+      "components": {
+        "title": "Components Mode",
+        "description": "Design professional user interfaces instantly. Create and customize responsive UI components with natural language instructions.",
+        "example": "I need an animated weather widget"
+      }
+    },
     "features": {
       "webSearch": {
         "title": "Web Live Search",
@@ -75,6 +95,53 @@
         "title": "Prompt Builder",
         "description": "Transform requests into structured prompts",
         "example": "Help me write a business plan"
+      }
+    },
+    "coder": {
+      "title": "Coder Mode",
+      "description": "Your AI-powered expert coding assistant",
+      "features": {
+        "livePreview": {
+          "title": "Live Preview",
+          "description": "Watch your components render in real-time as AI generates them",
+          "example": "Create a dashboard with interactive charts"
+        },
+        "multipleLanguages": {
+          "title": "Multiple Languages",
+          "description": "Supports React, HTML, Vue, and more popular frameworks",
+          "example": "Build a contact form in React"
+        },
+        "fullscreenMode": {
+          "title": "Fullscreen Mode",
+          "description": "View your components in fullscreen for better presentations",
+          "example": "Generate a complete landing page"
+        },
+        "codeExport": {
+          "title": "Export Code",
+          "description": "Copy the generated code and use it directly in your project",
+          "example": "Create a data table with pagination"
+        }
+      }
+    },
+    "components": {
+      "title": "Components Mode",
+      "description": "Create interactive UI components with AI",
+      "features": {
+        "instantGeneration": {
+          "title": "Instant Generation",
+          "description": "Describe the component you need and AI will create it instantly",
+          "example": "I need an animated weather widget"
+        },
+        "editAndRefine": {
+          "title": "Edit and Refine",
+          "description": "Modify existing components with natural language instructions",
+          "example": "Make it more modern with gradients"
+        },
+        "responsive": {
+          "title": "Responsive Design",
+          "description": "All components adapt to different screen sizes",
+          "example": "Create a responsive navigation menu"
+        }
       }
     },
     "trial": {
@@ -569,11 +636,25 @@
     "aiCodingAssistant": "AI Coding Assistant",
     "description": "Expert coding help powered by Qwen3 Coder. Get code solutions, debugging help, and best practices.",
     "examples": "Examples",
-    "example1": "\"Create a REST API with authentication\"",
-    "example2": "\"Debug this JavaScript error\"",
-    "example3": "\"Optimize this SQL query\"",
-    "example4": "\"Write unit tests for this function\"",
-    "placeholder": "Describe your coding task and I'll help you solve it..."
+    "example1": "Create dashboard card with chart",
+    "example2": "Interactive data table component",
+    "example3": "Metrics dashboard with statistics",
+    "example4": "Contact form with validation",
+    "placeholder": "Describe your coding task and I'll help you solve it...",
+    "codeGenerating": "Code is being generated... Switch to preview when complete",
+    "generatingCode": "Generating code... Preview will appear when complete",
+    "buildingComponent": "Building Component...",
+    "noPreviewAvailable": "No Preview Available",
+    "askAIToGenerate": "Ask the AI to generate a component, and it will appear here.",
+    "tryCreateTodo": "Try: \"Create a todo list component\" or \"Build a dashboard card\"",
+    "generatedComponentTruncated": "Generated Component (Truncated)",
+    "codeTruncated": "Code Truncated",
+    "codeTruncatedMessage": "The response was cut off due to context limits. The component may not work correctly.",
+    "tryAsking": "Try asking:",
+    "continueCommand": "\"continue\"",
+    "orRequestSimpler": "or request a simpler version.",
+    "betaWarning": "Component mode is in Beta. Errors may occur when generating elements. Ask specifically for what's missing in your component to improve the experience. Save errors may also occur when switching chats.",
+    "generatedBy": "generated by uvala"
   },
   "ChatMode": {
     "normal": "Chat",
@@ -581,10 +662,10 @@
     "promptBuilder": "Prompt Builder",
     "coderModeTitle": "Coder Mode",
     "coderModeDescription": "Expert coding assistance powered by AI",
-    "coderSuggestion1": "Create a REST API with authentication",
-    "coderSuggestion2": "Debug this JavaScript error",
-    "coderSuggestion3": "Optimize this SQL query",
-    "coderSuggestion4": "Write unit tests for this function",
+    "coderSuggestion1": "Create dashboard card with chart",
+    "coderSuggestion2": "Interactive data table component",
+    "coderSuggestion3": "Metrics dashboard with statistics",
+    "coderSuggestion4": "Contact form with validation",
     "promptBuilderModeTitle": "Prompt Builder Mode",
     "promptBuilderModeDescription": "Create optimized prompts for AI assistants",
     "promptBuilderSuggestion1": "Help me write professional emails",

@@ -393,6 +393,72 @@
     "mcpServerCustomizationPlaceholder": "예) 이 MCP 서버의 툴중에 입력값이 email인 경우 항상 example@example.com 형식으로 입력해주세요."
   },
   "Error": {},
+  "onboarding": {
+    "tutorials": {
+      "general": "일반 기능",
+      "generalDesc": "Uvala의 주요 기능에 대해 배워보세요",
+      "coder": "코더 모드",
+      "coderDesc": "실시간 미리보기와 함께 코더 모드 마스터하기",
+      "components": "컴포넌트 모드",
+      "componentsDesc": "AI로 UI 컴포넌트 만들기"
+    },
+    "generalFeatures": {
+      "coder": {
+        "title": "코더 모드",
+        "description": "실시간 미리보기와 함께 인터랙티브한 코드를 생성하세요. 필요한 것을 설명하기만 하면 컴포넌트, 대시보드 및 완전한 애플리케이션을 만들 수 있습니다.",
+        "example": "인터랙티브 차트가 있는 대시보드 카드 만들기"
+      },
+      "components": {
+        "title": "컴포넌트 모드",
+        "description": "전문적인 사용자 인터페이스를 즉시 디자인하세요. 자연어 지시로 반응형 UI 컴포넌트를 만들고 사용자 지정할 수 있습니다.",
+        "example": "애니메이션 날씨 위젯이 필요합니다"
+      }
+    },
+    "features": {
+      "webSearch": {
+        "title": "실시간 웹 검색",
+        "description": "웹에서 실시간 정보 가져오기",
+        "example": "AI에 대한 최신 뉴스를 알려주세요"
+      },
+      "videoGenerator": {
+        "title": "비디오 생성기",
+        "description": "텍스트로 매력적인 비디오 만들기",
+        "example": "일몰 비디오를 생성해주세요"
+      },
+      "imageCreation": {
+        "title": "이미지 생성",
+        "description": "멋진 비주얼을 즉시 생성",
+        "example": "미래 도시의 이미지를 만들어주세요"
+      },
+      "chartsAnalytics": {
+        "title": "차트 및 분석",
+        "description": "아름다운 차트로 데이터 시각화",
+        "example": "시장 점유율 원형 차트 만들기"
+      },
+      "promptBuilder": {
+        "title": "프롬프트 빌더",
+        "description": "요청을 구조화된 프롬프트로 변환",
+        "example": "사업 계획서 작성을 도와주세요"
+      }
+    },
+    "coder": {
+      "title": "코더 모드",
+      "description": "AI 기반 전문 코딩 어시스턴트"
+    },
+    "components": {
+      "title": "컴포넌트 모드",
+      "description": "AI로 인터랙티브한 UI 컴포넌트 만들기"
+    },
+    "trial": {
+      "title": "무료 체험 시작",
+      "description": "3일간 무제한 액세스로 모든 기능 잠금 해제",
+      "button": "지금 3일 무료 체험 시작"
+    },
+    "tryExample": "이렇게 말해보세요:",
+    "next": "다음",
+    "getStarted": "시작하기",
+    "of": "/"
+  },
   "Info": {
     "mcpAddingDisabled": "관리자에 의해 MCP 서버 추가가 비활성화되었습니다.",
     "vercelSyncDelay": "Vercel에서 실행 중\n\nMCP 변경사항은 동기화에 10-15초 정도 소요될 수 있습니다. 서버 추가, 편집 또는 삭제 후 변경사항이 즉시 보이지 않으면 잠시 기다려주세요."

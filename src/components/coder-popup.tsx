@@ -10,13 +10,15 @@ import {
   DrawerTitle,
 } from "ui/drawer";
 import { Button } from "ui/button";
-import { X, RotateCcw } from "lucide-react";
+import { X, RotateCcw, Eye } from "lucide-react";
 import { SimpleChatCoder } from "./coder/simple-chat-coder";
+import { useArtifactStore } from "@/stores/artifact-store";
 
 export function CoderPopup() {
   const [coder, appStoreMutate] = appStore(
     useShallow((state) => [state.coder, state.mutate]),
   );
+  const { activeArtifactId } = useArtifactStore();
 
   const setOpen = (bool: boolean) => {
     appStoreMutate({
@@ -24,6 +26,13 @@ export function CoderPopup() {
         isOpen: bool,
       },
     });
+  };
+
+  const handleShowPreview = () => {
+    console.log("[CODER POPUP] Manual preview trigger clicked");
+    // Dispatch event to show preview
+    const showPreviewEvent = new CustomEvent("coderShowPreview");
+    window.dispatchEvent(showPreviewEvent);
   };
 
   return (
@@ -37,15 +46,39 @@ export function CoderPopup() {
         style={{
           userSelect: "text",
         }}
-        className="w-full md:w-2xl px-2 flex flex-col h-[90vh] md:h-full"
+        className="w-full px-2 flex flex-col h-[90vh] md:h-full"
       >
         <DrawerHeader className="px-3 md:px-6">
           <DrawerTitle className="flex items-center gap-2">
+            {/* macOS-style traffic light buttons */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-muted/30">
+                <div className="w-3 h-3 rounded-full bg-red-500/80 hover:bg-red-500 transition-colors" />
+                <div className="w-3 h-3 rounded-full bg-yellow-500/80 hover:bg-yellow-500 transition-colors" />
+                <div className="w-3 h-3 rounded-full bg-green-500/80 hover:bg-green-500 transition-colors" />
+              </div>
+            </div>
+
+            <div className="flex-1" />
+
+            {/* Manual Preview Trigger Button - Apple styled */}
+            {activeArtifactId && (
+              <Button
+                variant={"ghost"}
+                size={"sm"}
+                onClick={handleShowPreview}
+                className="rounded-full h-8 px-3 gap-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 transition-all"
+                title="Show component preview"
+              >
+                <Eye className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <span className="text-xs font-medium text-blue-600 dark:text-blue-400">Preview</span>
+              </Button>
+            )}
+
             <Button
               variant={"ghost"}
               size={"sm"}
               onClick={() => {
-                // Reset function will be called through a ref or context
                 const resetEvent = new CustomEvent("coderReset");
                 window.dispatchEvent(resetEvent);
               }}
@@ -53,7 +86,7 @@ export function CoderPopup() {
             >
               <RotateCcw className="w-4 h-4" />
             </Button>
-            <div className="flex-1" />
+
             <DrawerClose asChild>
               <Button
                 variant={"secondary"}

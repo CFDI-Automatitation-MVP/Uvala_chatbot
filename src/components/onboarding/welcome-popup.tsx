@@ -8,6 +8,8 @@ import {
   Image as ImageIcon,
   TrendingUp,
   Brain,
+  Code,
+  Layout,
   ChevronRight,
   ChevronLeft,
   Languages,
@@ -55,6 +57,18 @@ const features = [
     titleKey: "onboarding.features.promptBuilder.title",
     descriptionKey: "onboarding.features.promptBuilder.description",
     exampleKey: "onboarding.features.promptBuilder.example",
+  },
+  {
+    icon: <Code className="w-8 h-8" />,
+    titleKey: "onboarding.generalFeatures.coder.title",
+    descriptionKey: "onboarding.generalFeatures.coder.description",
+    exampleKey: "onboarding.generalFeatures.coder.example",
+  },
+  {
+    icon: <Layout className="w-8 h-8" />,
+    titleKey: "onboarding.generalFeatures.components.title",
+    descriptionKey: "onboarding.generalFeatures.components.description",
+    exampleKey: "onboarding.generalFeatures.components.example",
   },
 ];
 

@@ -396,6 +396,72 @@
     "mcpServerCustomizationPlaceholder": "例：入力値がメールの場合、常にexample@example.comの形式でメールを入力してください。"
   },
   "Error": {},
+  "onboarding": {
+    "tutorials": {
+      "general": "一般機能",
+      "generalDesc": "Uvalaの主要機能について学ぶ",
+      "coder": "コーダーモード",
+      "coderDesc": "ライブプレビュー付きコーダーモードをマスター",
+      "components": "コンポーネントモード",
+      "componentsDesc": "AIでUIコンポーネントを作成"
+    },
+    "generalFeatures": {
+      "coder": {
+        "title": "コーダーモード",
+        "description": "リアルタイムプレビュー付きでインタラクティブなコードを生成。必要なものを説明するだけで、コンポーネント、ダッシュボード、完全なアプリケーションを作成できます。",
+        "example": "インタラクティブなチャート付きダッシュボードカードを作成"
+      },
+      "components": {
+        "title": "コンポーネントモード",
+        "description": "プロフェッショナルなユーザーインターフェースを瞬時にデザイン。自然言語の指示でレスポンシブなUIコンポーネントを作成・カスタマイズ。",
+        "example": "アニメーション付きの天気ウィジェットが必要"
+      }
+    },
+    "features": {
+      "webSearch": {
+        "title": "ライブウェブ検索",
+        "description": "ウェブからリアルタイムの情報を取得",
+        "example": "AIに関する最新ニュースを教えて"
+      },
+      "videoGenerator": {
+        "title": "ビデオジェネレーター",
+        "description": "テキストから魅力的なビデオを作成",
+        "example": "夕日のビデオを生成して"
+      },
+      "imageCreation": {
+        "title": "画像作成",
+        "description": "素晴らしいビジュアルを瞬時に生成",
+        "example": "未来都市の画像を作成して"
+      },
+      "chartsAnalytics": {
+        "title": "チャートと分析",
+        "description": "美しいチャートでデータを可視化",
+        "example": "市場シェアの円グラフを作成して"
+      },
+      "promptBuilder": {
+        "title": "プロンプトビルダー",
+        "description": "リクエストを構造化されたプロンプトに変換",
+        "example": "事業計画書の作成を手伝って"
+      }
+    },
+    "coder": {
+      "title": "コーダーモード",
+      "description": "AIを活用した専門コーディングアシスタント"
+    },
+    "components": {
+      "title": "コンポーネントモード",
+      "description": "AIでインタラクティブなUIコンポーネントを作成"
+    },
+    "trial": {
+      "title": "無料トライアルを開始",
+      "description": "3日間の無制限アクセスですべての機能をアンロック",
+      "button": "今すぐ3日間無料トライアルを開始"
+    },
+    "tryExample": "試してみて:",
+    "next": "次へ",
+    "getStarted": "はじめる",
+    "of": "の"
+  },
   "Info": {
     "mcpAddingDisabled": "管理者によりMCPサーバーの追加が無効化されています。",
     "vercelSyncDelay": "Vercel上で動作中\n\nMCP変更の同期には10-15秒かかる場合があります。サーバーの追加、編集、または削除後に変更が即座に表示されない場合は、しばらくお待ちください。"

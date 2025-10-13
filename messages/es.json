@@ -398,6 +398,26 @@
   },
   "Error": {},
   "onboarding": {
+    "tutorials": {
+      "general": "Funciones Generales",
+      "generalDesc": "Aprende sobre las funciones principales de Uvala",
+      "coder": "Modo Programador",
+      "coderDesc": "Domina el modo programador con vista previa en vivo",
+      "components": "Modo Componentes",
+      "componentsDesc": "Crea componentes UI con IA"
+    },
+    "generalFeatures": {
+      "coder": {
+        "title": "Modo Programador",
+        "description": "Genera código interactivo con vista previa en tiempo real. Crea componentes, dashboards y aplicaciones completas con solo describir lo que necesitas.",
+        "example": "Crea una tarjeta de dashboard con gráficos interactivos"
+      },
+      "components": {
+        "title": "Modo Componentes",
+        "description": "Diseña interfaces de usuario profesionales al instante. Crea y personaliza componentes UI responsive con instrucciones en lenguaje natural.",
+        "example": "Necesito un widget de clima animado"
+      }
+    },
     "features": {
       "webSearch": {
         "title": "Búsqueda Web en Vivo",
@@ -423,6 +443,53 @@
         "title": "Constructor de Prompts",
         "description": "Transforma solicitudes en prompts estructurados",
         "example": "Ayúdame a escribir un plan de negocios"
+      }
+    },
+    "coder": {
+      "title": "Modo Programador",
+      "description": "Tu asistente experto en programación impulsado por IA",
+      "features": {
+        "livePreview": {
+          "title": "Vista Previa en Vivo",
+          "description": "Mira tus componentes renderizarse en tiempo real mientras la IA los genera",
+          "example": "Crea un dashboard con gráficos interactivos"
+        },
+        "multipleLanguages": {
+          "title": "Múltiples Lenguajes",
+          "description": "Soporta React, HTML, Vue y más frameworks populares",
+          "example": "Construye un formulario de contacto en React"
+        },
+        "fullscreenMode": {
+          "title": "Modo Pantalla Completa",
+          "description": "Visualiza tus componentes en pantalla completa para mejores presentaciones",
+          "example": "Genera una landing page completa"
+        },
+        "codeExport": {
+          "title": "Exportar Código",
+          "description": "Copia el código generado y úsalo directamente en tu proyecto",
+          "example": "Crea una tabla de datos con paginación"
+        }
+      }
+    },
+    "components": {
+      "title": "Modo Componentes",
+      "description": "Crea componentes UI interactivos con IA",
+      "features": {
+        "instantGeneration": {
+          "title": "Generación Instantánea",
+          "description": "Describe el componente que necesitas y la IA lo creará al instante",
+          "example": "Necesito un widget de clima animado"
+        },
+        "editAndRefine": {
+          "title": "Editar y Refinar",
+          "description": "Modifica componentes existentes con instrucciones en lenguaje natural",
+          "example": "Hazlo más moderno con gradientes"
+        },
+        "responsive": {
+          "title": "Diseño Responsivo",
+          "description": "Todos los componentes se adaptan a diferentes tamaños de pantalla",
+          "example": "Crea un menú de navegación responsive"
+        }
       }
     },
     "trial": {
@@ -556,11 +623,25 @@
     "aiCodingAssistant": "Asistente de Programación IA",
     "description": "Ayuda experta en programación con Qwen3 Coder. Obtén soluciones de código, ayuda de depuración y mejores prácticas.",
     "examples": "Ejemplos",
-    "example1": "\"Crea una API REST con autenticación\"",
-    "example2": "\"Depura este error de JavaScript\"",
-    "example3": "\"Optimiza esta consulta SQL\"",
-    "example4": "\"Escribe pruebas unitarias para esta función\"",
-    "placeholder": "Describe tu tarea de programación y te ayudaré a resolverla..."
+    "example1": "Crear tarjeta de dashboard con gráfica",
+    "example2": "Componente de tabla de datos interactiva",
+    "example3": "Dashboard de métricas con estadísticas",
+    "example4": "Formulario de contacto con validación",
+    "placeholder": "Describe tu tarea de programación y te ayudaré a resolverla...",
+    "codeGenerating": "El código se está generando... Cambia a vista previa cuando esté completo",
+    "generatingCode": "Generando código... La vista previa aparecerá cuando esté completo",
+    "buildingComponent": "Construyendo Componente...",
+    "noPreviewAvailable": "Sin Vista Previa Disponible",
+    "askAIToGenerate": "Pídele a la IA que genere un componente, y aparecerá aquí.",
+    "tryCreateTodo": "Intenta: \"Crea un componente de lista de tareas\" o \"Construye una tarjeta de dashboard\"",
+    "generatedComponentTruncated": "Componente Generado (Truncado)",
+    "codeTruncated": "Código Truncado",
+    "codeTruncatedMessage": "La respuesta fue cortada debido a límites de contexto. El componente puede no funcionar correctamente.",
+    "tryAsking": "Intenta preguntar:",
+    "continueCommand": "\"continuar\"",
+    "orRequestSimpler": "o solicita una versión más simple.",
+    "betaWarning": "El modo componentes está en Beta. Pueden ocurrir errores al generar elementos. Pide específicamente lo que falta en tu componente para mejorar la experiencia. También podrían haber errores de guardado al cambiar de chat.",
+    "generatedBy": "generado por uvala"
   },
   "Pricing": {
     "title": "Elige tu Plan",
@@ -636,10 +717,10 @@
     "promptBuilder": "Diseñador de Prompts",
     "coderModeTitle": "Modo Programador",
     "coderModeDescription": "Asistencia experta en programación impulsada por IA",
-    "coderSuggestion1": "Crea una API REST con autenticación",
-    "coderSuggestion2": "Depura este error de JavaScript",
-    "coderSuggestion3": "Optimiza esta consulta SQL",
-    "coderSuggestion4": "Escribe pruebas unitarias para esta función",
+    "coderSuggestion1": "Crear tarjeta de dashboard con gráfica",
+    "coderSuggestion2": "Componente de tabla de datos interactiva",
+    "coderSuggestion3": "Dashboard de métricas con estadísticas",
+    "coderSuggestion4": "Formulario de contacto con validación",
     "promptBuilderModeTitle": "Modo Diseñador de Prompts",
     "promptBuilderModeDescription": "Crea prompts optimizados para asistentes de IA",
     "promptBuilderSuggestion1": "Ayúdame a escribir correos profesionales",

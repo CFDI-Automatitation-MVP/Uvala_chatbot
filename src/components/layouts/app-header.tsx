@@ -19,18 +19,30 @@ import { useShallow } from "zustand/shallow";
 import { TextShimmer } from "ui/text-shimmer";
 import { useOnboarding } from "@/hooks/use-onboarding";
 import { WelcomePopup } from "@/components/onboarding/welcome-popup";
+import { CoderPopup } from "@/components/onboarding/coder-popup";
+import { ComponentsPopup } from "@/components/onboarding/components-popup";
 import { useSidebar } from "ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { EnvironmentalImpactButton } from "@/components/environmental-impact/environmental-impact-button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "ui/dropdown-menu";
+import { useTranslations } from "next-intl";
+
+type PopupType = "general" | "coder" | "components" | null;
 
 export function AppHeader() {
   const [appStoreMutate] = appStore(useShallow((state) => [state.mutate]));
   const currentPaths = usePathname();
   const { showFeaturesOnly } = useOnboarding();
-  const [showPopup, setShowPopup] = useState(false);
+  const [activePopup, setActivePopup] = useState<PopupType>(null);
   const { toggleSidebar } = useSidebar();
   const isMobile = useIsMobile();
   const router = useRouter();
+  const t = useTranslations();
 
   const componentByPage = useMemo(() => {
     if (currentPaths.startsWith("/chat/")) {
@@ -152,36 +164,92 @@ export function AppHeader() {
             </TooltipContent>
           </Tooltip>
 
-          {/* Onboarding trigger button */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
+          {/* Tutorial menu trigger button */}
+          <DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="sm:h-8 sm:w-8 h-10 w-10 p-0 hover:bg-accent text-foreground hover:text-foreground relative z-50 border border-border/20 hover:border-border/40 touch-manipulation"
+                  >
+                    <HelpCircle className="sm:w-4 sm:h-4 w-5 h-5 text-foreground" />
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Show tutorials</p>
+              </TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log("🖱️ ? button clicked!");
+                  console.log("🖱️ General tutorial selected!");
                   showFeaturesOnly();
-                  setShowPopup(true);
+                  setActivePopup("general");
                 }}
-                className="sm:h-8 sm:w-8 h-10 w-10 p-0 hover:bg-accent text-foreground hover:text-foreground relative z-50 border border-border/20 hover:border-border/40 touch-manipulation"
+                className="cursor-pointer"
               >
-                <HelpCircle className="sm:w-4 sm:h-4 w-5 h-5 text-foreground" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Show tutorial</p>
-            </TooltipContent>
-          </Tooltip>
+                <div className="flex flex-col">
+                  <span className="font-medium">{t("onboarding.tutorials.general")}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {t("onboarding.tutorials.generalDesc")}
+                  </span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log("🖱️ Coder tutorial selected!");
+                  setActivePopup("coder");
+                }}
+                className="cursor-pointer"
+              >
+                <div className="flex flex-col">
+                  <span className="font-medium">{t("onboarding.tutorials.coder")}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {t("onboarding.tutorials.coderDesc")}
+                  </span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log("🖱️ Components tutorial selected!");
+                  setActivePopup("components");
+                }}
+                className="cursor-pointer"
+              >
+                <div className="flex flex-col">
+                  <span className="font-medium">{t("onboarding.tutorials.components")}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {t("onboarding.tutorials.componentsDesc")}
+                  </span>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
-      {/* Fallback popup for manual tutorial trigger */}
+      {/* Tutorial popups */}
       <WelcomePopup
-        isOpen={showPopup}
-        onClose={() => setShowPopup(false)}
+        isOpen={activePopup === "general"}
+        onClose={() => setActivePopup(null)}
         isFirstTimeUser={false}
+      />
+      <CoderPopup
+        isOpen={activePopup === "coder"}
+        onClose={() => setActivePopup(null)}
+      />
+      <ComponentsPopup
+        isOpen={activePopup === "components"}
+        onClose={() => setActivePopup(null)}
       />
     </>
   );

@@ -6,8 +6,8 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "dev": "next dev --turbopack",
-    "dev:https": "next dev --turbopack --experimental-https",
+    "dev": "next dev --turbopack -p 3000",
+    "dev:https": "next dev --turbopack --experimental-https -p 3000",
     "build": "next build",
     "start": "next start",
     "build:local": "cross-env NO_HTTPS='1' next build",

@@ -397,6 +397,72 @@
     "mcpServerCustomizationPlaceholder": "ex. Si la valeur d'entrée est un email, toujours entrer l'email au format exemple@exemple.com."
   },
   "Error": {},
+  "onboarding": {
+    "tutorials": {
+      "general": "Fonctionnalités Générales",
+      "generalDesc": "Découvrez les principales fonctionnalités d'Uvala",
+      "coder": "Mode Codeur",
+      "coderDesc": "Maîtrisez le mode codeur avec aperçu en direct",
+      "components": "Mode Composants",
+      "componentsDesc": "Créez des composants UI avec l'IA"
+    },
+    "generalFeatures": {
+      "coder": {
+        "title": "Mode Codeur",
+        "description": "Générez du code interactif avec aperçu en temps réel. Créez des composants, des tableaux de bord et des applications complètes en décrivant simplement ce dont vous avez besoin.",
+        "example": "Créez une carte de tableau de bord avec des graphiques interactifs"
+      },
+      "components": {
+        "title": "Mode Composants",
+        "description": "Concevez des interfaces utilisateur professionnelles instantanément. Créez et personnalisez des composants UI réactifs avec des instructions en langage naturel.",
+        "example": "J'ai besoin d'un widget météo animé"
+      }
+    },
+    "features": {
+      "webSearch": {
+        "title": "Recherche Web en Direct",
+        "description": "Obtenez des informations en temps réel depuis le web",
+        "example": "Donnez-moi les dernières nouvelles sur l'IA"
+      },
+      "videoGenerator": {
+        "title": "Générateur de Vidéos",
+        "description": "Créez des vidéos engageantes à partir de texte",
+        "example": "Générez une vidéo d'un coucher de soleil"
+      },
+      "imageCreation": {
+        "title": "Création d'Images",
+        "description": "Générez des visuels époustouflants instantanément",
+        "example": "Créez une image d'une ville futuriste"
+      },
+      "chartsAnalytics": {
+        "title": "Graphiques et Analyses",
+        "description": "Visualisez les données avec de beaux graphiques",
+        "example": "Créez un graphique circulaire des parts de marché"
+      },
+      "promptBuilder": {
+        "title": "Constructeur de Prompts",
+        "description": "Transformez les demandes en prompts structurés",
+        "example": "Aidez-moi à rédiger un plan d'affaires"
+      }
+    },
+    "coder": {
+      "title": "Mode Codeur",
+      "description": "Votre assistant de codage expert propulsé par l'IA"
+    },
+    "components": {
+      "title": "Mode Composants",
+      "description": "Créez des composants UI interactifs avec l'IA"
+    },
+    "trial": {
+      "title": "Commencez Votre Essai Gratuit",
+      "description": "Débloquez toutes les fonctionnalités avec 3 jours d'accès illimité",
+      "button": "Commencer l'Essai Gratuit de 3 Jours"
+    },
+    "tryExample": "Essayez de dire:",
+    "next": "Suivant",
+    "getStarted": "Commencer",
+    "of": "de"
+  },
   "Info": {
     "mcpAddingDisabled": "L'ajout de serveurs MCP a été désactivé par l'administrateur.",
     "vercelSyncDelay": "Fonctionnement sur Vercel\n\nLes modifications MCP peuvent prendre 10-15 secondes à se synchroniser. Veuillez patienter un moment si les changements n'apparaissent pas immédiatement après avoir ajouté, modifié ou supprimé des serveurs."
