@@ -16,7 +16,11 @@ interface PreviewPanelProps {
   streamingContent?: string;
 }
 
-export function PreviewPanel({ className, isStreaming = false, streamingContent = "" }: PreviewPanelProps) {
+export function PreviewPanel({
+  className,
+  isStreaming = false,
+  streamingContent = "",
+}: PreviewPanelProps) {
   const t = useTranslations("Coder");
   const activeArtifactId = useArtifactStore((state) => state.activeArtifactId);
   const artifacts = useArtifactStore((state) => state.artifacts);
@@ -37,10 +41,13 @@ export function PreviewPanel({ className, isStreaming = false, streamingContent 
         title: art.title,
         type: art.type,
         codeLength: art.code.length,
-        codePreview: art.code.substring(0, 150)
+        codePreview: art.code.substring(0, 150),
       });
     } else {
-      console.log("[PREVIEW PANEL] ❌ Artifact not found for ID:", activeArtifactId);
+      console.log(
+        "[PREVIEW PANEL] ❌ Artifact not found for ID:",
+        activeArtifactId,
+      );
     }
     return art;
   }, [activeArtifactId, artifacts]);
@@ -54,7 +61,7 @@ export function PreviewPanel({ className, isStreaming = false, streamingContent 
     console.log("[PREVIEW PANEL] Code cleaned:", {
       originalLength: artifact.code.length,
       cleanedLength: cleaned.length,
-      cleanedPreview: cleaned.substring(0, 150)
+      cleanedPreview: cleaned.substring(0, 150),
     });
     return cleaned;
   }, [artifact]);
@@ -62,7 +69,9 @@ export function PreviewPanel({ className, isStreaming = false, streamingContent 
   // Auto-switch to code view during streaming, preview when complete
   useEffect(() => {
     if (isStreaming) {
-      console.log("[PREVIEW PANEL] Streaming detected - switching to code view");
+      console.log(
+        "[PREVIEW PANEL] Streaming detected - switching to code view",
+      );
       setShowCode(true);
     } else if (!isStreaming && artifact) {
       console.log("[PREVIEW PANEL] Streaming complete - switching to preview");
@@ -88,26 +97,31 @@ export function PreviewPanel({ className, isStreaming = false, streamingContent 
     setIsFullscreen(!isFullscreen);
   };
 
-  const handleCloseFullscreen = () => {
-    setIsFullscreen(false);
-  };
+  // const handleCloseFullscreen = () => {
+  //   setIsFullscreen(false);
+  // };
 
   // Effect to hide body overflow when fullscreen
   useEffect(() => {
     if (isFullscreen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     }
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     };
   }, [isFullscreen]);
 
   // If no artifact but we're streaming, show the streaming content
   if (!artifact && isStreaming && streamingContent) {
     return (
-      <div className={cn("flex flex-col h-full bg-[#f8f9fa] dark:bg-[#0a0a0a]", className)}>
+      <div
+        className={cn(
+          "flex flex-col h-full bg-[#f8f9fa] dark:bg-[#0a0a0a]",
+          className,
+        )}
+      >
         <PreviewControls
           code={streamingContent}
           title={t("buildingComponent")}
@@ -191,16 +205,23 @@ export function PreviewPanel({ className, isStreaming = false, streamingContent 
             </div>
           </div>
           <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
-            {t("codeTruncatedMessage")}
-            {" "}{t("tryAsking")} <span className="font-mono bg-yellow-100 dark:bg-yellow-900/40 px-1 py-0.5 rounded">{t("continueCommand")}</span> {t("orRequestSimpler")}
+            {t("codeTruncatedMessage")} {t("tryAsking")}{" "}
+            <span className="font-mono bg-yellow-100 dark:bg-yellow-900/40 px-1 py-0.5 rounded">
+              {t("continueCommand")}
+            </span>{" "}
+            {t("orRequestSimpler")}
           </p>
         </div>
       )}
 
-      <div className={cn(
-        "flex-1 overflow-hidden relative bg-white dark:bg-[#121212] shadow-lg",
-        isFullscreen ? "m-0 rounded-none border-none" : "m-4 rounded-xl border border-border/20"
-      )}>
+      <div
+        className={cn(
+          "flex-1 overflow-hidden relative bg-white dark:bg-[#121212] shadow-lg",
+          isFullscreen
+            ? "m-0 rounded-none border-none"
+            : "m-4 rounded-xl border border-border/20",
+        )}
+      >
         {showCode ? (
           <div className="h-full overflow-auto p-6">
             <pre className="text-xs font-mono bg-[#1e1e1e] text-white p-6 rounded-lg overflow-x-auto">
@@ -220,7 +241,7 @@ export function PreviewPanel({ className, isStreaming = false, streamingContent 
             }
             className={cn(
               "h-full overflow-hidden",
-              isFullscreen ? "rounded-none" : "rounded-xl"
+              isFullscreen ? "rounded-none" : "rounded-xl",
             )}
           />
         )}
@@ -238,7 +259,7 @@ export function PreviewPanel({ className, isStreaming = false, streamingContent 
   );
 
   // Render fullscreen mode using portal to body
-  if (isFullscreen && typeof window !== 'undefined') {
+  if (isFullscreen && typeof window !== "undefined") {
     const fullscreenElement = (
       <div className="fixed inset-0 z-[99999] bg-white dark:bg-black flex flex-col overflow-hidden">
         {/* Fullscreen Content Wrapper */}
@@ -253,7 +274,12 @@ export function PreviewPanel({ className, isStreaming = false, streamingContent 
 
   // Normal mode
   return (
-    <div className={cn("flex flex-col h-full bg-[#f8f9fa] dark:bg-[#0a0a0a]", className)}>
+    <div
+      className={cn(
+        "flex flex-col h-full bg-[#f8f9fa] dark:bg-[#0a0a0a]",
+        className,
+      )}
+    >
       {previewContent}
     </div>
   );

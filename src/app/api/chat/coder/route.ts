@@ -683,9 +683,24 @@ export async function POST(request: Request) {
       system: CODER_SYSTEM,
       messages: convertToModelMessages(messages),
       experimental_transform: smoothStream({ chunking: "word" }),
+      maxOutputTokens: 16000, // Increased limit for generating larger code components
       onFinish: async (completion) => {
         // Track actual usage after completion
         if (completion.usage) {
+          // Log the COMPLETE usage object to verify token counting
+          logger.info(
+            `🔍 CODER - RAW USAGE OBJECT for user ${session.user.id}:`,
+            JSON.stringify(completion.usage, null, 2),
+          );
+
+          logger.info(`🔍 CODER - USAGE BREAKDOWN:`, {
+            inputTokens: completion.usage.inputTokens,
+            outputTokens: completion.usage.outputTokens,
+            totalTokens: completion.usage.totalTokens,
+            reasoningTokens: completion.usage.reasoningTokens,
+            cachedInputTokens: completion.usage.cachedInputTokens,
+          });
+
           await trackCoderUsage({
             usage: completion.usage,
             userId: session.user.id,
@@ -697,6 +712,10 @@ export async function POST(request: Request) {
 
           logger.info(
             `✅ CODER - Usage tracked for user ${session.user.id}: ${completion.usage.totalTokens} tokens`,
+          );
+        } else {
+          logger.warn(
+            `⚠️ CODER - NO USAGE DATA returned from API for user ${session.user.id}`,
           );
         }
       },

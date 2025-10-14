@@ -23,7 +23,7 @@ import {
   PlusIcon,
   Waypoints,
   MessageCircleDashed,
-  Brain,
+  // Brain,
   Code,
   // Mail,
 } from "lucide-react";

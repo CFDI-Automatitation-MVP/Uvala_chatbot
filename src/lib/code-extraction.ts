@@ -43,11 +43,11 @@ export function extractCodeBlocks(content: string): ExtractedCode[] {
   const incompleteRegex = /```(\w+)(?:\s+(.+?))?\n([\s\S]+?)$/g;
 
   while ((match = incompleteRegex.exec(content)) !== null) {
-    const [fullMatch, language, title, code] = match;
+    const [, language, title, code] = match;
 
     // Skip if this range overlaps with a complete match
     const isOverlapping = matchedRanges.some(
-      (range) => match.index >= range.start && match.index < range.end
+      (range) => match.index >= range.start && match.index < range.end,
     );
 
     if (isOverlapping) continue;
@@ -58,7 +58,7 @@ export function extractCodeBlocks(content: string): ExtractedCode[] {
       language,
       type,
       codeLength: code.length,
-      note: "Missing closing backticks - likely truncated by context limit"
+      note: "Missing closing backticks - likely truncated by context limit",
     });
 
     // Clean up title - don't use DOCTYPE or other HTML artifacts
@@ -91,7 +91,12 @@ function inferCodeType(language: string, code: string): CodeType {
   if (lang === "vue") return "vue";
 
   // Check for React patterns in JavaScript/TypeScript
-  if (lang === "javascript" || lang === "js" || lang === "typescript" || lang === "ts") {
+  if (
+    lang === "javascript" ||
+    lang === "js" ||
+    lang === "typescript" ||
+    lang === "ts"
+  ) {
     if (isReactCode(code)) return "react";
     return lang === "typescript" || lang === "ts" ? "typescript" : "javascript";
   }
@@ -133,7 +138,10 @@ export function findRenderableCode(content: string): ExtractedCode | null {
   }
 
   const codeBlocks = extractCodeBlocks(content);
-  console.log("[CODE EXTRACTION] Total code blocks extracted:", codeBlocks.length);
+  console.log(
+    "[CODE EXTRACTION] Total code blocks extracted:",
+    codeBlocks.length,
+  );
 
   if (codeBlocks.length > 0) {
     console.log(
@@ -143,7 +151,7 @@ export function findRenderableCode(content: string): ExtractedCode | null {
         type: b.type,
         len: b.code.length,
         title: b.title,
-        preview: b.code.substring(0, 100)
+        preview: b.code.substring(0, 100),
       })),
     );
   }
@@ -154,7 +162,10 @@ export function findRenderableCode(content: string): ExtractedCode | null {
       block.type === "react" || block.type === "html" || block.type === "vue",
   );
 
-  console.log("[CODE EXTRACTION] Renderable blocks found:", renderableBlocks.length);
+  console.log(
+    "[CODE EXTRACTION] Renderable blocks found:",
+    renderableBlocks.length,
+  );
 
   // Return the last renderable block
   const result = renderableBlocks[renderableBlocks.length - 1] || null;
@@ -163,7 +174,7 @@ export function findRenderableCode(content: string): ExtractedCode | null {
     console.log("[CODE EXTRACTION] ✅ SUCCESS - Returning:", {
       type: result.type,
       length: result.code.length,
-      title: result.title
+      title: result.title,
     });
   } else {
     console.log("[CODE EXTRACTION] ❌ FAILED - No renderable code found");

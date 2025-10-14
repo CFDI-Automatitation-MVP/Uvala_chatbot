@@ -356,8 +356,13 @@ The files remain available throughout the entire conversation for analysis and r
           stopWhen: stepCountIs(10),
           toolChoice: "auto",
           abortSignal: request.signal,
-          // AI SDK 5 token limit
-          maxOutputTokens: chatModel?.model === "uvala-fuji" ? 2000 : 4000,
+          // AI SDK 5 token limit - increased for coder mode
+          maxOutputTokens:
+            chatModel?.model === "uvala-fuji"
+              ? 2000
+              : chatMode === "coder"
+                ? 16000 // Increased limit for coder to generate larger components
+                : 4000,
           // GPT-5 optimization settings
           providerOptions:
             chatModel?.model === "uvala-fuji"
@@ -473,6 +478,20 @@ The files remain available throughout the entire conversation for analysis and r
 
           // Use mode-specific tracking functions
           if (chatMode === "coder") {
+            // Log the COMPLETE usage object to verify token counting
+            logger.info(
+              `🔍 CODER MODE - RAW USAGE OBJECT for user ${session.user.id}:`,
+              JSON.stringify(metadata.usage, null, 2),
+            );
+
+            logger.info(`🔍 CODER MODE - USAGE BREAKDOWN:`, {
+              inputTokens: metadata.usage?.inputTokens,
+              outputTokens: metadata.usage?.outputTokens,
+              totalTokens: metadata.usage?.totalTokens,
+              reasoningTokens: metadata.usage?.reasoningTokens,
+              cachedInputTokens: metadata.usage?.cachedInputTokens,
+            });
+
             await trackCoderUsage({
               usage: metadata.usage,
               userId: session.user.id,
