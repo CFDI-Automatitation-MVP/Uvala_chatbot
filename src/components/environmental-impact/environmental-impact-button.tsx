@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Leaf, Droplet, Zap } from "lucide-react";
 import { Button } from "ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
@@ -14,19 +14,54 @@ import {
 import { CircularProgress } from "@/components/ui/circular-progress";
 import { useTranslations } from "next-intl";
 
-// Dummy data - will be replaced with real data later
-const DUMMY_WATER_USAGE = 45.8; // liters
-const DUMMY_ELECTRICITY_USAGE = 12.3; // kW/hr
+// Maximum thresholds for display percentages
 const MAX_WATER = 100; // liters
-const MAX_ELECTRICITY = 50; // kW/hr
+const MAX_ELECTRICITY = 50; // Wh (not kW/hr - changed to match our Wh tracking)
+
+interface EnvironmentalData {
+  waterLiters: number;
+  energyWh: number;
+  waterMl: number;
+  year: number;
+  month: number;
+}
 
 export function EnvironmentalImpactButton() {
   const [isOpen, setIsOpen] = useState(false);
+  const [data, setData] = useState<EnvironmentalData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const t = useTranslations("Environmental");
 
-  const waterPercentage = (DUMMY_WATER_USAGE / MAX_WATER) * 100;
-  const electricityPercentage =
-    (DUMMY_ELECTRICITY_USAGE / MAX_ELECTRICITY) * 100;
+  // Fetch environmental data when dialog opens
+  useEffect(() => {
+    if (isOpen && !data) {
+      fetchEnvironmentalData();
+    }
+  }, [isOpen]);
+
+  const fetchEnvironmentalData = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/environmental");
+      if (response.ok) {
+        const envData = await response.json();
+        setData(envData);
+      }
+    } catch (error) {
+      console.error("Failed to fetch environmental data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const waterUsage = data?.waterLiters || 0;
+  const electricityUsage = data?.energyWh || 0;
+
+  const waterPercentage = Math.min((waterUsage / MAX_WATER) * 100, 100);
+  const electricityPercentage = Math.min(
+    (electricityUsage / MAX_ELECTRICITY) * 100,
+    100,
+  );
 
   return (
     <>
@@ -66,55 +101,63 @@ export function EnvironmentalImpactButton() {
           </DialogHeader>
 
           <div className="flex flex-col sm:flex-row gap-8 items-center justify-center py-6">
-            {/* Water Usage */}
-            <div className="flex flex-col items-center gap-3">
-              <div className="relative">
-                <CircularProgress
-                  value={waterPercentage}
-                  size={140}
-                  strokeWidth={10}
-                  color="#3b82f6" // Blue color for water
-                  label={`${DUMMY_WATER_USAGE.toFixed(1)}`}
-                  sublabel={t("liters")}
-                />
-                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-white dark:bg-gray-900 rounded-full p-2 shadow-lg border-2 border-blue-500 dark:border-blue-400">
-                  <Droplet className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            {isLoading ? (
+              <div className="text-center py-8">
+                <p className="text-sm text-muted-foreground">Loading...</p>
+              </div>
+            ) : (
+              <>
+                {/* Water Usage */}
+                <div className="flex flex-col items-center gap-3">
+                  <div className="relative">
+                    <CircularProgress
+                      value={waterPercentage}
+                      size={140}
+                      strokeWidth={10}
+                      color="#3b82f6" // Blue color for water
+                      label={`${waterUsage.toFixed(2)}`}
+                      sublabel={t("liters")}
+                    />
+                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-white dark:bg-gray-900 rounded-full p-2 shadow-lg border-2 border-blue-500 dark:border-blue-400">
+                      <Droplet className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                  </div>
+                  <div className="text-center mt-2">
+                    <p className="text-sm font-bold text-foreground">
+                      {t("waterUsage")}
+                    </p>
+                    <p className="text-xs text-muted-foreground font-medium">
+                      {t("max")} {MAX_WATER} {t("liters")}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="text-center mt-2">
-                <p className="text-sm font-bold text-foreground">
-                  {t("waterUsage")}
-                </p>
-                <p className="text-xs text-muted-foreground font-medium">
-                  {t("max")} {MAX_WATER} {t("liters")}
-                </p>
-              </div>
-            </div>
 
-            {/* Electricity Usage */}
-            <div className="flex flex-col items-center gap-3">
-              <div className="relative">
-                <CircularProgress
-                  value={electricityPercentage}
-                  size={140}
-                  strokeWidth={10}
-                  color="#eab308" // Yellow color for electricity
-                  label={`${DUMMY_ELECTRICITY_USAGE.toFixed(1)}`}
-                  sublabel={t("kwh")}
-                />
-                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-white dark:bg-gray-900 rounded-full p-2 shadow-lg border-2 border-yellow-500 dark:border-yellow-400">
-                  <Zap className="w-5 h-5 text-yellow-600 dark:text-yellow-400 fill-yellow-600 dark:fill-yellow-400" />
+                {/* Electricity Usage */}
+                <div className="flex flex-col items-center gap-3">
+                  <div className="relative">
+                    <CircularProgress
+                      value={electricityPercentage}
+                      size={140}
+                      strokeWidth={10}
+                      color="#eab308" // Yellow color for electricity
+                      label={`${electricityUsage.toFixed(2)}`}
+                      sublabel="Wh"
+                    />
+                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-white dark:bg-gray-900 rounded-full p-2 shadow-lg border-2 border-yellow-500 dark:border-yellow-400">
+                      <Zap className="w-5 h-5 text-yellow-600 dark:text-yellow-400 fill-yellow-600 dark:fill-yellow-400" />
+                    </div>
+                  </div>
+                  <div className="text-center mt-2">
+                    <p className="text-sm font-bold text-foreground">
+                      {t("electricityUsage")}
+                    </p>
+                    <p className="text-xs text-muted-foreground font-medium">
+                      {t("max")} {MAX_ELECTRICITY} Wh
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="text-center mt-2">
-                <p className="text-sm font-bold text-foreground">
-                  {t("electricityUsage")}
-                </p>
-                <p className="text-xs text-muted-foreground font-medium">
-                  {t("max")} {MAX_ELECTRICITY} {t("kwh")}
-                </p>
-              </div>
-            </div>
+              </>
+            )}
           </div>
 
           <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mt-2">

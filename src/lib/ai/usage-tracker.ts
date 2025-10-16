@@ -2,7 +2,8 @@ import "server-only";
 import { LanguageModelUsage } from "ai";
 import { ChatModel } from "app-types/chat";
 import { calculateTokenCost } from "./cost-calculator";
-import { usageRepository } from "../db/repository";
+import { usageRepository, environmentalRepository } from "../db/repository";
+import { calculateEnvironmentalImpact } from "./environmental-calculator";
 import logger from "logger";
 
 /**
@@ -66,10 +67,22 @@ export async function trackUsage({
       await usageRepository.updateThreadUsage(threadId, userId, cost);
     }
 
+    // Calculate and track environmental impact
+    const environmentalImpact = calculateEnvironmentalImpact(cost.totalTokens);
+    await environmentalRepository.updateEnvironmentalUsage(
+      userId,
+      year,
+      month,
+      environmentalImpact.waterMl,
+      environmentalImpact.energyWh,
+    );
+
     logger.info(`Usage tracked for user ${userId}:`, {
       modelId,
       totalTokens: cost.totalTokens,
       totalCostUsd: cost.totalCostUsd,
+      waterMl: environmentalImpact.waterMl,
+      energyWh: environmentalImpact.energyWh,
       threadId,
       messageId,
     });
@@ -203,10 +216,22 @@ export async function trackPromptBuilderUsage({
       },
     );
 
+    // Calculate and track environmental impact for prompt builder
+    const environmentalImpact = calculateEnvironmentalImpact(cost.totalTokens);
+    await environmentalRepository.updateEnvironmentalUsage(
+      userId,
+      year,
+      month,
+      environmentalImpact.waterMl,
+      environmentalImpact.energyWh,
+    );
+
     logger.info(`Prompt builder usage tracked for user ${userId}:`, {
       modelId,
       totalTokens: cost.totalTokens,
       totalCostUsd: cost.totalCostUsd,
+      waterMl: environmentalImpact.waterMl,
+      energyWh: environmentalImpact.energyWh,
     });
 
     return cost;
@@ -258,10 +283,22 @@ export async function trackCoderUsage({
       undefined,
     );
 
+    // Calculate and track environmental impact for coder
+    const environmentalImpact = calculateEnvironmentalImpact(cost.totalTokens);
+    await environmentalRepository.updateEnvironmentalUsage(
+      userId,
+      year,
+      month,
+      environmentalImpact.waterMl,
+      environmentalImpact.energyWh,
+    );
+
     logger.info(`Coder usage tracked for user ${userId}:`, {
       modelId,
       totalTokens: cost.totalTokens,
       totalCostUsd: cost.totalCostUsd,
+      waterMl: environmentalImpact.waterMl,
+      energyWh: environmentalImpact.energyWh,
     });
 
     return cost;

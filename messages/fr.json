@@ -661,12 +661,13 @@
     "buttonLabel": "Comment je contribue à l'environnement ?",
     "buttonTooltip": "Voir votre impact environnemental",
     "title": "Comment je contribue à l'environnement ?",
-    "description": "Suivez votre consommation d'eau et d'électricité. Nous ferons don de ressources équivalentes en fonction de votre consommation.",
+    "description": "Suivez votre consommation d'eau et d'énergie ce mois-ci. Nous ferons don de 10 fois les ressources équivalentes en fonction de votre consommation.",
     "waterUsage": "Consommation d'Eau",
-    "electricityUsage": "Consommation d'Électricité",
+    "electricityUsage": "Consommation d'Énergie",
     "liters": "litres",
     "kwh": "kW/hr",
+    "wh": "Wh",
     "max": "Max :",
-    "donationMessage": "Nous ferons don de l'équivalent en eau et en électricité que vous avez utilisé à des causes environnementales !"
+    "donationMessage": "Nous ferons don de 10 fois l'équivalent en eau et en énergie que vous avez utilisé à des causes environnementales !"
   }
 }

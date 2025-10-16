@@ -562,6 +562,41 @@ export const UserSubscriptionUsageSchema = pgTable(
   ],
 );
 
+// Environmental Usage Tracking Schema
+export const EnvironmentalUsageSchema = pgTable(
+  "environmental_usage",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => UserSchema.id, { onDelete: "cascade" }),
+    year: integer("year").notNull(),
+    month: integer("month").notNull(),
+    totalWaterMl: decimal("total_water_ml", { precision: 15, scale: 4 })
+      .notNull()
+      .default("0"),
+    totalEnergyWh: decimal("total_energy_wh", { precision: 15, scale: 4 })
+      .notNull()
+      .default("0"),
+    createdAt: timestamp("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    unique().on(table.userId, table.year, table.month),
+    index("environmental_usage_user_id_idx").on(table.userId),
+    index("environmental_usage_year_month_idx").on(table.year, table.month),
+    index("environmental_usage_user_year_month_idx").on(
+      table.userId,
+      table.year,
+      table.month,
+    ),
+  ],
+);
+
 // Export types for the new schemas
 export type ApiUsageEntity = typeof ApiUsageSchema.$inferSelect;
 export type UserDailyUsageEntity = typeof UserDailyUsageSchema.$inferSelect;
@@ -572,3 +607,5 @@ export type SubscriptionLimitsEntity =
   typeof SubscriptionLimitsSchema.$inferSelect;
 export type UserSubscriptionUsageEntity =
   typeof UserSubscriptionUsageSchema.$inferSelect;
+export type EnvironmentalUsageEntity =
+  typeof EnvironmentalUsageSchema.$inferSelect;

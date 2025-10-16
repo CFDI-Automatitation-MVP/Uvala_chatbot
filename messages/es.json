@@ -703,13 +703,14 @@
     "buttonLabel": "¿Cómo estoy contribuyendo al medio ambiente?",
     "buttonTooltip": "Ver tu impacto ambiental",
     "title": "¿Cómo estoy contribuyendo al medio ambiente?",
-    "description": "Rastrea tu uso de agua y electricidad. Donaremos recursos equivalentes basados en tu consumo.",
+    "description": "Rastrea tu uso de agua y energía este mes. Donaremos 10 veces los recursos equivalentes basados en tu consumo.",
     "waterUsage": "Uso de Agua",
-    "electricityUsage": "Uso de Electricidad",
+    "electricityUsage": "Uso de Energía",
     "liters": "litros",
     "kwh": "kW/hr",
+    "wh": "Wh",
     "max": "Máx:",
-    "donationMessage": "¡Donaremos el agua y la electricidad equivalente que has usado a causas ambientales!"
+    "donationMessage": "¡Donaremos 10 veces el agua y la energía equivalente que has usado a causas ambientales!"
   },
   "ChatMode": {
     "normal": "Chat",
