@@ -41,6 +41,7 @@
     "check": "pnpm lint:fix && pnpm check-types && pnpm test"
   },
   "dependencies": {
+    "@ai-sdk/amazon-bedrock": "^3.0.40",
     "@ai-sdk/anthropic": "^2.0.6",
     "@ai-sdk/fireworks": "^1.0.18",
     "@ai-sdk/google": "^2.0.8",

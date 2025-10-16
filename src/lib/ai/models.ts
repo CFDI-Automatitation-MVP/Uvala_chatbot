@@ -1,7 +1,7 @@
 import "server-only";
 
 import { openai } from "@ai-sdk/openai";
-import { createFireworks } from "@ai-sdk/fireworks";
+import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
 import { LanguageModel } from "ai";
 import {
   createOpenAICompatibleModels,
@@ -18,17 +18,17 @@ const staticModels = {
   },
 };
 
-// Fireworks AI provider for specialized models
-const fireworks = createFireworks({
-  apiKey: process.env.FIREWORKS_API_KEY ?? "",
+// Amazon Bedrock provider for specialized models
+const bedrock = createAmazonBedrock({
+  region: process.env.AWS_REGION ?? "us-east-1",
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "",
 });
 
 // Internal models - not exposed in UI
 const internalModels = {
   "uvala-prompter": openai("gpt-5-nano"),
-  "uvala-coder": fireworks(
-    "accounts/fireworks/models/qwen3-coder-30b-a3b-instruct",
-  ),
+  "uvala-coder": bedrock("qwen.qwen3-coder-30b-a3b-v1:0"),
 };
 
 const staticUnsupportedModels = new Set([
