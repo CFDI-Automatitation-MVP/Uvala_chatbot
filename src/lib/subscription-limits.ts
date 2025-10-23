@@ -11,6 +11,8 @@ import {
 export interface LimitCheckResult {
   canProceed: boolean;
   limitExceeded?: string;
+  limitExceededKey?: string; // Translation key for i18n
+  limitExceededParams?: Record<string, string | number>; // Parameters for translation
   usage?: {
     current: {
       dailyCost: number;
@@ -195,6 +197,8 @@ export async function checkUserLimits(
           canProceed: false,
           limitExceeded:
             "Your 5-day trial has expired. Please upgrade to continue using the service.",
+          limitExceededKey: "Error.Limits.trialExpired",
+          limitExceededParams: {},
         };
       }
     }
@@ -230,25 +234,56 @@ export async function checkUserLimits(
 
     if (!limitCheck.canProceed) {
       let limitExceeded = "Unknown limit exceeded";
+      let limitExceededKey = "Error.Limits.usageLimitExceeded";
+      let limitExceededParams: Record<string, string | number> = {};
       const planLimits = PLAN_LIMITS[planType];
 
       if (limitCheck.limits.dailyCostExceeded) {
         limitExceeded = `Daily cost limit exceeded ($${planLimits.maxDailyCostUSD}/day for ${planType.toUpperCase()} plan)`;
+        limitExceededKey = "Error.Limits.dailyCostExceeded";
+        limitExceededParams = {
+          limit: planLimits.maxDailyCostUSD,
+          plan: planType.toUpperCase(),
+        };
       } else if (limitCheck.limits.dailyTokensExceeded) {
         limitExceeded = `Daily token limit exceeded. Upgrade for more usage.`;
+        limitExceededKey = "Error.Limits.dailyTokenExceeded";
+        limitExceededParams = {};
       } else if (limitCheck.limits.monthlyCostExceeded) {
         limitExceeded = `Monthly cost limit exceeded ($${planLimits.maxMonthlyCostUSD}/month for ${planType.toUpperCase()} plan)`;
+        limitExceededKey = "Error.Limits.monthlyCostExceeded";
+        limitExceededParams = {
+          limit: planLimits.maxMonthlyCostUSD,
+          plan: planType.toUpperCase(),
+        };
       } else if (limitCheck.limits.imageGenerationsExceeded) {
         limitExceeded = `Monthly image generation limit exceeded (${planLimits.maxImageGenerationsPerMonth}/month for ${planType.toUpperCase()} plan)`;
+        limitExceededKey = "Error.Limits.imageGenerationsExceeded";
+        limitExceededParams = {
+          limit: planLimits.maxImageGenerationsPerMonth,
+          plan: planType.toUpperCase(),
+        };
       } else if (limitCheck.limits.videoGenerationsExceeded) {
         limitExceeded = `Monthly video generation limit exceeded (${planLimits.maxVideoGenerationsPerMonth}/month for ${planType.toUpperCase()} plan)`;
+        limitExceededKey = "Error.Limits.videoGenerationsExceeded";
+        limitExceededParams = {
+          limit: planLimits.maxVideoGenerationsPerMonth,
+          plan: planType.toUpperCase(),
+        };
       } else if (limitCheck.limits.webSearchesExceeded) {
         limitExceeded = `Monthly web search limit exceeded (${planLimits.maxWebSearchesPerMonth}/month for ${planType.toUpperCase()} plan)`;
+        limitExceededKey = "Error.Limits.webSearchesExceeded";
+        limitExceededParams = {
+          limit: planLimits.maxWebSearchesPerMonth,
+          plan: planType.toUpperCase(),
+        };
       }
 
       return {
         canProceed: false,
         limitExceeded,
+        limitExceededKey,
+        limitExceededParams,
         usage: {
           current: limitCheck.current,
           remaining: limitCheck.remaining,
@@ -349,6 +384,8 @@ export async function checkPromptBuilderLimits(
           canProceed: false,
           limitExceeded:
             "Your 5-day trial has expired. Please upgrade to continue using the service.",
+          limitExceededKey: "Error.Limits.trialExpired",
+          limitExceededParams: {},
         };
       }
     }
@@ -383,6 +420,11 @@ export async function checkPromptBuilderLimits(
       return {
         canProceed: false,
         limitExceeded: `Daily prompt builder token limit exceeded (${planLimits.maxPromptBuilderTokensPerDay}/day for ${planType.toUpperCase()} plan)`,
+        limitExceededKey: "Error.Limits.promptBuilderExceeded",
+        limitExceededParams: {
+          limit: planLimits.maxPromptBuilderTokensPerDay,
+          plan: planType.toUpperCase(),
+        },
         usage: {
           current: {
             dailyCost: 0,
@@ -460,6 +502,8 @@ export async function checkCoderLimits(
           canProceed: false,
           limitExceeded:
             "Your 5-day trial has expired. Please upgrade to continue using the service.",
+          limitExceededKey: "Error.Limits.trialExpired",
+          limitExceededParams: {},
         };
       }
     }
@@ -518,17 +562,37 @@ export async function checkCoderLimits(
       wouldExceedMonthlyCost
     ) {
       let limitExceeded = "Usage limit exceeded";
+      let limitExceededKey = "Error.Limits.usageLimitExceeded";
+      let limitExceededParams: Record<string, string | number> = {};
+
       if (wouldExceedDailyTokens) {
         limitExceeded = `Daily token limit exceeded (${planLimits.maxTokensPerDay}/day for ${planType.toUpperCase()} plan)`;
+        limitExceededKey = "Error.Limits.dailyTokenExceededWithLimit";
+        limitExceededParams = {
+          limit: planLimits.maxTokensPerDay || 0,
+          plan: planType.toUpperCase(),
+        };
       } else if (wouldExceedDailyCost) {
         limitExceeded = `Daily cost limit exceeded ($${planLimits.maxDailyCostUSD}/day for ${planType.toUpperCase()} plan)`;
+        limitExceededKey = "Error.Limits.dailyCostExceeded";
+        limitExceededParams = {
+          limit: planLimits.maxDailyCostUSD,
+          plan: planType.toUpperCase(),
+        };
       } else if (wouldExceedMonthlyCost) {
         limitExceeded = `Monthly cost limit exceeded ($${planLimits.maxMonthlyCostUSD}/month for ${planType.toUpperCase()} plan)`;
+        limitExceededKey = "Error.Limits.monthlyCostExceeded";
+        limitExceededParams = {
+          limit: planLimits.maxMonthlyCostUSD,
+          plan: planType.toUpperCase(),
+        };
       }
 
       return {
         canProceed: false,
         limitExceeded,
+        limitExceededKey,
+        limitExceededParams,
         usage: {
           current: {
             dailyCost: currentDailyCost,

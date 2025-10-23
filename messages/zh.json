@@ -48,6 +48,21 @@
     "reasoningModel": "推理模型",
     "loading": "加载中..."
   },
+  "Error": {
+    "Limits": {
+      "dailyCostExceeded": "超出每日费用限制（${limit}/天，{plan}计划）",
+      "dailyTokenExceeded": "超出每日令牌限制。升级以获得更多使用量。",
+      "dailyTokenExceededWithLimit": "超出每日令牌限制（{limit}/天，{plan}计划）",
+      "monthlyCostExceeded": "超出每月费用限制（${limit}/月，{plan}计划）",
+      "imageGenerationsExceeded": "超出每月图像生成限制（{limit}/月，{plan}计划）",
+      "videoGenerationsExceeded": "超出每月视频生成限制（{limit}/月，{plan}计划）",
+      "webSearchesExceeded": "超出每月网络搜索限制（{limit}/月，{plan}计划）",
+      "promptBuilderExceeded": "超出每日提示构建器令牌限制（{limit}/天，{plan}计划）",
+      "trialExpired": "您的5天试用期已结束。请升级以继续使用该服务。",
+      "usageLimitExceeded": "超出使用限制",
+      "upgradeForMore": "升级以获得更多使用量"
+    }
+  },
   "Auth": {
     "SignIn": {
       "title": "欢迎回来",
@@ -393,7 +408,6 @@
     "toolCustomizationInstructionsPlaceholder": "工具自定义指令不可用。",
     "mcpServerCustomizationPlaceholder": "例如：如果输入值是电子邮件，始终以 example@example.com 格式输入电子邮件。"
   },
-  "Error": {},
   "onboarding": {
     "tutorials": {
       "general": "常规功能",

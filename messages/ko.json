@@ -48,6 +48,21 @@
     "reasoningModel": "추론 모델",
     "loading": "로딩 중..."
   },
+  "Error": {
+    "Limits": {
+      "dailyCostExceeded": "일일 비용 한도 초과 (${limit}/일, {plan} 플랜)",
+      "dailyTokenExceeded": "일일 토큰 한도를 초과했습니다. 더 많은 사용을 위해 업그레이드하세요.",
+      "dailyTokenExceededWithLimit": "일일 토큰 한도 초과 ({limit}/일, {plan} 플랜)",
+      "monthlyCostExceeded": "월간 비용 한도 초과 (${limit}/월, {plan} 플랜)",
+      "imageGenerationsExceeded": "월간 이미지 생성 한도 초과 ({limit}/월, {plan} 플랜)",
+      "videoGenerationsExceeded": "월간 비디오 생성 한도 초과 ({limit}/월, {plan} 플랜)",
+      "webSearchesExceeded": "월간 웹 검색 한도 초과 ({limit}/월, {plan} 플랜)",
+      "promptBuilderExceeded": "일일 프롬프트 빌더 토큰 한도 초과 ({limit}/일, {plan} 플랜)",
+      "trialExpired": "5일 평가판이 만료되었습니다. 계속 사용하려면 업그레이드하세요.",
+      "usageLimitExceeded": "사용 한도 초과",
+      "upgradeForMore": "더 많은 사용을 위해 업그레이드하세요"
+    }
+  },
   "Auth": {
     "SignIn": {
       "title": "환영합니다",
@@ -392,7 +407,6 @@
     "toolCustomizationInstructionsPlaceholder": "도구 사용자 지정 지침이 없습니다.",
     "mcpServerCustomizationPlaceholder": "예) 이 MCP 서버의 툴중에 입력값이 email인 경우 항상 example@example.com 형식으로 입력해주세요."
   },
-  "Error": {},
   "onboarding": {
     "tutorials": {
       "general": "일반 기능",

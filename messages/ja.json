@@ -47,6 +47,21 @@
     "reasoningModel": "推論モデル",
     "loading": "読み込み中..."
   },
+  "Error": {
+    "Limits": {
+      "dailyCostExceeded": "1日のコスト制限を超えました（${limit}/日、{plan}プラン）",
+      "dailyTokenExceeded": "1日のトークン制限を超えました。より多くの使用にはアップグレードしてください。",
+      "dailyTokenExceededWithLimit": "1日のトークン制限を超えました（{limit}/日、{plan}プラン）",
+      "monthlyCostExceeded": "月間コスト制限を超えました（${limit}/月、{plan}プラン）",
+      "imageGenerationsExceeded": "月間画像生成制限を超えました（{limit}/月、{plan}プラン）",
+      "videoGenerationsExceeded": "月間動画生成制限を超えました（{limit}/月、{plan}プラン）",
+      "webSearchesExceeded": "月間ウェブ検索制限を超えました（{limit}/月、{plan}プラン）",
+      "promptBuilderExceeded": "1日のプロンプトビルダートークン制限を超えました（{limit}/日、{plan}プラン）",
+      "trialExpired": "5日間のトライアルが終了しました。サービスを継続するにはアップグレードしてください。",
+      "usageLimitExceeded": "使用制限を超えました",
+      "upgradeForMore": "より多くの使用にはアップグレードしてください"
+    }
+  },
   "Auth": {
     "SignIn": {
       "title": "おかえりなさい",
@@ -395,7 +410,6 @@
     "toolCustomizationInstructionsPlaceholder": "ツールカスタマイゼーション指示は利用できません。",
     "mcpServerCustomizationPlaceholder": "例：入力値がメールの場合、常にexample@example.comの形式でメールを入力してください。"
   },
-  "Error": {},
   "onboarding": {
     "tutorials": {
       "general": "一般機能",

@@ -47,6 +47,21 @@
     "reasoningModel": "Modèle de Raisonnement",
     "loading": "Chargement..."
   },
+  "Error": {
+    "Limits": {
+      "dailyCostExceeded": "Limite de coût journalier dépassée (${limit}/jour pour le plan {plan})",
+      "dailyTokenExceeded": "Limite de jetons quotidiens dépassée. Passez à une version supérieure pour plus d'utilisation.",
+      "dailyTokenExceededWithLimit": "Limite de jetons quotidiens dépassée ({limit}/jour pour le plan {plan})",
+      "monthlyCostExceeded": "Limite de coût mensuel dépassée (${limit}/mois pour le plan {plan})",
+      "imageGenerationsExceeded": "Limite mensuelle de génération d'images dépassée ({limit}/mois pour le plan {plan})",
+      "videoGenerationsExceeded": "Limite mensuelle de génération de vidéos dépassée ({limit}/mois pour le plan {plan})",
+      "webSearchesExceeded": "Limite mensuelle de recherches web dépassée ({limit}/mois pour le plan {plan})",
+      "promptBuilderExceeded": "Limite quotidienne de jetons du générateur de prompts dépassée ({limit}/jour pour le plan {plan})",
+      "trialExpired": "Votre essai de 5 jours a expiré. Veuillez mettre à niveau pour continuer à utiliser le service.",
+      "usageLimitExceeded": "Limite d'utilisation dépassée",
+      "upgradeForMore": "Passez à une version supérieure pour plus d'utilisation"
+    }
+  },
   "Auth": {
     "SignIn": {
       "title": "Bon retour",
@@ -396,7 +411,6 @@
     "toolCustomizationInstructionsPlaceholder": "Les instructions de personnalisation d'outils ne sont pas disponibles.",
     "mcpServerCustomizationPlaceholder": "ex. Si la valeur d'entrée est un email, toujours entrer l'email au format exemple@exemple.com."
   },
-  "Error": {},
   "onboarding": {
     "tutorials": {
       "general": "Fonctionnalités Générales",

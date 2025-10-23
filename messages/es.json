@@ -47,6 +47,21 @@
     "reasoningModel": "Modelo de Razonamiento",
     "loading": "Cargando..."
   },
+  "Error": {
+    "Limits": {
+      "dailyCostExceeded": "Límite de costo diario excedido (${limit}/día para plan {plan})",
+      "dailyTokenExceeded": "Has alcanzado el límite de uso diario. Mejora tu plan para continuar.",
+      "dailyTokenExceededWithLimit": "Límite de uso diario excedido ({limit}/día para plan {plan})",
+      "monthlyCostExceeded": "Límite de costo mensual excedido (${limit}/mes para plan {plan})",
+      "imageGenerationsExceeded": "Límite mensual de generación de imágenes excedido ({limit}/mes para plan {plan})",
+      "videoGenerationsExceeded": "Límite mensual de generación de videos excedido ({limit}/mes para plan {plan})",
+      "webSearchesExceeded": "Límite mensual de búsquedas web excedido ({limit}/mes para plan {plan})",
+      "promptBuilderExceeded": "Límite diario del generador de prompts excedido ({limit}/día para plan {plan})",
+      "trialExpired": "Tu prueba de 5 días ha expirado. Por favor mejora tu plan para continuar usando el servicio.",
+      "usageLimitExceeded": "Límite de uso excedido",
+      "upgradeForMore": "Mejora tu plan para más uso"
+    }
+  },
   "Auth": {
     "SignIn": {
       "title": "Bienvenido de vuelta",
@@ -396,7 +411,6 @@
     "toolCustomizationInstructionsPlaceholder": "Las instrucciones de personalización de herramientas no están disponibles.",
     "mcpServerCustomizationPlaceholder": "ej. Si el valor de entrada es email, siempre ingresa el email en el formato ejemplo@ejemplo.com."
   },
-  "Error": {},
   "onboarding": {
     "tutorials": {
       "general": "Funciones Generales",

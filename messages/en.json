@@ -48,7 +48,21 @@
     "reasoningModel": "Reasoning Model",
     "loading": "Loading..."
   },
-  "Error": {},
+  "Error": {
+    "Limits": {
+      "dailyCostExceeded": "Daily cost limit exceeded (${limit}/day for {plan} plan)",
+      "dailyTokenExceeded": "Daily token limit exceeded. Upgrade for more usage.",
+      "dailyTokenExceededWithLimit": "Daily token limit exceeded ({limit}/day for {plan} plan)",
+      "monthlyCostExceeded": "Monthly cost limit exceeded (${limit}/month for {plan} plan)",
+      "imageGenerationsExceeded": "Monthly image generation limit exceeded ({limit}/month for {plan} plan)",
+      "videoGenerationsExceeded": "Monthly video generation limit exceeded ({limit}/month for {plan} plan)",
+      "webSearchesExceeded": "Monthly web search limit exceeded ({limit}/month for {plan} plan)",
+      "promptBuilderExceeded": "Daily prompt builder token limit exceeded ({limit}/day for {plan} plan)",
+      "trialExpired": "Your 5-day trial has expired. Please upgrade to continue using the service.",
+      "usageLimitExceeded": "Usage limit exceeded",
+      "upgradeForMore": "Upgrade for more usage"
+    }
+  },
   "onboarding": {
     "tutorials": {
       "general": "General Features",
