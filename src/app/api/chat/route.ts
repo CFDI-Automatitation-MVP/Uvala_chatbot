@@ -359,7 +359,7 @@ The files remain available throughout the entire conversation for analysis and r
           // AI SDK 5 token limit - increased for coder mode
           maxOutputTokens:
             chatModel?.model === "uvala-fuji"
-              ? 2000
+              ? 3000
               : chatMode === "coder"
                 ? 16000 // Increased limit for coder to generate larger components
                 : 4000,
@@ -368,18 +368,28 @@ The files remain available throughout the entire conversation for analysis and r
             chatModel?.model === "uvala-fuji"
               ? {
                   openai: {
-                    reasoningEffort: "low",
-                    textVerbosity: "low",
-                    includeReasoning: false,
-                  },
-                }
-              : {
-                  openai: {
                     reasoningEffort: "medium",
                     textVerbosity: "medium",
                     includeReasoning: false,
                   },
-                },
+                }
+              : chatModel?.model === "uvala-everest"
+                ? {
+                    openai: {
+                      reasoningEffort: "high",
+                      textVerbosity: "medium",
+                      reasoningSummary: "auto",
+                      includeReasoning: false,
+                    },
+                  }
+                : {
+                    openai: {
+                      reasoningEffort: "medium",
+                      textVerbosity: "medium",
+                      reasoningSummary: "auto",
+                      includeReasoning: false,
+                    },
+                  },
         });
         result.consumeStream();
         dataStream.merge(

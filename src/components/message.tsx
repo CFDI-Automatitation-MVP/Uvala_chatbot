@@ -46,6 +46,21 @@ const PurePreviewMessage = ({
   sendMessage,
 }: Props) => {
   const isUserMessage = useMemo(() => message.role === "user", [message.role]);
+
+  // Combine all reasoning parts into one
+  const combinedReasoning = useMemo(() => {
+    const reasoningParts = message.parts.filter((p) => p.type === "reasoning");
+    if (reasoningParts.length === 0) return null;
+
+    return {
+      text: reasoningParts
+        .map((p) => p.text)
+        .filter(Boolean)
+        .join("\n\n"),
+      count: reasoningParts.length,
+    };
+  }, [message.parts]);
+
   if (message.role == "system") {
     return null; // system message is not shown
   }
@@ -59,18 +74,22 @@ const PurePreviewMessage = ({
         )}
       >
         <div className="flex flex-col gap-4 w-full">
+          {/* Show combined reasoning once at the beginning */}
+          {combinedReasoning && (
+            <ReasoningPart
+              key={`message-${messageIndex}-reasoning-combined`}
+              reasoningText={combinedReasoning.text}
+              isThinking={isLastMessage && isLoading}
+            />
+          )}
+
           {message.parts?.map((part, index) => {
             const key = `message-${messageIndex}-part-${part.type}-${index}`;
             const isLastPart = index === message.parts.length - 1;
 
+            // Skip individual reasoning parts since we show them combined above
             if (part.type === "reasoning") {
-              return (
-                <ReasoningPart
-                  key={key}
-                  reasoningText={part.text}
-                  isThinking={isLastPart && isLastMessage && isLoading}
-                />
-              );
+              return null;
             }
 
             if (isUserMessage && part.type === "text" && part.text) {
@@ -174,6 +193,80 @@ export const PreviewMessage = memo(
   },
 );
 
+// Helper function to translate limit error messages
+function translateLimitError(message: string, t: any): string {
+  // Check if message contains translation markers
+  if (message.includes("Daily token limit exceeded. Upgrade")) {
+    return t("Error.Limits.dailyTokenExceeded");
+  } else if (
+    message.includes("Daily token limit exceeded") &&
+    message.includes("/day")
+  ) {
+    const match = message.match(/\(([0-9]+)\/day for ([A-Z]+) plan\)/);
+    if (match) {
+      return t("Error.Limits.dailyTokenExceededWithLimit", {
+        limit: match[1],
+        plan: match[2],
+      });
+    }
+  } else if (message.includes("Daily cost limit exceeded")) {
+    const match = message.match(/\$([0-9.]+)\/day for ([A-Z]+) plan/);
+    if (match) {
+      return t("Error.Limits.dailyCostExceeded", {
+        limit: match[1],
+        plan: match[2],
+      });
+    }
+  } else if (message.includes("Monthly cost limit exceeded")) {
+    const match = message.match(/\$([0-9.]+)\/month for ([A-Z]+) plan/);
+    if (match) {
+      return t("Error.Limits.monthlyCostExceeded", {
+        limit: match[1],
+        plan: match[2],
+      });
+    }
+  } else if (message.includes("Monthly image generation limit exceeded")) {
+    const match = message.match(/\(([0-9]+)\/month for ([A-Z]+) plan\)/);
+    if (match) {
+      return t("Error.Limits.imageGenerationsExceeded", {
+        limit: match[1],
+        plan: match[2],
+      });
+    }
+  } else if (message.includes("Monthly video generation limit exceeded")) {
+    const match = message.match(/\(([0-9]+)\/month for ([A-Z]+) plan\)/);
+    if (match) {
+      return t("Error.Limits.videoGenerationsExceeded", {
+        limit: match[1],
+        plan: match[2],
+      });
+    }
+  } else if (message.includes("Monthly web search limit exceeded")) {
+    const match = message.match(/\(([0-9]+)\/month for ([A-Z]+) plan\)/);
+    if (match) {
+      return t("Error.Limits.webSearchesExceeded", {
+        limit: match[1],
+        plan: match[2],
+      });
+    }
+  } else if (message.includes("prompt builder token limit exceeded")) {
+    const match = message.match(/\(([0-9]+)\/day for ([A-Z]+) plan\)/);
+    if (match) {
+      return t("Error.Limits.promptBuilderExceeded", {
+        limit: match[1],
+        plan: match[2],
+      });
+    }
+  } else if (message.includes("5-day trial has expired")) {
+    return t("Error.Limits.trialExpired");
+  } else if (message.includes("Usage limit exceeded")) {
+    return t("Error.Limits.usageLimitExceeded");
+  }
+
+  // Return original message if no translation found
+  return message;
+}
+
 export const ErrorMessage = ({
   error,
 }: {
@@ -183,6 +276,10 @@ export const ErrorMessage = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const maxLength = 200;
   const t = useTranslations();
+
+  // Translate limit errors
+  const translatedMessage = translateLimitError(error.message, t);
+
   return (
     <div className="w-full mx-auto max-w-3xl px-6 animate-in fade-in mt-4">
       <div className="flex flex-col gap-2">
@@ -196,10 +293,10 @@ export const ErrorMessage = ({
               <div className="text-sm text-muted-foreground">
                 <div className="whitespace-pre-wrap">
                   {isExpanded
-                    ? error.message
-                    : truncateString(error.message, maxLength)}
+                    ? translatedMessage
+                    : truncateString(translatedMessage, maxLength)}
                 </div>
-                {error.message.length > maxLength && (
+                {translatedMessage.length > maxLength && (
                   <Button
                     onClick={() => setIsExpanded(!isExpanded)}
                     variant={"ghost"}

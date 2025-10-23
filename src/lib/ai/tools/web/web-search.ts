@@ -1,281 +1,168 @@
 import { tool as createTool } from "ai";
-import { JSONSchema7 } from "json-schema";
-import { jsonSchemaToZod } from "lib/json-schema-to-zod";
+import { z } from "zod";
+import Exa from "exa-js";
 import { safe } from "ts-safe";
+import globalLogger from "logger";
 
-// Exa API Types
-export interface ExaSearchRequest {
-  query: string;
-  type: string;
-  category?: string;
-  includeDomains?: string[];
-  excludeDomains?: string[];
-  startPublishedDate?: string;
-  endPublishedDate?: string;
-  numResults: number;
-  contents: {
-    text:
-      | {
-          maxCharacters?: number;
-        }
-      | boolean;
-    livecrawl?: "always" | "fallback" | "preferred";
-    subpages?: number;
-    subpageTarget?: string[];
-  };
-}
+const logger = globalLogger.withTag("web-search");
 
+// Initialize Exa client with API key
+const exa = new Exa(process.env.EXA_API_KEY || "");
+
+// Type definitions matching the UI component expectations
 export interface ExaSearchResult {
-  id: string;
+  id?: string;
   title: string;
   url: string;
-  publishedDate: string;
-  author: string;
-  text: string;
+  publishedDate?: string;
+  author?: string;
+  text: string; // UI expects 'text' not 'content'
   image?: string;
   favicon?: string;
   score?: number;
 }
 
 export interface ExaSearchResponse {
-  requestId: string;
-  autopromptString: string;
-  resolvedSearchType: string;
+  requestId?: string;
+  autopromptString?: string;
+  resolvedSearchType?: string;
   results: ExaSearchResult[];
 }
 
-export interface ExaContentsRequest {
-  ids: string[];
-  contents: {
-    text:
-      | {
-          maxCharacters?: number;
-        }
-      | boolean;
-    livecrawl?: "always" | "fallback" | "preferred";
-  };
-}
-
-export const exaSearchSchema: JSONSchema7 = {
-  type: "object",
-  properties: {
-    query: {
-      type: "string",
-      description: "Search query",
-    },
-    numResults: {
-      type: "number",
-      description: "Number of search results to return",
-      default: 2, // Reduced from 4 for cost optimization
-      minimum: 1,
-      maximum: 2, // Reduced from 4 for cost optimization
-    },
-    type: {
-      type: "string",
-      enum: ["keyword"],
-      description:
-        "Search type - keyword search for exact matches and cost optimization",
-      default: "keyword",
-    },
-    category: {
-      type: "string",
-      enum: [
-        "company",
-        "research paper",
-        "news",
-        "linkedin profile",
-        "github",
-        "tweet",
-        "movie",
-        "song",
-        "personal site",
-        "pdf",
-      ],
-      description: "Category to focus the search on",
-    },
-    includeDomains: {
-      type: "array",
-      items: { type: "string" },
-      description: "List of domains to specifically include in search results",
-      default: [],
-    },
-    excludeDomains: {
-      type: "array",
-      items: { type: "string" },
-      description:
-        "List of domains to specifically exclude from search results",
-      default: [],
-    },
-    startPublishedDate: {
-      type: "string",
-      description: "Start date for published content (YYYY-MM-DD format)",
-    },
-    endPublishedDate: {
-      type: "string",
-      description: "End date for published content (YYYY-MM-DD format)",
-    },
-    maxCharacters: {
-      type: "number",
-      description: "Maximum characters to extract from each result",
-      default: 1500, // Reduced from 3000 for cost optimization
-      minimum: 100,
-      maximum: 2000, // Reduced from 10000 for cost optimization
-    },
-  },
-  required: ["query"],
-};
-
-export const exaContentsSchema: JSONSchema7 = {
-  type: "object",
-  properties: {
-    urls: {
-      type: "array",
-      items: { type: "string" },
-      description: "List of URLs to extract content from",
-    },
-    maxCharacters: {
-      type: "number",
-      description: "Maximum characters to extract from each URL",
-      default: 3000,
-      minimum: 100,
-      maximum: 10000,
-    },
-    livecrawl: {
-      type: "string",
-      enum: ["always", "fallback", "preferred"],
-      description:
-        "Live crawling preference - always forces live crawl, fallback uses cache first, preferred tries live first",
-      default: "preferred",
-    },
-  },
-  required: ["urls"],
-};
-
-const API_KEY = process.env.EXA_API_KEY;
-const BASE_URL = "https://api.exa.ai";
-
-const fetchExa = async (endpoint: string, body: any): Promise<any> => {
-  if (!API_KEY) {
-    throw new Error("EXA_API_KEY is not configured");
-  }
-
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": API_KEY,
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (response.status === 401) {
-    throw new Error("Invalid EXA API key");
-  }
-  if (response.status === 429) {
-    throw new Error("Exa API usage limit exceeded");
-  }
-
-  if (!response.ok) {
-    throw new Error(`Exa API error: ${response.status} ${response.statusText}`);
-  }
-
-  return await response.json();
-};
-
+// Web Search Tool - aligned with Exa's official AI SDK recommendations
 export const exaSearchTool = createTool({
-  description: `Search the web for real-time information using Exa's AI-powered search engine.
+  description: "Search the web for up-to-date information",
+  inputSchema: z.object({
+    query: z
+      .string()
+      .min(1)
+      .max(100)
+      .describe("The search query for finding current information"),
+  }),
+  execute: async ({ query }) => {
+    logger.info(`🔍 Web search initiated: "${query}"`);
 
-Use this tool when users need:
-- Current information, news, or recent developments
-- Product prices, availability, or shopping information (flights, hotels, products)
-- Research on specific topics, companies, or people
-- Latest documentation or technical resources
-
-How to use effectively:
-- Use natural language queries (e.g., "cheapest flights from Mexico to Tokyo in November")
-- For price/product searches: be specific about what, where, and when
-- Use 'includeDomains' to search specific sites (e.g., ["amazon.com"] for products)
-- Use 'category' when searching for specific content types (news, research papers, etc.)
-- Default numResults is 2 (max 2) - use 2 for comprehensive results, 1 for quick answers`,
-  inputSchema: jsonSchemaToZod(exaSearchSchema),
-  execute: (params) => {
     return safe(async () => {
-      const searchRequest: ExaSearchRequest = {
-        query: params.query,
-        type: params.type || "keyword",
-        numResults: params.numResults || 2,
-        contents: {
-          text: {
-            maxCharacters: params.maxCharacters || 1500,
-          },
-          livecrawl: "preferred",
+      if (!process.env.EXA_API_KEY) {
+        throw new Error("EXA_API_KEY is not configured");
+      }
+
+      logger.info(`📡 Calling Exa API with query: "${query}"`);
+
+      // Use searchAndContents for optimized search + content extraction in one call
+      const response = await exa.searchAndContents(query, {
+        livecrawl: "always", // Always get fresh content for real-time information
+        numResults: 3, // Optimal balance between coverage and token usage
+        text: {
+          maxCharacters: 1000, // Recommended by Exa for AI consumption
         },
+      });
+
+      logger.info(`✅ Exa API returned ${response.results.length} results`);
+
+      // Log first result for debugging
+      if (response.results.length > 0) {
+        logger.info(
+          `📄 First result: ${response.results[0].title} - ${response.results[0].url}`,
+        );
+      }
+
+      // Return response matching UI component expectations
+      const formattedResponse: ExaSearchResponse = {
+        requestId: (response as any).requestId,
+        autopromptString: (response as any).autopromptString,
+        resolvedSearchType: (response as any).resolvedSearchType,
+        results: response.results.map((result) => ({
+          id: result.id,
+          title: result.title || "Untitled",
+          url: result.url,
+          text: result.text || "", // UI expects 'text' field
+          publishedDate: result.publishedDate,
+          author: result.author,
+          image: (result as any).image,
+          favicon: (result as any).favicon,
+          score: result.score,
+        })),
       };
 
-      // Add optional parameters if provided
-      if (params.category) searchRequest.category = params.category;
-      if (params.includeDomains?.length)
-        searchRequest.includeDomains = params.includeDomains;
-      if (params.excludeDomains?.length)
-        searchRequest.excludeDomains = params.excludeDomains;
-      if (params.startPublishedDate)
-        searchRequest.startPublishedDate = params.startPublishedDate;
-      if (params.endPublishedDate)
-        searchRequest.endPublishedDate = params.endPublishedDate;
+      logger.info(
+        `🎯 Returning formatted response with ${formattedResponse.results.length} results`,
+      );
 
-      const result = await fetchExa("/search", searchRequest);
-
-      return {
-        ...result,
-        guide: `Use the search results to answer the user's question. Summarize the content and ask if they have any additional questions about the topic.`,
-      };
+      return formattedResponse;
     })
       .ifFail((e) => {
+        logger.error(`❌ Exa search error: ${e.message}`);
+        console.error("Exa search error:", e);
         return {
           isError: true,
-          error: e.message,
+          error: e.message || "Web search failed",
           solution:
-            "A web search error occurred. First, explain to the user what caused this specific error and how they can resolve it. Then provide helpful information based on your existing knowledge to answer their question.",
+            "Unable to search the web at this time. Please try rephrasing your query or ask me to help based on my existing knowledge.",
+          results: [], // Include empty results array for UI compatibility
         };
       })
       .unwrap();
   },
 });
 
+// Web Content Extraction Tool - for getting full content from specific URLs
 export const exaContentsTool = createTool({
-  description: `Extract and read the full text content from specific web pages.
+  description: "Extract full content from specific web pages by URL",
+  inputSchema: z.object({
+    urls: z
+      .array(z.string().url())
+      .min(1)
+      .max(5)
+      .describe("List of URLs to extract content from (max 5)"),
+  }),
+  execute: async ({ urls }) => {
+    logger.info(`📥 Content extraction initiated for ${urls.length} URL(s)`);
 
-Use this tool when you need to:
-- Read the full content of a specific webpage or article
-- Extract detailed information from URLs the user provides
-- Get more details from search results (after using web search)
-- Scrape content from multiple pages
-
-How to use:
-- Provide one or more URLs in the 'urls' parameter
-- Set maxCharacters based on need (default 3000, max 10000)
-- Use 'livecrawl' to force fresh content: "always" = always live, "fallback" = try cache first, "preferred" = try live first (default)`,
-  inputSchema: jsonSchemaToZod(exaContentsSchema),
-  execute: async (params) => {
     return safe(async () => {
-      const contentsRequest: ExaContentsRequest = {
-        ids: params.urls,
-        contents: {
-          text: {
-            maxCharacters: params.maxCharacters || 1500,
-          },
-          livecrawl: params.livecrawl || "preferred",
+      if (!process.env.EXA_API_KEY) {
+        throw new Error("EXA_API_KEY is not configured");
+      }
+
+      logger.info(`📡 Calling Exa getContents API`);
+
+      // Use getContents for extracting content from known URLs
+      const response = await exa.getContents(urls, {
+        livecrawl: "always",
+        text: {
+          maxCharacters: 3000, // More content for detailed extraction
         },
+      });
+
+      logger.info(
+        `✅ Exa getContents returned ${response.results.length} results`,
+      );
+
+      const formattedResponse: ExaSearchResponse = {
+        requestId: (response as any).requestId,
+        results: response.results.map((result) => ({
+          id: result.id,
+          title: result.title || "Untitled",
+          url: result.url,
+          text: result.text || "", // UI expects 'text' field
+          publishedDate: result.publishedDate,
+          author: result.author,
+          image: (result as any).image,
+          favicon: (result as any).favicon,
+        })),
       };
 
-      return await fetchExa("/contents", contentsRequest);
+      return formattedResponse;
     })
       .ifFail((e) => {
+        logger.error(`❌ Exa content extraction error: ${e.message}`);
+        console.error("Exa content extraction error:", e);
         return {
           isError: true,
-          error: e.message,
+          error: e.message || "Content extraction failed",
           solution:
-            "A web content extraction error occurred. First, explain to the user what caused this specific error and how they can resolve it. Then provide helpful information based on your existing knowledge to answer their question.",
+            "Unable to extract content from the provided URLs. The pages may be inaccessible or the URLs may be invalid.",
+          results: [], // Include empty results array for UI compatibility
         };
       })
       .unwrap();

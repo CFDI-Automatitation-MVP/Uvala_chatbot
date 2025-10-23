@@ -94,6 +94,7 @@
     "dotenv": "^16.6.1",
     "drizzle-orm": "^0.41.0",
     "emoji-picker-react": "^4.13.2",
+    "exa-js": "^1.10.2",
     "framer-motion": "^12.23.12",
     "hast-util-to-jsx-runtime": "^2.3.6",
     "json-schema": "^0.4.0",
