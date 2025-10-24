@@ -257,7 +257,7 @@ function translateLimitError(message: string, t: any): string {
         plan: match[2],
       });
     }
-  } else if (message.includes("5-day trial has expired")) {
+  } else if (message.includes("7-day trial has expired")) {
     return t("Error.Limits.trialExpired");
   } else if (message.includes("Usage limit exceeded")) {
     return t("Error.Limits.usageLimitExceeded");

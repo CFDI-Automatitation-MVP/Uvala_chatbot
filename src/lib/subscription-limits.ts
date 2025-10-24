@@ -196,7 +196,7 @@ export async function checkUserLimits(
         return {
           canProceed: false,
           limitExceeded:
-            "Your 5-day trial has expired. Please upgrade to continue using the service.",
+            "Your 7-day trial has expired. Please upgrade to continue using the service.",
           limitExceededKey: "Error.Limits.trialExpired",
           limitExceededParams: {},
         };
@@ -383,7 +383,7 @@ export async function checkPromptBuilderLimits(
         return {
           canProceed: false,
           limitExceeded:
-            "Your 5-day trial has expired. Please upgrade to continue using the service.",
+            "Your 7-day trial has expired. Please upgrade to continue using the service.",
           limitExceededKey: "Error.Limits.trialExpired",
           limitExceededParams: {},
         };
@@ -501,7 +501,7 @@ export async function checkCoderLimits(
         return {
           canProceed: false,
           limitExceeded:
-            "Your 5-day trial has expired. Please upgrade to continue using the service.",
+            "Your 7-day trial has expired. Please upgrade to continue using the service.",
           limitExceededKey: "Error.Limits.trialExpired",
           limitExceededParams: {},
         };

@@ -38,7 +38,7 @@ export interface PlanLimits {
 
 export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
   free: {
-    // 5-day trial with Plus tier limits
+    // 7-day trial with Plus tier limits
     maxTokensPerMonth: 6420000, // 214,000 tokens/day * 30 days
     maxTokensPerDay: 214000, // Updated to 214k daily tokens
     maxApiCallsPerMonth: 1000, // Same as Plus
@@ -251,12 +251,12 @@ export function getCurrentUsagePeriod(): { month: number; year: number } {
 }
 
 /**
- * Check if a user is within their 5-day trial period
+ * Check if a user is within their 7-day trial period
  */
 export function isUserInTrialPeriod(userCreatedAt: Date): boolean {
   const now = new Date();
   const trialEndDate = new Date(userCreatedAt);
-  trialEndDate.setDate(trialEndDate.getDate() + 5); // Add 5 days
+  trialEndDate.setDate(trialEndDate.getDate() + 7); // Add 7 days
 
   return now <= trialEndDate;
 }
@@ -267,7 +267,7 @@ export function isUserInTrialPeriod(userCreatedAt: Date): boolean {
 export function getRemainingTrialDays(userCreatedAt: Date): number {
   const now = new Date();
   const trialEndDate = new Date(userCreatedAt);
-  trialEndDate.setDate(trialEndDate.getDate() + 5);
+  trialEndDate.setDate(trialEndDate.getDate() + 7);
 
   const diffTime = trialEndDate.getTime() - now.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
