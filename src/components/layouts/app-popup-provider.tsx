@@ -56,6 +56,13 @@ const CoderPopup = dynamic(
   },
 );
 
+const LearnPopup = dynamic(
+  () => import("@/components/learn-popup").then((mod) => mod.LearnPopup),
+  {
+    ssr: false,
+  },
+);
+
 export function AppPopupProvider() {
   return (
     <>
@@ -66,6 +73,7 @@ export function AppPopupProvider() {
       <ChatBotTemporary />
       <PromptBuilderPopup />
       <CoderPopup />
+      <LearnPopup />
     </>
   );
 }

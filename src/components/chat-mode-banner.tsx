@@ -3,7 +3,7 @@
 import { appStore } from "@/app/store";
 import { useShallow } from "zustand/shallow";
 import { useTranslations } from "next-intl";
-import { Code, Brain, X } from "lucide-react";
+import { Code, Brain, GraduationCap, X } from "lucide-react";
 import { Button } from "ui/button";
 
 interface ChatModeBannerProps {
@@ -55,7 +55,7 @@ export function ChatModeBanner({ messageCount = 0 }: ChatModeBannerProps) {
         borderColor: "border-blue-500/20",
         textColor: "text-blue-600 dark:text-blue-400",
       };
-    } else {
+    } else if (chatMode === "promptBuilder") {
       return {
         icon: <Brain className="h-5 w-5" />,
         title: t("promptBuilderModeTitle"),
@@ -69,6 +69,21 @@ export function ChatModeBanner({ messageCount = 0 }: ChatModeBannerProps) {
         bgColor: "bg-purple-500/10",
         borderColor: "border-purple-500/20",
         textColor: "text-purple-600 dark:text-purple-400",
+      };
+    } else {
+      return {
+        icon: <GraduationCap className="h-5 w-5" />,
+        title: t("learnModeTitle"),
+        description: t("learnModeDescription"),
+        suggestions: [
+          t("learnSuggestion1"),
+          t("learnSuggestion2"),
+          t("learnSuggestion3"),
+          t("learnSuggestion4"),
+        ],
+        bgColor: "bg-green-500/10",
+        borderColor: "border-green-500/20",
+        textColor: "text-green-600 dark:text-green-400",
       };
     }
   };

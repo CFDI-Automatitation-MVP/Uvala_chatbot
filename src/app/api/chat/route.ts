@@ -14,7 +14,11 @@ import { agentRepository, chatRepository } from "lib/db/repository";
 import globalLogger from "logger";
 import { buildUserSystemPrompt } from "lib/ai/prompts";
 import { chatApiSchemaRequestBodySchema, ChatMetadata } from "app-types/chat";
-import { CODER_SYSTEM, PROMPT_BUILDER_SYSTEM } from "lib/ai/mode-prompts";
+import {
+  CODER_SYSTEM,
+  PROMPT_BUILDER_SYSTEM,
+  LEARN_SYSTEM,
+} from "lib/ai/mode-prompts";
 
 import { errorIf, safe } from "ts-safe";
 
@@ -160,6 +164,8 @@ export async function POST(request: Request) {
           systemPrompt = CODER_SYSTEM;
         } else if (chatMode === "promptBuilder") {
           systemPrompt = PROMPT_BUILDER_SYSTEM;
+        } else if (chatMode === "learn") {
+          systemPrompt = LEARN_SYSTEM;
         } else {
           systemPrompt = buildUserSystemPrompt(
             session.user,
@@ -356,13 +362,18 @@ The files remain available throughout the entire conversation for analysis and r
           stopWhen: stepCountIs(10),
           toolChoice: "auto",
           abortSignal: request.signal,
-          // AI SDK 5 token limit - increased for coder mode
+          // AI SDK 5 token limit - model-specific configuration
           maxOutputTokens:
             chatModel?.model === "uvala-fuji"
               ? 3000
-              : chatMode === "coder"
-                ? 16000 // Increased limit for coder to generate larger components
-                : 4000,
+              : chatModel?.model === "uvala-sensei"
+                ? 5000 // Sensei uses Qwen3-32B with 5000 max output
+                : chatMode === "coder"
+                  ? 16000 // Coder needs larger output for code generation
+                  : 4000,
+          // Temperature and top_p for uvala-sensei
+          temperature: chatModel?.model === "uvala-sensei" ? 0.7 : undefined,
+          topP: chatModel?.model === "uvala-sensei" ? 0.9 : undefined,
           // GPT-5 optimization settings
           providerOptions:
             chatModel?.model === "uvala-fuji"

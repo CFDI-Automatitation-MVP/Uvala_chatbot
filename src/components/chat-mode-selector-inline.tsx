@@ -2,7 +2,7 @@
 
 import { appStore } from "@/app/store";
 import { useShallow } from "zustand/shallow";
-import { MessageSquare, Code, Brain } from "lucide-react";
+import { MessageSquare, Code, Brain, GraduationCap } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { ChatMode } from "@/app/store";
 
@@ -33,13 +33,19 @@ export function ChatModeSelectorInline({
           provider: "Internal",
           model: "uvala-prompter",
         };
+      } else if (newMode === "learn") {
+        updates.chatModel = {
+          provider: "Internal",
+          model: "uvala-sensei",
+        };
       } else if (newMode === "normal") {
         // When switching back to normal mode, reset to default normal chat model
         // Check if current model is a special mode model
         const currentModel = state.chatModel;
         if (
           currentModel?.model === "uvala-coder" ||
-          currentModel?.model === "uvala-prompter"
+          currentModel?.model === "uvala-prompter" ||
+          currentModel?.model === "uvala-sensei"
         ) {
           // Reset to default normal chat model
           updates.chatModel = {
@@ -66,6 +72,7 @@ export function ChatModeSelectorInline({
     { value: "normal", icon: MessageSquare, label: t("normal") },
     { value: "coder", icon: Code, label: t("coder") },
     { value: "promptBuilder", icon: Brain, label: t("promptBuilder") },
+    { value: "learn", icon: GraduationCap, label: t("learn") },
   ];
 
   const getModeInfo = () => {
@@ -87,6 +94,16 @@ export function ChatModeSelectorInline({
           t("promptBuilderSuggestion2"),
           t("promptBuilderSuggestion3"),
           t("promptBuilderSuggestion4"),
+        ],
+      };
+    } else if (chatMode === "learn") {
+      return {
+        description: t("learnModeDescription"),
+        suggestions: [
+          t("learnSuggestion1"),
+          t("learnSuggestion2"),
+          t("learnSuggestion3"),
+          t("learnSuggestion4"),
         ],
       };
     }

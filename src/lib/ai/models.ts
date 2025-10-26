@@ -28,7 +28,8 @@ const bedrock = createAmazonBedrock({
 // Internal models - not exposed in UI
 const internalModels = {
   "uvala-prompter": openai("gpt-5-nano"),
-  "uvala-coder": bedrock("qwen.qwen3-coder-30b-a3b-v1:0"),
+  "uvala-coder": bedrock("qwen.qwen3-32b-v1:0"),
+  "uvala-sensei": bedrock("qwen.qwen3-32b-v1:0"),
 };
 
 const staticUnsupportedModels = new Set([

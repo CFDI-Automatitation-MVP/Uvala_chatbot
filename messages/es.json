@@ -657,6 +657,18 @@
     "betaWarning": "El modo componentes está en Beta. Pueden ocurrir errores al generar elementos. Pide específicamente lo que falta en tu componente para mejorar la experiencia. También podrían haber errores de guardado al cambiar de chat.",
     "generatedBy": "generado por uvala"
   },
+  "Learn": {
+    "title": "Aprende",
+    "welcome": "Bienvenido al Modo Aprende",
+    "description": "Tu tutor personal de IA. Haz preguntas, obtén ayuda con tareas o practica juntos. Te guiaré para que descubras las respuestas por ti mismo.",
+    "inputPlaceholder": "Haz una pregunta o describe lo que quieres aprender...",
+    "stop": "Detener generación",
+    "examples": "Ejemplos",
+    "example1": "Ayúdame a entender la fotosíntesis",
+    "example2": "Hazme un quiz sobre álgebra",
+    "example3": "Explícame la Revolución Francesa",
+    "example4": "Practica conversación en inglés"
+  },
   "Pricing": {
     "title": "Elige tu Plan",
     "description": "Desbloquea todo el potencial de las conversaciones con IA con nuestros planes de precios flexibles.",
@@ -730,6 +742,7 @@
     "normal": "Chat",
     "coder": "Programador",
     "promptBuilder": "Diseñador de Prompts",
+    "learn": "Aprende",
     "coderModeTitle": "Modo Programador",
     "coderModeDescription": "Asistencia experta en programación impulsada por IA",
     "coderSuggestion1": "Crear tarjeta de dashboard con gráfica",
@@ -742,6 +755,12 @@
     "promptBuilderSuggestion2": "Crea un prompt para revisión de código",
     "promptBuilderSuggestion3": "Necesito analizar comentarios de clientes",
     "promptBuilderSuggestion4": "Genera ideas creativas para historias",
+    "learnModeTitle": "Modo Aprende",
+    "learnModeDescription": "Tu tutor de IA - te guía para descubrir respuestas por ti mismo",
+    "learnSuggestion1": "Ayúdame a entender la fotosíntesis",
+    "learnSuggestion2": "Hazme un quiz sobre álgebra",
+    "learnSuggestion3": "Explícame la Revolución Francesa",
+    "learnSuggestion4": "Practica conversación en inglés",
     "suggestedPrompts": "Prompts Sugeridos"
   }
 }

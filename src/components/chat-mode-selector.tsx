@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "ui/select";
-import { MessageSquare, Code, Brain } from "lucide-react";
+import { MessageSquare, Code, Brain, GraduationCap } from "lucide-react";
 
 export function ChatModeSelector() {
   const t = useTranslations("ChatMode");
@@ -33,11 +33,17 @@ export function ChatModeSelector() {
           provider: "Internal",
           model: "uvala-prompter",
         };
+      } else if (newMode === "learn") {
+        updates.chatModel = {
+          provider: "Internal",
+          model: "uvala-sensei",
+        };
       } else {
         // Return to default normal chat model if not already set
         if (
           state.chatModel?.model === "uvala-coder" ||
-          state.chatModel?.model === "uvala-prompter"
+          state.chatModel?.model === "uvala-prompter" ||
+          state.chatModel?.model === "uvala-sensei"
         ) {
           updates.chatModel = {
             provider: "Fast & Direct",
@@ -72,6 +78,12 @@ export function ChatModeSelector() {
           <div className="flex items-center gap-2">
             <Brain className="h-4 w-4" />
             <span>{t("promptBuilder")}</span>
+          </div>
+        </SelectItem>
+        <SelectItem value="learn">
+          <div className="flex items-center gap-2">
+            <GraduationCap className="h-4 w-4" />
+            <span>{t("learn")}</span>
           </div>
         </SelectItem>
       </SelectContent>
