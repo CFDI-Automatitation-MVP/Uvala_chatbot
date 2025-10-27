@@ -374,6 +374,15 @@ export const AssistMessagePart = memo(function AssistMessagePart({
       .unwrap();
   };
 
+  // Filter out the contents of <style> tags to avoid showing CSS as text in markdown
+  const displayText = useMemo(() => {
+    // Replace style tag contents with a placeholder
+    return part.text.replace(
+      /<style[^>]*>([\s\S]*?)<\/style>/gi,
+      "<style>/* Styles hidden */</style>",
+    );
+  }, [part.text]);
+
   return (
     <div
       className={cn(
@@ -387,7 +396,7 @@ export const AssistMessagePart = memo(function AssistMessagePart({
           "opacity-50 border border-destructive bg-card rounded-lg": isError,
         })}
       >
-        <Markdown>{part.text}</Markdown>
+        <Markdown>{displayText}</Markdown>
       </div>
       {showActions && (
         <div className="flex w-full">

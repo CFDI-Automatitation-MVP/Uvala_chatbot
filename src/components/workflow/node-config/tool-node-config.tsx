@@ -21,10 +21,10 @@ import { useTranslations } from "next-intl";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 
 import {
-  exaSearchSchema,
   exaSearchTool,
-  exaContentsSchema,
   exaContentsTool,
+  exaSearchSchema,
+  exaContentsSchema,
 } from "lib/ai/tools/web/web-search";
 import { DefaultToolName } from "lib/ai/tools";
 

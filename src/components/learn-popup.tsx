@@ -10,13 +10,15 @@ import {
   DrawerTitle,
 } from "ui/drawer";
 import { Button } from "ui/button";
-import { X, RotateCcw, GraduationCap } from "lucide-react";
+import { X, RotateCcw, GraduationCap, Eye } from "lucide-react";
 import { SimpleChatLearn } from "./learn/simple-chat-learn";
+import { useArtifactStore } from "@/stores/artifact-store";
 
 export function LearnPopup() {
   const [learn, appStoreMutate] = appStore(
     useShallow((state) => [state.learn, state.mutate]),
   );
+  const { activeArtifactId } = useArtifactStore();
 
   const setOpen = (bool: boolean) => {
     appStoreMutate({
@@ -24,6 +26,13 @@ export function LearnPopup() {
         isOpen: bool,
       },
     });
+  };
+
+  const handleShowPreview = () => {
+    console.log("[LEARN POPUP] Manual preview trigger clicked");
+    // Dispatch event to show preview
+    const showPreviewEvent = new CustomEvent("learnShowPreview");
+    window.dispatchEvent(showPreviewEvent);
   };
 
   const handleReset = () => {
@@ -61,6 +70,22 @@ export function LearnPopup() {
             </div>
 
             <div className="flex-1" />
+
+            {/* Manual Preview Trigger Button - Apple styled */}
+            {activeArtifactId && (
+              <Button
+                variant={"ghost"}
+                size={"sm"}
+                onClick={handleShowPreview}
+                className="rounded-full h-8 px-3 gap-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 transition-all"
+                title="Show component preview"
+              >
+                <Eye className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                  Preview
+                </span>
+              </Button>
+            )}
 
             <Button
               variant={"ghost"}

@@ -3,11 +3,38 @@ import { z } from "zod";
 import Exa from "exa-js";
 import { safe } from "ts-safe";
 import globalLogger from "logger";
+import { JSONSchema7 } from "json-schema";
 
 const logger = globalLogger.withTag("web-search");
 
 // Initialize Exa client with API key
 const exa = new Exa(process.env.EXA_API_KEY || "");
+
+// JSON Schema exports for workflow UI
+export const exaSearchSchema: JSONSchema7 = {
+  type: "object",
+  properties: {
+    query: {
+      type: "string",
+      description: "The search query for finding current information",
+      minLength: 1,
+      maxLength: 100,
+    },
+  },
+  required: ["query"],
+};
+
+export const exaContentsSchema: JSONSchema7 = {
+  type: "object",
+  properties: {
+    urls: {
+      type: "array",
+      items: { type: "string" },
+      description: "List of URLs to extract content from",
+    },
+  },
+  required: ["urls"],
+};
 
 // Type definitions matching the UI component expectations
 export interface ExaSearchResult {

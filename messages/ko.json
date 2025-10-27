@@ -665,13 +665,13 @@
     "buttonLabel": "환경에 어떻게 기여하고 있나요?",
     "buttonTooltip": "환경 영향 보기",
     "title": "환경에 어떻게 기여하고 있나요?",
-    "description": "이번 달 물과 에너지 사용량을 추적합니다. 소비량의 10배에 해당하는 자원을 기부합니다.",
+    "description": "이번 달 물과 에너지 사용량을 추적합니다.",
     "waterUsage": "물 사용량",
     "electricityUsage": "에너지 사용량",
     "liters": "리터",
     "kwh": "kW/시간",
     "wh": "Wh",
     "max": "최대:",
-    "donationMessage": "사용한 물과 에너지의 10배에 해당하는 양을 환경 보호 활동에 기부합니다!"
+    "donationMessage": "소비량의 10배에 해당하는 자원을 기부합니다."
   }
 }

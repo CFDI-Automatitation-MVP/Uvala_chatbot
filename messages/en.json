@@ -767,14 +767,14 @@
     "buttonLabel": "How am I contributing to the environment?",
     "buttonTooltip": "View your environmental impact",
     "title": "How am I contributing to the environment?",
-    "description": "Track your water and energy usage this month. We will donate 10 times the equivalent resources based on your consumption.",
+    "description": "Track your water and energy usage this month.",
     "waterUsage": "Water Usage",
     "electricityUsage": "Energy Usage",
     "liters": "liters",
     "kwh": "kW/hr",
     "wh": "Wh",
     "max": "Max:",
-    "donationMessage": "We will donate 10 times the equivalent water and energy you've used to environmental causes!"
+    "donationMessage": "We will donate 10 times the equivalent resources based on your consumption."
   },
   "Sidebar": {
     "closeSidebar": "Close sidebar"

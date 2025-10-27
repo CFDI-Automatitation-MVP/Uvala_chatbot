@@ -14,9 +14,11 @@ import {
 import { CircularProgress } from "@/components/ui/circular-progress";
 import { useTranslations } from "next-intl";
 
-// Maximum thresholds for display percentages
-const MAX_WATER = 100; // liters
-const MAX_ELECTRICITY = 50; // Wh (not kW/hr - changed to match our Wh tracking)
+// Reference values for circular progress visualization
+// Based on 16 long prompts/day × 30 days = 480 long prompts/month (doubled for headroom)
+// Long prompt avg: 11.6 Wh, 49.53 mL water
+const REFERENCE_WATER_LITERS = 24; // ~24L per month (480 × 49.53mL)
+const REFERENCE_ENERGY_WH = 5600; // ~5,600 Wh per month (480 × 11.6Wh)
 
 interface EnvironmentalData {
   waterLiters: number;
@@ -57,11 +59,9 @@ export function EnvironmentalImpactButton() {
   const waterUsage = data?.waterLiters || 0;
   const electricityUsage = data?.energyWh || 0;
 
-  const waterPercentage = Math.min((waterUsage / MAX_WATER) * 100, 100);
-  const electricityPercentage = Math.min(
-    (electricityUsage / MAX_ELECTRICITY) * 100,
-    100,
-  );
+  // Calculate percentages for circular progress (can exceed 100%)
+  const waterPercentage = (waterUsage / REFERENCE_WATER_LITERS) * 100;
+  const electricityPercentage = (electricityUsage / REFERENCE_ENERGY_WH) * 100;
 
   return (
     <>
@@ -126,9 +126,6 @@ export function EnvironmentalImpactButton() {
                     <p className="text-sm font-bold text-foreground">
                       {t("waterUsage")}
                     </p>
-                    <p className="text-xs text-muted-foreground font-medium">
-                      {t("max")} {MAX_WATER} {t("liters")}
-                    </p>
                   </div>
                 </div>
 
@@ -150,9 +147,6 @@ export function EnvironmentalImpactButton() {
                   <div className="text-center mt-2">
                     <p className="text-sm font-bold text-foreground">
                       {t("electricityUsage")}
-                    </p>
-                    <p className="text-xs text-muted-foreground font-medium">
-                      {t("max")} {MAX_ELECTRICITY} Wh
                     </p>
                   </div>
                 </div>

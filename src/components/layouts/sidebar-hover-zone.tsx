@@ -1,7 +1,7 @@
 "use client";
 
 import { useSidebar } from "ui/sidebar";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { appStore } from "@/app/store";
 import { useShallow } from "zustand/shallow";
@@ -17,7 +17,7 @@ export function SidebarHoverZone() {
       state.mutate,
     ]),
   );
-  const _closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // const _closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {

@@ -26,14 +26,17 @@ export function CodeSandbox({
     console.log("[CODE SANDBOX] Rendering with:", {
       type,
       codeLength: code.length,
-      codePreview: code.substring(0, 200)
+      codePreview: code.substring(0, 200),
     });
 
     setIsLoading(true);
     setError(null);
 
     const sandboxContent = generateSandboxContent(code, type);
-    console.log("[CODE SANDBOX] Generated sandbox HTML length:", sandboxContent.length);
+    console.log(
+      "[CODE SANDBOX] Generated sandbox HTML length:",
+      sandboxContent.length,
+    );
 
     try {
       const iframe = iframeRef.current;
@@ -73,13 +76,15 @@ export function CodeSandbox({
               console.log("[CODE SANDBOX] Loading check:", {
                 reactLoaded,
                 rechartsLoaded,
-                hasRecharts: !!win.Recharts
+                hasRecharts: !!win.Recharts,
               });
 
               if (reactLoaded && rechartsLoaded) {
                 clearInterval(checkInterval);
                 setIsLoading(false);
-                console.log("[CODE SANDBOX] ✅ All libraries loaded successfully");
+                console.log(
+                  "[CODE SANDBOX] ✅ All libraries loaded successfully",
+                );
               }
             } else {
               // For HTML, just wait a moment for DOM to be ready
@@ -93,7 +98,9 @@ export function CodeSandbox({
         setTimeout(() => {
           clearInterval(checkInterval);
           setIsLoading(false);
-          console.log("[CODE SANDBOX] Loading timeout reached, showing preview anyway");
+          console.log(
+            "[CODE SANDBOX] Loading timeout reached, showing preview anyway",
+          );
         }, 5000);
       }
     } catch (err) {
@@ -107,12 +114,19 @@ export function CodeSandbox({
   }, [code, type, onError]);
 
   return (
-    <div className={cn("relative w-full h-full bg-white dark:bg-[#121212]", className)}>
+    <div
+      className={cn(
+        "relative w-full h-full bg-white dark:bg-[#121212]",
+        className,
+      )}
+    >
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-white/95 dark:bg-[#121212]/95 backdrop-blur-sm">
           <div className="flex flex-col items-center gap-3">
             <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm font-medium text-muted-foreground">Loading preview...</p>
+            <p className="text-sm font-medium text-muted-foreground">
+              Loading preview...
+            </p>
           </div>
         </div>
       )}
@@ -140,6 +154,14 @@ export function CodeSandbox({
 
 function generateSandboxContent(code: string, type: "react" | "html" | "vue") {
   if (type === "html") {
+    // Extract <style> tags from code and move them to <head>
+    const styleRegex = /<style[^>]*>([\s\S]*?)<\/style>/gi;
+    const styles: string[] = [];
+    const processedCode = code.replace(styleRegex, (match) => {
+      styles.push(match);
+      return ""; // Remove from body
+    });
+
     return `
 <!DOCTYPE html>
 <html lang="en">
@@ -156,10 +178,15 @@ function generateSandboxContent(code: string, type: "react" | "html" | "vue") {
     * {
       box-sizing: border-box;
     }
+    /* Hide any style tags that appear in the body */
+    body > style {
+      display: none;
+    }
   </style>
+  ${styles.join("\n")}
 </head>
 <body>
-  ${code}
+  ${processedCode}
 </body>
 </html>`;
   }
@@ -603,39 +630,84 @@ function generateSandboxContent(code: string, type: "react" | "html" | "vue") {
 function cleanReactCode(code: string): string {
   let cleaned = code;
 
+  // First, detect the default export component name BEFORE removing exports
+  const defaultExportMatch =
+    code.match(/export\s+default\s+function\s+(\w+)/)?.[1] ||
+    code.match(/export\s+default\s+(\w+)/)?.[1];
+
   // Remove import statements (both single and multi-line)
-  cleaned = cleaned.replace(/import\s+(?:(?:\{[^}]*\}|\*\s+as\s+\w+|\w+)(?:\s*,\s*)?)+\s+from\s+['"][^'"]+['"]\s*;?/g, '');
-  cleaned = cleaned.replace(/import\s+['"][^'"]+['"]\s*;?/g, '');
+  cleaned = cleaned.replace(
+    /import\s+(?:(?:\{[^}]*\}|\*\s+as\s+\w+|\w+)(?:\s*,\s*)?)+\s+from\s+['"][^'"]+['"]\s*;?/g,
+    "",
+  );
+  cleaned = cleaned.replace(/import\s+['"][^'"]+['"]\s*;?/g, "");
 
   // Remove require statements
-  cleaned = cleaned.replace(/const\s+\{[^}]*\}\s*=\s*require\([^)]+\)\s*;?/g, '');
-  cleaned = cleaned.replace(/const\s+\w+\s*=\s*require\([^)]+\)\s*;?/g, '');
-  cleaned = cleaned.replace(/require\([^)]+\)/g, '{}');
+  cleaned = cleaned.replace(
+    /const\s+\{[^}]*\}\s*=\s*require\([^)]+\)\s*;?/g,
+    "",
+  );
+  cleaned = cleaned.replace(/const\s+\w+\s*=\s*require\([^)]+\)\s*;?/g, "");
+  cleaned = cleaned.replace(/require\([^)]+\)/g, "{}");
 
   // Remove export statements but keep the declaration
-  cleaned = cleaned.replace(/export\s+default\s+/g, '');
-  cleaned = cleaned.replace(/export\s+/g, '');
+  cleaned = cleaned.replace(/export\s+default\s+/g, "");
+  cleaned = cleaned.replace(/export\s+/g, "");
+
+  // If we found a default export, add a marker comment for extractComponentName to find
+  if (defaultExportMatch) {
+    cleaned = `// [DEFAULT_EXPORT: ${defaultExportMatch}]\n${cleaned}`;
+  }
 
   return cleaned.trim();
 }
 
 function extractComponentName(code: string): string {
-  // Try to find function component
+  // Look for the marker comment that cleanReactCode adds for the default export
+  const defaultExportMatch = code.match(/\/\/ \[DEFAULT_EXPORT: (\w+)\]/);
+  if (defaultExportMatch) {
+    const componentName = defaultExportMatch[1];
+    console.log("[SANDBOX] Found default export component:", componentName);
+    return `ComponentToRender = ${componentName};`;
+  }
+
+  // Fallback: Try to find the LAST function/component definition
+  // (usually the main component is at the end)
+  const allFunctionMatches = code.matchAll(
+    /(?:^|\n)(?:export\s+default\s+)?function\s+(\w+)\s*\(/gm,
+  );
+  const allConstMatches = code.matchAll(
+    /(?:^|\n)const\s+(\w+)\s*=\s*\([^)]*\)\s*=>/gm,
+  );
+
+  const functionNames = Array.from(allFunctionMatches, (m) => m[1]);
+  const constNames = Array.from(allConstMatches, (m) => m[1]);
+
+  // Prefer the last function component
+  const lastFunction = functionNames[functionNames.length - 1];
+  const lastConst = constNames[constNames.length - 1];
+
+  if (lastFunction) {
+    console.log("[SANDBOX] Using last function component:", lastFunction);
+    return `ComponentToRender = ${lastFunction};`;
+  }
+
+  if (lastConst) {
+    console.log("[SANDBOX] Using last const component:", lastConst);
+    return `ComponentToRender = ${lastConst};`;
+  }
+
+  // Original fallback logic for backwards compatibility
   const functionMatch =
     code.match(/function\s+(\w+)\s*\(/)?.[1] ||
-    code.match(/const\s+(\w+)\s*=\s*\(/)?.[1] ||
-    code.match(/export\s+(?:default\s+)?function\s+(\w+)/)?.[1];
+    code.match(/const\s+(\w+)\s*=\s*\(/)?.[1];
 
   if (functionMatch) {
+    console.log("[SANDBOX] Using first match component:", functionMatch);
     return `ComponentToRender = ${functionMatch};`;
   }
 
-  // Try to find arrow function component
-  const arrowMatch = code.match(/const\s+(\w+)\s*=\s*\([^)]*\)\s*=>/)?.[1];
-  if (arrowMatch) {
-    return `ComponentToRender = ${arrowMatch};`;
-  }
-
   // Default: try to render the entire code as a component
+  console.log("[SANDBOX] No component found, wrapping entire code");
   return `ComponentToRender = () => { ${code}; return null; };`;
 }

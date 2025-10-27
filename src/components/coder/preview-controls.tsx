@@ -37,7 +37,7 @@ export function PreviewControls({
     try {
       await navigator.clipboard.writeText(code);
       toast.success("Code copied to clipboard");
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to copy code");
     }
   };
@@ -70,7 +70,10 @@ export function PreviewControls({
             size="icon"
             className="h-8 w-8 hover:bg-white/10 text-white/70 hover:text-white"
             onClick={() => {
-              console.log("[PREVIEW CONTROLS] Toggle code view. Current showCode:", showCode);
+              console.log(
+                "[PREVIEW CONTROLS] Toggle code view. Current showCode:",
+                showCode,
+              );
               console.log("[PREVIEW CONTROLS] Code length:", code?.length || 0);
               onToggleCode();
             }}

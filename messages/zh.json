@@ -658,13 +658,13 @@
     "buttonLabel": "我如何为环境做出贡献？",
     "buttonTooltip": "查看您的环境影响",
     "title": "我如何为环境做出贡献？",
-    "description": "追踪您本月的用水量和能源使用量。我们将根据您的消费量捐赠10倍的等量资源。",
+    "description": "追踪您本月的用水量和能源使用量。",
     "waterUsage": "用水量",
     "electricityUsage": "能源使用量",
     "liters": "升",
     "kwh": "千瓦时",
     "wh": "Wh",
     "max": "最大值：",
-    "donationMessage": "我们将把您使用的水和能源的10倍等量资源捐赠给环保事业！"
+    "donationMessage": "我们将根据您的消费量捐赠10倍的等量资源。"
   }
 }

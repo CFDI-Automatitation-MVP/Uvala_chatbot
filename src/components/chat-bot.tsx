@@ -109,28 +109,37 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     ]),
   );
 
-  // Coder mode preview state
+  // Coder & Learn mode preview state
   const [showPreview, setShowPreview] = useState(false);
   const [isContextLimitReached, setIsContextLimitReached] = useState(false);
   const continuationArtifactIdRef = useRef<string | null>(null);
-  const { addArtifact, clearArtifacts, activeArtifactId, loadArtifactsForThread } = useArtifactStore();
+  const {
+    addArtifact,
+    clearArtifacts,
+    activeArtifactId,
+    loadArtifactsForThread,
+  } = useArtifactStore();
   const previewPanelRef = useRef<ImperativePanelHandle>(null);
   const isCoderMode = chatMode === "coder";
+  const isLearnMode = chatMode === "learn";
+  const hasCodePreview = isCoderMode || isLearnMode;
 
   // Load artifacts for this thread when mounting or switching threads
   useEffect(() => {
-    if (threadId && isCoderMode) {
-      console.log("[CODER MODE] Loading artifacts for thread:", threadId);
+    if (threadId && hasCodePreview) {
+      const modeLabel = isCoderMode ? "CODER MODE" : "LEARN MODE";
+      console.log(`[${modeLabel}] Loading artifacts for thread:`, threadId);
       loadArtifactsForThread(threadId);
 
       // If artifacts exist for this thread, auto-open preview
-      const hasArtifacts = useArtifactStore.getState().getArtifactsByThread(threadId).length > 0;
+      const hasArtifacts =
+        useArtifactStore.getState().getArtifactsByThread(threadId).length > 0;
       if (hasArtifacts) {
-        console.log("[CODER MODE] Artifacts found, auto-opening preview");
+        console.log(`[${modeLabel}] Artifacts found, auto-opening preview`);
         setShowPreview(true);
       }
     }
-  }, [threadId, isCoderMode, loadArtifactsForThread]);
+  }, [threadId, hasCodePreview, isCoderMode, loadArtifactsForThread]);
 
   const generateTitle = useGenerateThreadTitle({
     threadId,
@@ -455,9 +464,9 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     }
   }, [input]);
 
-  // Auto-scroll to bottom when messages change (for coder mode especially)
+  // Auto-scroll to bottom when messages change (for coder/learn mode especially)
   useEffect(() => {
-    if (!isCoderMode) return;
+    if (!hasCodePreview) return;
     if (messages.length === 0) return;
 
     // Auto-scroll when new messages are added or when streaming
@@ -468,22 +477,22 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     }, 100);
 
     return () => clearTimeout(timeoutId);
-  }, [messages.length, isLoading, isCoderMode, isAtBottom, scrollToBottom]);
+  }, [messages.length, isLoading, hasCodePreview, isAtBottom, scrollToBottom]);
 
   // Create a content hash to force re-evaluation during streaming
   const lastMessageContent = useMemo(() => {
-    if (!isCoderMode || messages.length === 0) return "";
+    if (!hasCodePreview || messages.length === 0) return "";
     const lastMessage = messages[messages.length - 1];
     if (lastMessage.role !== "assistant") return "";
     return lastMessage.parts
       .filter((part) => part.type === "text")
       .map((part) => part.text)
       .join("\n");
-  }, [messages, isCoderMode]);
+  }, [messages, hasCodePreview]);
 
-  // Code extraction for coder mode - only creates artifacts when streaming is COMPLETE
+  // Code extraction for coder/learn mode - only creates artifacts when streaming is COMPLETE
   useEffect(() => {
-    if (!isCoderMode) return;
+    if (!hasCodePreview) return;
     if (!lastMessageContent) return;
     if (messages.length === 0) return;
 
@@ -491,17 +500,31 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     if (lastMessage.role !== "assistant") return;
 
     const isStreaming = status === "streaming" || status === "submitted";
+    const modeLabel = isCoderMode ? "CODER MODE" : "LEARN MODE";
 
-    console.log("[CODER MODE] Checking for code, message ID:", lastMessage.id);
-    console.log("[CODER MODE] Text content length:", lastMessageContent.length);
-    console.log("[CODER MODE] Streaming status:", status, "| isStreaming:", isStreaming);
-    console.log("[CODER MODE] Preview showing:", showPreview);
+    console.log(
+      `[${modeLabel}] Checking for code, message ID:`,
+      lastMessage.id,
+    );
+    console.log(
+      `[${modeLabel}] Text content length:`,
+      lastMessageContent.length,
+    );
+    console.log(
+      `[${modeLabel}] Streaming status:`,
+      status,
+      "| isStreaming:",
+      isStreaming,
+    );
+    console.log(`[${modeLabel}] Preview showing:`, showPreview);
 
     // During streaming: just check if code exists and open preview panel (but show code view)
     const hasCodeBlockStart = lastMessageContent.includes("```");
 
     if (isStreaming && hasCodeBlockStart) {
-      console.log("[CODER MODE] ⏳ Streaming in progress, code detected - opening preview to show code");
+      console.log(
+        `[${modeLabel}] ⏳ Streaming in progress, code detected - opening preview to show code`,
+      );
       if (!showPreview) {
         setShowPreview(true);
       }
@@ -513,19 +536,23 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
       const renderableCode = findRenderableCode(lastMessageContent);
 
       if (renderableCode) {
-        console.log("[CODER MODE] ✅ Streaming complete, renderable code found:", {
-          type: renderableCode.type,
-          codeLength: renderableCode.code.length,
-          title: renderableCode.title
-        });
+        console.log(
+          `[${modeLabel}] ✅ Streaming complete, renderable code found:`,
+          {
+            type: renderableCode.type,
+            codeLength: renderableCode.code.length,
+            title: renderableCode.title,
+          },
+        );
 
         // Check if this is a continuation of a previous artifact
-        const artifactId = continuationArtifactIdRef.current || `artifact-${lastMessage.id}`;
+        const artifactId =
+          continuationArtifactIdRef.current || `artifact-${lastMessage.id}`;
 
-        console.log("[CODER MODE] Using artifact ID:", {
+        console.log(`[${modeLabel}] Using artifact ID:`, {
           artifactId,
           isContinuation: !!continuationArtifactIdRef.current,
-          previousArtifactId: continuationArtifactIdRef.current
+          previousArtifactId: continuationArtifactIdRef.current,
         });
 
         // Check if this is a truncated component
@@ -533,17 +560,20 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
 
         // Detect context limit: streaming stopped but code block is incomplete
         const hasOpeningMarker = lastMessageContent.includes("```");
-        const closingMarkerCount = (lastMessageContent.match(/```/g) || []).length;
+        const closingMarkerCount = (lastMessageContent.match(/```/g) || [])
+          .length;
         const isIncomplete = hasOpeningMarker && closingMarkerCount % 2 !== 0;
 
         if (isIncomplete) {
-          console.log("[CODER MODE] ⚠️ Context limit detected - incomplete code block");
+          console.log(
+            `[${modeLabel}] ⚠️ Context limit detected - incomplete code block`,
+          );
           setIsContextLimitReached(true);
         } else {
           setIsContextLimitReached(false);
           // Clear continuation flag when complete
           if (continuationArtifactIdRef.current) {
-            console.log("[CODER MODE] Clearing continuation flag");
+            console.log(`[${modeLabel}] Clearing continuation flag`);
             continuationArtifactIdRef.current = null;
           }
         }
@@ -551,7 +581,9 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
         // Create/update the artifact now that streaming is complete
         addArtifact({
           id: artifactId,
-          title: isTruncated ? "Truncated Component" : renderableCode.title || "Generated Component",
+          title: isTruncated
+            ? "Truncated Component"
+            : renderableCode.title || "Generated Component",
           code: renderableCode.code,
           type: renderableCode.type,
           messageId: lastMessage.id,
@@ -560,50 +592,59 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
 
         // Show preview automatically
         if (!showPreview) {
-          console.log("[CODER MODE] Auto-opening preview");
+          console.log(`[${modeLabel}] Auto-opening preview`);
           setShowPreview(true);
         }
       } else {
-        console.log("[CODER MODE] ❌ No renderable code found after streaming completed");
+        console.log(
+          `[${modeLabel}] ❌ No renderable code found after streaming completed`,
+        );
         setIsContextLimitReached(false);
       }
     }
-  }, [lastMessageContent, isCoderMode, addArtifact, status, showPreview, messages]);
+  }, [
+    lastMessageContent,
+    hasCodePreview,
+    isCoderMode,
+    addArtifact,
+    status,
+    showPreview,
+    messages,
+  ]);
 
   // Control preview panel programmatically
   useEffect(() => {
-    if (!isCoderMode) return;
+    if (!hasCodePreview) return;
     if (previewPanelRef.current) {
+      const modeLabel = isCoderMode ? "CODER MODE" : "LEARN MODE";
       if (showPreview) {
-        console.log("[CODER MODE] Expanding preview panel");
+        console.log(`[${modeLabel}] Expanding preview panel`);
         previewPanelRef.current.expand();
       } else {
-        console.log("[CODER MODE] Collapsing preview panel");
+        console.log(`[${modeLabel}] Collapsing preview panel`);
         previewPanelRef.current.collapse();
       }
     }
-  }, [showPreview, isCoderMode]);
+  }, [showPreview, hasCodePreview, isCoderMode]);
 
-  // Clear artifacts when switching away from coder mode
+  // Clear artifacts when switching away from coder/learn mode
   useEffect(() => {
-    if (!isCoderMode) {
+    if (!hasCodePreview) {
       clearArtifacts();
       setShowPreview(false);
     }
-  }, [isCoderMode, clearArtifacts]);
+  }, [hasCodePreview, clearArtifacts]);
 
   return (
     <>
       {/* Show Ripple only when starting new chat (no messages) */}
       {emptyMessage && <RippleBackground />}
 
-      {isCoderMode && !emptyMessage ? (
+      {hasCodePreview && !emptyMessage ? (
         <ResizablePanelGroup direction="horizontal" className="h-full">
           <ResizablePanel defaultSize={100} minSize={30}>
             <div
-              className={cn(
-                "flex flex-col min-w-0 relative h-full z-40",
-              )}
+              className={cn("flex flex-col min-w-0 relative h-full z-40")}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragEnter={handleDragEnter}
@@ -614,7 +655,9 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/5 backdrop-blur-sm">
                   <div className="text-center p-4 bg-muted/10 backdrop-blur-md rounded-lg border border-dashed border-muted-foreground/30">
                     <div className="text-2xl mb-2 opacity-50">📄</div>
-                    <div className="text-sm text-muted-foreground">Drop files</div>
+                    <div className="text-sm text-muted-foreground">
+                      Drop files
+                    </div>
                   </div>
                 </div>
               )}
@@ -626,7 +669,9 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
 
               {/* Messages */}
               <div
-                className={"flex flex-col gap-2 overflow-y-auto py-6 pb-96 z-10"}
+                className={
+                  "flex flex-col gap-2 overflow-y-auto py-6 pb-96 z-10"
+                }
                 ref={containerRef}
                 onScroll={handleScroll}
               >
@@ -670,7 +715,12 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
               </div>
 
               {/* Input and Controls */}
-              <div className={clsx(messages.length && "absolute bottom-14", "w-full z-50")}>
+              <div
+                className={clsx(
+                  messages.length && "absolute bottom-14",
+                  "w-full z-50",
+                )}
+              >
                 <div className="max-w-3xl mx-auto relative flex justify-center items-center -top-2">
                   <ScrollToBottomButton
                     show={!isAtBottom && messages.length > 0}
@@ -715,16 +765,21 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
                             Context Limit Exceeded
                           </h4>
                           <p className="text-xs text-yellow-600 dark:text-yellow-500">
-                            The response was cut off due to context limits. Click continue to complete the component.
+                            The response was cut off due to context limits.
+                            Click continue to complete the component.
                           </p>
                         </div>
                       </div>
                       <Button
                         onClick={() => {
-                          console.log("[CODER MODE] Continue button clicked, current artifact:", activeArtifactId);
+                          console.log(
+                            "[CODER MODE] Continue button clicked, current artifact:",
+                            activeArtifactId,
+                          );
                           // Store the current artifact ID so we can merge the continuation
                           if (activeArtifactId) {
-                            continuationArtifactIdRef.current = activeArtifactId;
+                            continuationArtifactIdRef.current =
+                              activeArtifactId;
                           }
                           sendMessage({
                             role: "user",
@@ -760,7 +815,10 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
                   onFocus={isFirstTime ? undefined : handleFocus}
                   model={model}
                   setModel={(newModel) =>
-                    appStoreMutate((state) => ({ ...state, chatModel: newModel }))
+                    appStoreMutate((state) => ({
+                      ...state,
+                      chatModel: newModel,
+                    }))
                   }
                   fileAttachments={fileAttachments}
                   setFileAttachments={setFileAttachments}
@@ -811,119 +869,119 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}
         >
-        {/* Drag and drop overlay for the entire chat area */}
-        {isDragOver && !isLoading && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/5 backdrop-blur-sm">
-            <div className="text-center p-4 bg-muted/10 backdrop-blur-md rounded-lg border border-dashed border-muted-foreground/30">
-              <div className="text-2xl mb-2 opacity-50">📄</div>
-              <div className="text-sm text-muted-foreground">Drop files</div>
+          {/* Drag and drop overlay for the entire chat area */}
+          {isDragOver && !isLoading && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/5 backdrop-blur-sm">
+              <div className="text-center p-4 bg-muted/10 backdrop-blur-md rounded-lg border border-dashed border-muted-foreground/30">
+                <div className="text-2xl mb-2 opacity-50">📄</div>
+                <div className="text-sm text-muted-foreground">Drop files</div>
+              </div>
             </div>
-          </div>
-        )}
-        {emptyMessage ? (
-          <>
-            <ChatGreeting />
-          </>
-        ) : (
-          <>
-            {/* Mode Banner - Show when in special mode and no messages yet */}
-            <div className="px-4 pt-6 pb-2">
-              <ChatModeBanner messageCount={messages.length} />
-            </div>
-            <div
-              className={"flex flex-col gap-2 overflow-y-auto py-6 z-10"}
-              ref={containerRef}
-              onScroll={handleScroll}
-            >
-              {messages.map((message, index) => {
-                const isLastMessage = messages.length - 1 === index;
-                return (
-                  <PreviewMessage
-                    threadId={threadId}
-                    messageIndex={index}
-                    prevMessage={messages[index - 1]}
-                    key={message.id}
-                    message={message}
-                    status={status}
-                    addToolResult={addToolResult}
-                    isLoading={isLoading || isPendingToolCall}
-                    isLastMessage={isLastMessage}
-                    setMessages={setMessages}
-                    sendMessage={sendMessage}
-                    className={
-                      isLastMessage &&
-                      message.role != "user" &&
-                      !space &&
-                      message.parts.length > 1
-                        ? "min-h-[calc(55dvh-40px)]"
-                        : ""
-                    }
-                  />
-                );
-              })}
-              {space && (
-                <>
-                  <div className="w-full mx-auto max-w-3xl px-6 relative">
-                    <div className={space == "space" ? "opacity-0" : ""}>
-                      <Think />
+          )}
+          {emptyMessage ? (
+            <>
+              <ChatGreeting />
+            </>
+          ) : (
+            <>
+              {/* Mode Banner - Show when in special mode and no messages yet */}
+              <div className="px-4 pt-6 pb-2">
+                <ChatModeBanner messageCount={messages.length} />
+              </div>
+              <div
+                className={"flex flex-col gap-2 overflow-y-auto py-6 z-10"}
+                ref={containerRef}
+                onScroll={handleScroll}
+              >
+                {messages.map((message, index) => {
+                  const isLastMessage = messages.length - 1 === index;
+                  return (
+                    <PreviewMessage
+                      threadId={threadId}
+                      messageIndex={index}
+                      prevMessage={messages[index - 1]}
+                      key={message.id}
+                      message={message}
+                      status={status}
+                      addToolResult={addToolResult}
+                      isLoading={isLoading || isPendingToolCall}
+                      isLastMessage={isLastMessage}
+                      setMessages={setMessages}
+                      sendMessage={sendMessage}
+                      className={
+                        isLastMessage &&
+                        message.role != "user" &&
+                        !space &&
+                        message.parts.length > 1
+                          ? "min-h-[calc(55dvh-40px)]"
+                          : ""
+                      }
+                    />
+                  );
+                })}
+                {space && (
+                  <>
+                    <div className="w-full mx-auto max-w-3xl px-6 relative">
+                      <div className={space == "space" ? "opacity-0" : ""}>
+                        <Think />
+                      </div>
                     </div>
-                  </div>
-                  <div className="min-h-[calc(55dvh-56px)]" />
-                </>
-              )}
+                    <div className="min-h-[calc(55dvh-56px)]" />
+                  </>
+                )}
 
-              {error && <ErrorMessage error={error} />}
-              <div className="min-w-0 min-h-64" />
-            </div>
-          </>
-        )}
-
-        <div
-          className={clsx(
-            messages.length && "absolute bottom-14",
-            "w-full z-50",
+                {error && <ErrorMessage error={error} />}
+                <div className="min-w-0 min-h-64" />
+              </div>
+            </>
           )}
-        >
-          <div className="max-w-3xl mx-auto relative flex justify-center items-center -top-2">
-            <ScrollToBottomButton
-              show={!isAtBottom && messages.length > 0}
-              onClick={scrollToBottom}
+
+          <div
+            className={clsx(
+              messages.length && "absolute bottom-14",
+              "w-full z-50",
+            )}
+          >
+            <div className="max-w-3xl mx-auto relative flex justify-center items-center -top-2">
+              <ScrollToBottomButton
+                show={!isAtBottom && messages.length > 0}
+                onClick={scrollToBottom}
+              />
+            </div>
+
+            <PromptInput
+              input={input}
+              threadId={threadId}
+              sendMessage={sendMessage}
+              setInput={setInput}
+              isLoading={isLoading || isPendingToolCall}
+              onStop={stop}
+              onFocus={isFirstTime ? undefined : handleFocus}
+              model={model}
+              setModel={(newModel) =>
+                appStoreMutate((state) => ({ ...state, chatModel: newModel }))
+              }
+              fileAttachments={fileAttachments}
+              setFileAttachments={setFileAttachments}
+              isDragOver={isDragOver}
+              messageCount={messages.length}
             />
+
+            {/* Disclaimer - Show only if there are messages */}
+            {messages.length > 0 && (
+              <div className="max-w-3xl mx-auto px-4 mt-2 mb-4">
+                <p className="text-xs text-muted-foreground text-center">
+                  {t("Chat.disclaimer")}
+                </p>
+              </div>
+            )}
           </div>
-
-          <PromptInput
-            input={input}
+          <DeleteThreadPopup
             threadId={threadId}
-            sendMessage={sendMessage}
-            setInput={setInput}
-            isLoading={isLoading || isPendingToolCall}
-            onStop={stop}
-            onFocus={isFirstTime ? undefined : handleFocus}
-            model={model}
-            setModel={(newModel) =>
-              appStoreMutate((state) => ({ ...state, chatModel: newModel }))
-            }
-            fileAttachments={fileAttachments}
-            setFileAttachments={setFileAttachments}
-            isDragOver={isDragOver}
-            messageCount={messages.length}
+            onClose={() => setIsDeleteThreadPopupOpen(false)}
+            open={isDeleteThreadPopupOpen}
           />
-
-          {/* Disclaimer - Show only if there are messages */}
-          {messages.length > 0 && (
-            <div className="max-w-3xl mx-auto px-4 mt-2 mb-4">
-              <p className="text-xs text-muted-foreground text-center">
-                {t("Chat.disclaimer")}
-              </p>
-            </div>
-          )}
         </div>
-        <DeleteThreadPopup
-          threadId={threadId}
-          onClose={() => setIsDeleteThreadPopupOpen(false)}
-          open={isDeleteThreadPopupOpen}
-        />
-      </div>
       )}
     </>
   );
