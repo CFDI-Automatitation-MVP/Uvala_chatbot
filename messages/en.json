@@ -775,5 +775,8 @@
     "wh": "Wh",
     "max": "Max:",
     "donationMessage": "We will donate 10 times the equivalent water and energy you've used to environmental causes!"
+  },
+  "Sidebar": {
+    "closeSidebar": "Close sidebar"
   }
 }

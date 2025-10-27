@@ -762,5 +762,8 @@
     "learnSuggestion3": "Explícame la Revolución Francesa",
     "learnSuggestion4": "Practica conversación en inglés",
     "suggestedPrompts": "Prompts Sugeridos"
+  },
+  "Sidebar": {
+    "closeSidebar": "Cerrar barra lateral"
   }
 }

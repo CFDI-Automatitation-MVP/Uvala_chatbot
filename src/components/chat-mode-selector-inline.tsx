@@ -70,9 +70,9 @@ export function ChatModeSelectorInline({
 
   const modes: Array<{ value: ChatMode; icon: any; label: string }> = [
     { value: "normal", icon: MessageSquare, label: t("normal") },
-    { value: "coder", icon: Code, label: t("coder") },
-    { value: "promptBuilder", icon: Brain, label: t("promptBuilder") },
     { value: "learn", icon: GraduationCap, label: t("learn") },
+    { value: "promptBuilder", icon: Brain, label: t("promptBuilder") },
+    { value: "coder", icon: Code, label: t("coder") },
   ];
 
   const getModeInfo = () => {
@@ -116,7 +116,7 @@ export function ChatModeSelectorInline({
   return (
     <div>
       {/* Tabs */}
-      <div className="flex items-center gap-1 px-2 py-1.5 mx-2 mt-2 mb-1 border-b border-border/30">
+      <div className="flex items-center justify-center gap-1 px-2 py-1.5 mx-2 mt-2 mb-1 border-b border-border/30">
         {modes.map((mode) => {
           const Icon = mode.icon;
           const isActive = chatMode === mode.value;

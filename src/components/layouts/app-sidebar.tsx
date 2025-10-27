@@ -8,10 +8,12 @@ import {
 } from "ui/sidebar";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { appStore } from "@/app/store";
 
 import { AppSidebarMenus } from "./app-sidebar-menus";
 import { AppSidebarAgents } from "./app-sidebar-agents";
 import { AppSidebarThreads } from "./app-sidebar-threads";
+import { SidebarCloseButton } from "./sidebar-close-button";
 
 import { isShortcutEvent, Shortcuts } from "lib/keyboard-shortcuts";
 import { AppSidebarUser } from "./app-sidebar-user";
@@ -27,10 +29,13 @@ type SessionUser = {
 };
 
 export function AppSidebar({ session }: { session?: { user: SessionUser } }) {
-  const { toggleSidebar, setOpenMobile } = useSidebar();
+  const { toggleSidebar, setOpenMobile, open } = useSidebar();
   const router = useRouter();
   const isMobile = useIsMobile();
   const { theme } = useTheme();
+  const sidebarHoverZoneActive = appStore(
+    (state) => state.sidebarHoverZoneActive,
+  );
 
   const currentPath = usePathname();
 
@@ -58,11 +63,37 @@ export function AppSidebar({ session }: { session?: { user: SessionUser } }) {
   }, [currentPath, isMobile]);
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-sidebar-border/80">
-      <SidebarHeader className="p-2">
-        {/* Logo Container - Bigger than menu icons */}
-        <div className="flex items-center justify-center p-2 group-data-[collapsible=icon]:p-1">
-          <div className="flex items-center justify-center group-data-[collapsible=icon]:w-16 group-data-[collapsible=icon]:h-16 group-data-[collapsible=icon]:bg-accent/10 group-data-[collapsible=icon]:rounded-lg">
+    <Sidebar
+      collapsible="icon"
+      className="border-r border-sidebar-border/80 relative"
+    >
+      <SidebarHeader className="p-2 relative">
+        {/* STATE 1: Sidebar COLLAPSED (closed) - Show only logo or hover icon */}
+        <div className="hidden group-data-[collapsible=icon]:flex items-center justify-center p-1">
+          <div className="flex items-center justify-center w-16 h-16 bg-accent/10 rounded-lg transition-all duration-200">
+            {/* Show PanelLeft icon ONLY when hovering over trigger zone */}
+            {sidebarHoverZoneActive ? (
+              <PanelLeft className="size-6 text-primary animate-pulse" />
+            ) : (
+              <Image
+                src={
+                  theme === "dark"
+                    ? "/uvala-white-log.svg"
+                    : "/uvala-black-log.svg"
+                }
+                alt="uvala"
+                width={48}
+                height={48}
+                className="size-12"
+              />
+            )}
+          </div>
+        </div>
+
+        {/* STATE 2: Sidebar EXPANDED (open) - Show logo + close button */}
+        <div className="flex items-center justify-between p-2 group-data-[collapsible=icon]:hidden">
+          {/* Logo Container */}
+          <div className="flex items-center">
             <Image
               src={
                 theme === "dark"
@@ -72,15 +103,16 @@ export function AppSidebar({ session }: { session?: { user: SessionUser } }) {
               alt="uvala"
               width={32}
               height={32}
-              className="size-8 group-data-[collapsible=icon]:size-12"
+              className="size-8"
             />
-            <span className="ml-2 font-bold text-lg group-data-[collapsible=icon]:sr-only">
-              uvala
-            </span>
+            <span className="ml-2 font-bold text-lg">uvala</span>
           </div>
+
+          {/* Close button - ONLY visible in expanded state */}
+          {open && <SidebarCloseButton />}
         </div>
 
-        {/* Mobile close trigger */}
+        {/* Mobile close trigger - Only for mobile devices */}
         <div
           className="absolute right-2 top-2 block sm:hidden z-50 p-2 hover:bg-accent rounded-md cursor-pointer touch-manipulation"
           onClick={(e) => {
