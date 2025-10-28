@@ -745,13 +745,14 @@ export default function PromptInput({
                 />
               </div>
               <div className="flex w-full items-center z-30">
-                {/* Disable file upload in coder and promptBuilder modes */}
-                {!fileUploadDisabled && chatMode === "normal" && (
-                  <FileAttachmentInput
-                    onFilesSelected={handleFilesSelected}
-                    disabled={isLoading}
-                  />
-                )}
+                {/* Enable file upload in normal and learn modes */}
+                {!fileUploadDisabled &&
+                  (chatMode === "normal" || chatMode === "learn") && (
+                    <FileAttachmentInput
+                      onFilesSelected={handleFilesSelected}
+                      disabled={isLoading}
+                    />
+                  )}
 
                 {/* Disable tools in coder and promptBuilder modes */}
                 {!toolDisabled && chatMode === "normal" && (

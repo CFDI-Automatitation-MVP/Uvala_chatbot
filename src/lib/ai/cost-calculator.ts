@@ -14,6 +14,9 @@ export const MODEL_PRICING = {
     output: 2.0,
     cachedInput: 0.025,
     reasoning: 2.0,
+    // Vision pricing: Images processed as tokens
+    // Low detail: ~85 tokens = $0.00002125 per image
+    // High detail: ~765 tokens = $0.00019125 per image (1024×1024)
   },
   "openai/gpt-5-nano": {
     input: 0.05,

@@ -44,6 +44,7 @@ import {
   logTruncationResult,
 } from "lib/ai/context-manager";
 import { checkUserLimits, formatLimitError } from "@/lib/subscription-limits";
+import { preprocessFileAttachments } from "@/lib/ai/vision-preprocessor";
 
 const logger = globalLogger.withDefaults({
   message: colorize("blackBright", `Chat API: `),
@@ -120,6 +121,10 @@ export async function POST(request: Request) {
       toolCount: 0,
       chatModel: chatModel,
     };
+
+    // Vision preprocessing variables (for Learn Mode)
+    let visionTokensUsed = 0;
+    let visionCost = 0;
 
     const stream = createUIMessageStream({
       execute: async ({ writer: dataStream }) => {
@@ -234,8 +239,66 @@ export async function POST(request: Request) {
           }
         }
 
+        // ============= VISION PREPROCESSING FOR LEARN MODE =============
+        let messagesForProcessing = messages;
+
+        if (chatMode === "learn") {
+          const lastMessage = messages[messages.length - 1];
+          const fileParts =
+            lastMessage.parts?.filter((p) => p.type === "file") || [];
+
+          if (fileParts.length > 0) {
+            logger.info(
+              `🔍 LEARN MODE - Detected ${fileParts.length} file attachment(s)`,
+            );
+
+            const { contextString, analyses, totalTokens, totalCost } =
+              await preprocessFileAttachments(fileParts);
+
+            visionTokensUsed = totalTokens;
+            visionCost = totalCost;
+
+            logger.info(
+              `📊 LEARN MODE - Vision preprocessing: ${totalTokens} tokens, $${totalCost.toFixed(6)}`,
+            );
+
+            // Log each analysis summary
+            analyses.forEach((analysis) => {
+              logger.info(
+                `  - ${analysis.type === "image" ? "🖼️" : "📄"} ${analysis.filename}: ${analysis.tokensUsed} tokens (${analysis.processingTimeMs}ms)`,
+              );
+            });
+
+            // Inject file analysis into the user's message
+            const textContent = lastMessage.parts
+              ?.filter((p) => p.type === "text")
+              .map((p) => (p as any).text)
+              .join("\n");
+
+            // Create enhanced message with file context
+            const enhancedMessage: UIMessage = {
+              ...lastMessage,
+              parts: [
+                {
+                  type: "text",
+                  text: `${contextString}\n\n---\n\n**Student Question:** ${textContent}`,
+                },
+              ],
+            };
+
+            // Replace last message with enhanced version
+            messagesForProcessing = [...messages.slice(0, -1), enhancedMessage];
+
+            logger.info(`✅ LEARN MODE - File preprocessing complete`);
+          }
+        }
+        // ================================================================
+
         // Context truncation optimization
-        const truncationResult = truncateConversation(messages, chatModel!);
+        const truncationResult = truncateConversation(
+          messagesForProcessing,
+          chatModel!,
+        );
         logTruncationResult(truncationResult, logger);
 
         // Use truncated messages for the API call
@@ -529,6 +592,36 @@ The files remain available throughout the entire conversation for analysis and r
                 provider: "Internal",
                 model: "uvala-prompter",
               },
+            });
+          } else if (chatMode === "learn") {
+            // Learn mode tracking with vision tokens
+            logger.info(`🔍 LEARN MODE - USAGE BREAKDOWN:`, {
+              visionTokens: visionTokensUsed,
+              visionCost: `$${visionCost.toFixed(6)}`,
+              inputTokens: metadata.usage?.inputTokens,
+              outputTokens: metadata.usage?.outputTokens,
+              totalTokens: metadata.usage?.totalTokens,
+              combinedTotal:
+                (metadata.usage?.totalTokens || 0) + visionTokensUsed,
+            });
+
+            await trackUsage({
+              usage: {
+                ...metadata.usage,
+                // Add vision tokens to input tokens for accurate tracking
+                inputTokens:
+                  (metadata.usage?.inputTokens || 0) + visionTokensUsed,
+                totalTokens:
+                  (metadata.usage?.totalTokens || 0) + visionTokensUsed,
+              },
+              userId: session.user.id,
+              threadId: thread?.id,
+              messageId: responseMessage.id,
+              chatModel: metadata.chatModel || {
+                provider: "Internal",
+                model: "uvala-sensei",
+              },
+              toolCallsCount: 0, // Learn mode doesn't use tools
             });
           } else {
             // Normal mode tracking with full features
