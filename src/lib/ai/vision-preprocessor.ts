@@ -66,10 +66,13 @@ Be brief but complete. Focus on educational value.`,
           ],
         },
       ],
-      maxTokens: 300, // Optimized: 40% faster + 40% cheaper (was 500)
-      temperature: 0.1, // Optimized: More deterministic = slightly faster (was 0.3)
-      frequencyPenalty: 0.3, // Reduce repetition for shorter, more concise descriptions
-      topP: 0.9, // Limit token sampling space for faster generation
+      maxTokens: 300, // Max output tokens for vision analysis
+      // GPT-5-mini is a reasoning model - use minimal reasoning effort for fast vision analysis
+      providerOptions: {
+        openai: {
+          reasoningEffort: "minimal", // Minimize reasoning tokens for faster, cheaper vision processing
+        },
+      },
     });
 
     const processingTimeMs = Date.now() - startTime;
@@ -85,6 +88,8 @@ Be brief but complete. Focus on educational value.`,
     logger.info(
       `✅ Image analyzed in ${processingTimeMs}ms (${totalTokens} tokens, $${totalCost.toFixed(6)})`,
     );
+
+    logger.info(`✅ Analysis extracted: ${result.text?.length || 0} chars`);
 
     return {
       filename,
@@ -110,11 +115,13 @@ Be brief but complete. Focus on educational value.`,
 }
 
 /**
- * Preprocesses all file attachments in a message
- * Currently supports: Images (jpg, png, webp, etc.)
- * Future: PDFs, documents
+ * Preprocesses file attachments in a message with VISION ONLY
  *
- * @param fileParts - Array of file parts from UIMessage
+ * HYBRID APPROACH:
+ * - Images (jpg, png, webp, etc.): Analyzed with GPT-5 mini vision
+ * - Documents (PDFs, text, etc.): Handled by file search tools (NOT preprocessed here)
+ *
+ * @param fileParts - Array of file parts from UIMessage (should be IMAGES only)
  * @returns Formatted context string and detailed analyses
  */
 export async function preprocessFileAttachments(
@@ -134,7 +141,9 @@ export async function preprocessFileAttachments(
     };
   }
 
-  logger.info(`📎 Processing ${fileParts.length} file(s) for Learn Mode`);
+  logger.info(
+    `📎 Processing ${fileParts.length} file(s) with vision preprocessing`,
+  );
 
   // Process all files in parallel for speed
   const analyses = await Promise.all(
@@ -147,29 +156,33 @@ export async function preprocessFileAttachments(
         );
       }
 
-      // Handle PDFs (future enhancement)
-      if (filePart.mediaType === "application/pdf") {
+      // Handle PDFs and documents (should be processed via file upload + search tools)
+      if (
+        filePart.mediaType === "application/pdf" ||
+        filePart.mediaType === "text/plain" ||
+        filePart.mediaType === "text/markdown"
+      ) {
         logger.info(
-          `📄 PDF detected: ${filePart.filename} - Extraction not yet implemented`,
+          `📄 Document detected: ${filePart.filename} - Should be uploaded via file API and accessed with search tools`,
         );
         return {
-          filename: filePart.filename || "unknown.pdf",
+          filename: filePart.filename || "unknown",
           type: "pdf" as const,
-          analysis: `[PDF document: ${filePart.filename}]\n\nPDF text extraction will be available in a future update. For now, please ask your question about this PDF and I'll do my best to help!`,
+          analysis: `[Document: ${filePart.filename}]\n\nThis document should be uploaded through the file upload feature. Once uploaded, I can search through it and answer your questions using semantic search.`,
           tokensUsed: 0,
           processingTimeMs: 0,
           model: "none",
         };
       }
 
-      // Unknown file type
+      // Unknown/unsupported file type
       logger.warn(
         `⚠️  Unknown file type: ${filePart.mediaType} for ${filePart.filename}`,
       );
       return {
         filename: filePart.filename || "unknown",
         type: "unknown" as const,
-        analysis: `[File: ${filePart.filename}]`,
+        analysis: `[File: ${filePart.filename}]\n\nThis file type is not supported for vision analysis. If it's a document, please upload it through the file upload feature.`,
         tokensUsed: 0,
         processingTimeMs: 0,
         model: "none",

@@ -26,6 +26,7 @@ interface FileAttachmentInputProps {
   disabled?: boolean;
   maxFiles?: number;
   className?: string;
+  threadId?: string; // Thread ID to associate uploaded files
 }
 
 export function FileAttachmentInput({
@@ -33,6 +34,7 @@ export function FileAttachmentInput({
   disabled,
   maxFiles = 5,
   className,
+  threadId,
 }: FileAttachmentInputProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -88,6 +90,16 @@ export function FileAttachmentInput({
       // Create form data - server will handle all text extraction
       const formData = new FormData();
       formData.append("file", file);
+
+      // Include threadId to associate file with conversation
+      if (threadId) {
+        formData.append("threadId", threadId);
+        console.log(`📌 RAG Upload: Associated with thread ${threadId}`);
+      } else {
+        console.warn(
+          "⚠️ RAG Upload: No threadId provided - file will not be associated with conversation",
+        );
+      }
 
       console.log("📤 RAG Upload: Sending to API (server-side processing)...");
 

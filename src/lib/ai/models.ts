@@ -29,7 +29,7 @@ const bedrock = createAmazonBedrock({
 const internalModels = {
   "uvala-prompter": openai("gpt-5-nano"),
   "uvala-coder": bedrock("qwen.qwen3-32b-v1:0"),
-  "uvala-sensei": bedrock("qwen.qwen3-32b-v1:0"),
+  "uvala-sensei": bedrock("openai.gpt-oss-120b-1:0"), // OpenAI GPT-OSS 120B for Learn Mode - reasoning_effort set via additionalModelRequestFields in route
 };
 
 const staticUnsupportedModels = new Set([

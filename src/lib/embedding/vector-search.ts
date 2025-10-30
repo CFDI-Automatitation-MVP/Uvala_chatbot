@@ -112,11 +112,28 @@ export async function searchFiles(
 
   try {
     // Generate embedding for the query
+    console.log(`🔮 Generating embedding for query: "${query}"`);
     const queryEmbedding = await generateEmbedding(query);
+    console.log(
+      `✅ Embedding generated (${queryEmbedding.embedding.length} dimensions)`,
+    );
 
     // Call the Supabase RPC function to search
+    console.log(`🔍 Calling search_file_chunks RPC:`, {
+      userId,
+      threadId: threadId || null,
+      matchThreshold,
+      matchCount,
+      embeddingLength: queryEmbedding.embedding.length,
+      embeddingSample: queryEmbedding.embedding.slice(0, 3),
+    });
+
+    // Supabase expects vector as a string in PostgreSQL format: '[x,y,z,...]'
+    // The RPC function parameter is defined as type 'vector', so we pass the string representation
+    const vectorString = `[${queryEmbedding.embedding.join(",")}]`;
+
     const { data, error } = await supabaseClient.rpc("search_file_chunks", {
-      query_embedding: queryEmbedding.embedding,
+      query_embedding: vectorString,
       user_id_param: userId,
       thread_id_param: threadId || null,
       match_threshold: matchThreshold,
@@ -124,9 +141,11 @@ export async function searchFiles(
     });
 
     if (error) {
-      console.error("Vector search error:", error);
+      console.error("❌ Vector search error:", error);
       throw new Error(`Search failed: ${error.message}`);
     }
+
+    console.log(`📊 RPC returned ${data?.length || 0} results`);
 
     return (data || []).map((result: any) => ({
       chunkId: result.chunk_id,

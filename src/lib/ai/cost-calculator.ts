@@ -68,6 +68,12 @@ export const MODEL_PRICING = {
     cachedInput: 0.15,
     reasoning: 0.6,
   },
+  "Internal/uvala-sensei": {
+    input: 0.15, // AWS Bedrock GPT-OSS-120B pricing
+    output: 0.6,
+    cachedInput: 0.15,
+    reasoning: 0.6,
+  },
 
   // Google Gemini models (estimated based on typical pricing)
   "google/gemini-2.5-flash": {
@@ -292,6 +298,7 @@ function normalizeModelId(modelId: string): string {
     "uvala-everest": "openai/gpt-5-mini", // Main Uvala model using mini pricing
     "uvala-prompter": "openai/gpt-5-nano", // Prompt builder model
     "uvala-coder": "Internal/uvala-coder", // Coder model
+    "uvala-sensei": "Internal/uvala-sensei", // Learn mode model (Qwen3-32B)
     "gpt-4.1": "openai/gpt-4.1",
     "gpt-4.1-mini": "openai/gpt-4.1-mini",
     o3: "openai/o3",

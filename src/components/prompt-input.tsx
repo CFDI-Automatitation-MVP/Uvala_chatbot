@@ -751,6 +751,7 @@ export default function PromptInput({
                     <FileAttachmentInput
                       onFilesSelected={handleFilesSelected}
                       disabled={isLoading}
+                      threadId={threadId}
                     />
                   )}
 
