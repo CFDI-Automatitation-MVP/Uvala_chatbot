@@ -49,16 +49,6 @@ import { useMounted } from "@/hooks/use-mounted";
 import { getStorageManager } from "lib/browser-stroage";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChatModeBanner } from "./chat-mode-banner";
-import { useArtifactStore } from "@/stores/artifact-store";
-import { findRenderableCode } from "@/lib/code-extraction";
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-  type ImperativePanelHandle,
-} from "ui/resizable";
-import { PreviewPanel } from "./coder/preview-panel";
-import { Eye, EyeOff } from "lucide-react";
 
 type Props = {
   threadId: string;
@@ -108,38 +98,6 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
       state.pendingThreadMention,
     ]),
   );
-
-  // Coder & Learn mode preview state
-  const [showPreview, setShowPreview] = useState(false);
-  const [isContextLimitReached, setIsContextLimitReached] = useState(false);
-  const continuationArtifactIdRef = useRef<string | null>(null);
-  const {
-    addArtifact,
-    clearArtifacts,
-    activeArtifactId,
-    loadArtifactsForThread,
-  } = useArtifactStore();
-  const previewPanelRef = useRef<ImperativePanelHandle>(null);
-  const isCoderMode = chatMode === "coder";
-  const isLearnMode = chatMode === "learn";
-  const hasCodePreview = isCoderMode || isLearnMode;
-
-  // Load artifacts for this thread when mounting or switching threads
-  useEffect(() => {
-    if (threadId && hasCodePreview) {
-      const modeLabel = isCoderMode ? "CODER MODE" : "LEARN MODE";
-      console.log(`[${modeLabel}] Loading artifacts for thread:`, threadId);
-      loadArtifactsForThread(threadId);
-
-      // If artifacts exist for this thread, auto-open preview
-      const hasArtifacts =
-        useArtifactStore.getState().getArtifactsByThread(threadId).length > 0;
-      if (hasArtifacts) {
-        console.log(`[${modeLabel}] Artifacts found, auto-opening preview`);
-        setShowPreview(true);
-      }
-    }
-  }, [threadId, hasCodePreview, isCoderMode, loadArtifactsForThread]);
 
   const generateTitle = useGenerateThreadTitle({
     threadId,
@@ -464,525 +422,134 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     }
   }, [input]);
 
-  // Auto-scroll to bottom when messages change (for coder/learn mode especially)
-  useEffect(() => {
-    if (!hasCodePreview) return;
-    if (messages.length === 0) return;
-
-    // Auto-scroll when new messages are added or when streaming
-    const timeoutId = setTimeout(() => {
-      if (isAtBottom || isLoading) {
-        scrollToBottom();
-      }
-    }, 100);
-
-    return () => clearTimeout(timeoutId);
-  }, [messages.length, isLoading, hasCodePreview, isAtBottom, scrollToBottom]);
-
-  // Create a content hash to force re-evaluation during streaming
-  const lastMessageContent = useMemo(() => {
-    if (!hasCodePreview || messages.length === 0) return "";
-    const lastMessage = messages[messages.length - 1];
-    if (lastMessage.role !== "assistant") return "";
-    return lastMessage.parts
-      .filter((part) => part.type === "text")
-      .map((part) => part.text)
-      .join("\n");
-  }, [messages, hasCodePreview]);
-
-  // Code extraction for coder/learn mode - only creates artifacts when streaming is COMPLETE
-  useEffect(() => {
-    if (!hasCodePreview) return;
-    if (!lastMessageContent) return;
-    if (messages.length === 0) return;
-
-    const lastMessage = messages[messages.length - 1];
-    if (lastMessage.role !== "assistant") return;
-
-    const isStreaming = status === "streaming" || status === "submitted";
-    const modeLabel = isCoderMode ? "CODER MODE" : "LEARN MODE";
-
-    console.log(
-      `[${modeLabel}] Checking for code, message ID:`,
-      lastMessage.id,
-    );
-    console.log(
-      `[${modeLabel}] Text content length:`,
-      lastMessageContent.length,
-    );
-    console.log(
-      `[${modeLabel}] Streaming status:`,
-      status,
-      "| isStreaming:",
-      isStreaming,
-    );
-    console.log(`[${modeLabel}] Preview showing:`, showPreview);
-
-    // During streaming: just check if code exists and open preview panel (but show code view)
-    const hasCodeBlockStart = lastMessageContent.includes("```");
-
-    if (isStreaming && hasCodeBlockStart) {
-      console.log(
-        `[${modeLabel}] ⏳ Streaming in progress, code detected - opening preview to show code`,
-      );
-      if (!showPreview) {
-        setShowPreview(true);
-      }
-      return; // Don't extract or render yet
-    }
-
-    // Only extract and render when streaming is complete
-    if (status === "ready") {
-      const renderableCode = findRenderableCode(lastMessageContent);
-
-      if (renderableCode) {
-        console.log(
-          `[${modeLabel}] ✅ Streaming complete, renderable code found:`,
-          {
-            type: renderableCode.type,
-            codeLength: renderableCode.code.length,
-            title: renderableCode.title,
-          },
-        );
-
-        // Check if this is a continuation of a previous artifact
-        const artifactId =
-          continuationArtifactIdRef.current || `artifact-${lastMessage.id}`;
-
-        console.log(`[${modeLabel}] Using artifact ID:`, {
-          artifactId,
-          isContinuation: !!continuationArtifactIdRef.current,
-          previousArtifactId: continuationArtifactIdRef.current,
-        });
-
-        // Check if this is a truncated component
-        const isTruncated = renderableCode.title === "Truncated Component";
-
-        // Detect context limit: streaming stopped but code block is incomplete
-        const hasOpeningMarker = lastMessageContent.includes("```");
-        const closingMarkerCount = (lastMessageContent.match(/```/g) || [])
-          .length;
-        const isIncomplete = hasOpeningMarker && closingMarkerCount % 2 !== 0;
-
-        if (isIncomplete) {
-          console.log(
-            `[${modeLabel}] ⚠️ Context limit detected - incomplete code block`,
-          );
-          setIsContextLimitReached(true);
-        } else {
-          setIsContextLimitReached(false);
-          // Clear continuation flag when complete
-          if (continuationArtifactIdRef.current) {
-            console.log(`[${modeLabel}] Clearing continuation flag`);
-            continuationArtifactIdRef.current = null;
-          }
-        }
-
-        // Create/update the artifact now that streaming is complete
-        addArtifact({
-          id: artifactId,
-          title: isTruncated
-            ? "Truncated Component"
-            : renderableCode.title || "Generated Component",
-          code: renderableCode.code,
-          type: renderableCode.type,
-          messageId: lastMessage.id,
-          threadId: threadId, // Add threadId for persistence
-        });
-
-        // Show preview automatically
-        if (!showPreview) {
-          console.log(`[${modeLabel}] Auto-opening preview`);
-          setShowPreview(true);
-        }
-      } else {
-        console.log(
-          `[${modeLabel}] ❌ No renderable code found after streaming completed`,
-        );
-        setIsContextLimitReached(false);
-      }
-    }
-  }, [
-    lastMessageContent,
-    hasCodePreview,
-    isCoderMode,
-    addArtifact,
-    status,
-    showPreview,
-    messages,
-  ]);
-
-  // Control preview panel programmatically
-  useEffect(() => {
-    if (!hasCodePreview) return;
-    if (previewPanelRef.current) {
-      const modeLabel = isCoderMode ? "CODER MODE" : "LEARN MODE";
-      if (showPreview) {
-        console.log(`[${modeLabel}] Expanding preview panel`);
-        previewPanelRef.current.expand();
-      } else {
-        console.log(`[${modeLabel}] Collapsing preview panel`);
-        previewPanelRef.current.collapse();
-      }
-    }
-  }, [showPreview, hasCodePreview, isCoderMode]);
-
-  // Clear artifacts when switching away from coder/learn mode
-  useEffect(() => {
-    if (!hasCodePreview) {
-      clearArtifacts();
-      setShowPreview(false);
-    }
-  }, [hasCodePreview, clearArtifacts]);
-
   return (
     <>
       {/* Show Ripple only when starting new chat (no messages) */}
       {emptyMessage && <RippleBackground />}
 
-      {hasCodePreview && !emptyMessage ? (
-        <ResizablePanelGroup direction="horizontal" className="h-full">
-          <ResizablePanel defaultSize={100} minSize={30}>
+      <div
+        className={cn(
+          emptyMessage && "justify-center pb-24",
+          "flex flex-col min-w-0 relative h-full z-40",
+        )}
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+      >
+        {/* Drag and drop overlay for the entire chat area */}
+        {isDragOver && !isLoading && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/5 backdrop-blur-sm">
+            <div className="text-center p-4 bg-muted/10 backdrop-blur-md rounded-lg border border-dashed border-muted-foreground/30">
+              <div className="text-2xl mb-2 opacity-50">📄</div>
+              <div className="text-sm text-muted-foreground">Drop files</div>
+            </div>
+          </div>
+        )}
+        {emptyMessage ? (
+          <>
+            <ChatGreeting />
+          </>
+        ) : (
+          <>
+            {/* Mode Banner - Show when in special mode and no messages yet */}
+            <div className="px-4 pt-6 pb-2">
+              <ChatModeBanner messageCount={messages.length} />
+            </div>
             <div
-              className={cn("flex flex-col min-w-0 relative h-full z-40")}
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              onDragEnter={handleDragEnter}
-              onDragLeave={handleDragLeave}
+              className={"flex flex-col gap-2 overflow-y-auto py-6 z-10"}
+              ref={containerRef}
+              onScroll={handleScroll}
             >
-              {/* Drag and drop overlay */}
-              {isDragOver && !isLoading && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/5 backdrop-blur-sm">
-                  <div className="text-center p-4 bg-muted/10 backdrop-blur-md rounded-lg border border-dashed border-muted-foreground/30">
-                    <div className="text-2xl mb-2 opacity-50">📄</div>
-                    <div className="text-sm text-muted-foreground">
-                      Drop files
+              {messages.map((message, index) => {
+                const isLastMessage = messages.length - 1 === index;
+                return (
+                  <PreviewMessage
+                    threadId={threadId}
+                    messageIndex={index}
+                    prevMessage={messages[index - 1]}
+                    key={message.id}
+                    message={message}
+                    status={status}
+                    addToolResult={addToolResult}
+                    isLoading={isLoading || isPendingToolCall}
+                    isLastMessage={isLastMessage}
+                    setMessages={setMessages}
+                    sendMessage={sendMessage}
+                    className={
+                      isLastMessage &&
+                      message.role != "user" &&
+                      !space &&
+                      message.parts.length > 1
+                        ? "min-h-[calc(55dvh-40px)]"
+                        : ""
+                    }
+                  />
+                );
+              })}
+              {space && (
+                <>
+                  <div className="w-full mx-auto max-w-3xl px-6 relative">
+                    <div className={space == "space" ? "opacity-0" : ""}>
+                      <Think />
                     </div>
                   </div>
-                </div>
+                  <div className="min-h-[calc(55dvh-56px)]" />
+                </>
               )}
 
-              {/* Mode Banner */}
-              <div className="px-4 pt-6 pb-2">
-                <ChatModeBanner messageCount={messages.length} />
-              </div>
-
-              {/* Messages */}
-              <div
-                className={
-                  "flex flex-col gap-2 overflow-y-auto py-6 pb-96 z-10"
-                }
-                ref={containerRef}
-                onScroll={handleScroll}
-              >
-                {messages.map((message, index) => {
-                  const isLastMessage = messages.length - 1 === index;
-                  return (
-                    <PreviewMessage
-                      threadId={threadId}
-                      messageIndex={index}
-                      prevMessage={messages[index - 1]}
-                      key={message.id}
-                      message={message}
-                      status={status}
-                      addToolResult={addToolResult}
-                      isLoading={isLoading || isPendingToolCall}
-                      isLastMessage={isLastMessage}
-                      setMessages={setMessages}
-                      sendMessage={sendMessage}
-                      className={
-                        isLastMessage &&
-                        message.role != "user" &&
-                        !space &&
-                        message.parts.length > 1
-                          ? "min-h-[calc(55dvh-40px)]"
-                          : ""
-                      }
-                    />
-                  );
-                })}
-                {space && (
-                  <>
-                    <div className="w-full mx-auto max-w-3xl px-6 relative">
-                      <div className={space == "space" ? "opacity-0" : ""}>
-                        <Think />
-                      </div>
-                    </div>
-                    <div className="min-h-[calc(55dvh-56px)]" />
-                  </>
-                )}
-                {error && <ErrorMessage error={error} />}
-              </div>
-
-              {/* Input and Controls */}
-              <div
-                className={clsx(
-                  messages.length && "absolute bottom-14",
-                  "w-full z-50",
-                )}
-              >
-                <div className="max-w-3xl mx-auto relative flex justify-center items-center -top-2">
-                  <ScrollToBottomButton
-                    show={!isAtBottom && messages.length > 0}
-                    onClick={scrollToBottom}
-                  />
-                </div>
-
-                {/* Preview Toggle Button - Coder Mode */}
-                {activeArtifactId && (
-                  <div className="max-w-3xl mx-auto px-4 mb-2">
-                    <Button
-                      onClick={() => setShowPreview(!showPreview)}
-                      variant="ghost"
-                      size="sm"
-                      className="rounded-full shadow-lg backdrop-blur-sm bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 transition-all gap-2"
-                    >
-                      {showPreview ? (
-                        <>
-                          <EyeOff className="h-4 w-4" />
-                          <span className="text-xs">Hide Preview</span>
-                        </>
-                      ) : (
-                        <>
-                          <Eye className="h-4 w-4" />
-                          <span className="text-xs">Show Preview</span>
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                )}
-
-                {/* Context Limit Warning - Coder Mode */}
-                {isContextLimitReached && (
-                  <div className="max-w-3xl mx-auto px-4 mb-3">
-                    <div className="rounded-xl shadow-lg backdrop-blur-sm bg-yellow-500/10 border border-yellow-500/30 p-4 space-y-3">
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center">
-                          <span className="text-lg">⚠️</span>
-                        </div>
-                        <div className="flex-1 space-y-1">
-                          <h4 className="text-sm font-semibold text-yellow-700 dark:text-yellow-400">
-                            Context Limit Exceeded
-                          </h4>
-                          <p className="text-xs text-yellow-600 dark:text-yellow-500">
-                            The response was cut off due to context limits.
-                            Click continue to complete the component.
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        onClick={() => {
-                          console.log(
-                            "[CODER MODE] Continue button clicked, current artifact:",
-                            activeArtifactId,
-                          );
-                          // Store the current artifact ID so we can merge the continuation
-                          if (activeArtifactId) {
-                            continuationArtifactIdRef.current =
-                              activeArtifactId;
-                          }
-                          sendMessage({
-                            role: "user",
-                            parts: [{ type: "text", text: "continue" }],
-                          });
-                          setIsContextLimitReached(false);
-                        }}
-                        size="sm"
-                        className="w-full bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors"
-                      >
-                        Continue Generation
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Beta Warning Banner - Coder Mode */}
-                <div className="max-w-3xl mx-auto px-4 mb-2">
-                  <div className="rounded-lg bg-blue-50/50 dark:bg-blue-900/10 border border-blue-200/50 dark:border-blue-800/50 px-3 py-2">
-                    <p className="text-[10px] text-blue-700 dark:text-blue-400 leading-relaxed">
-                      {t("Coder.betaWarning")}
-                    </p>
-                  </div>
-                </div>
-
-                <PromptInput
-                  input={input}
-                  threadId={threadId}
-                  sendMessage={sendMessage}
-                  setInput={setInput}
-                  isLoading={isLoading || isPendingToolCall}
-                  onStop={stop}
-                  onFocus={isFirstTime ? undefined : handleFocus}
-                  model={model}
-                  setModel={(newModel) =>
-                    appStoreMutate((state) => ({
-                      ...state,
-                      chatModel: newModel,
-                    }))
-                  }
-                  fileAttachments={fileAttachments}
-                  setFileAttachments={setFileAttachments}
-                  isDragOver={isDragOver}
-                  messageCount={messages.length}
-                />
-
-                {messages.length > 0 && (
-                  <div className="max-w-3xl mx-auto px-4 mt-2 mb-4">
-                    <p className="text-xs text-muted-foreground text-center">
-                      {t("Chat.disclaimer")}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <DeleteThreadPopup
-                threadId={threadId}
-                onClose={() => setIsDeleteThreadPopupOpen(false)}
-                open={isDeleteThreadPopupOpen}
-              />
+              {error && <ErrorMessage error={error} />}
+              <div className="min-w-0 min-h-64" />
             </div>
-          </ResizablePanel>
+          </>
+        )}
 
-          <ResizableHandle withHandle />
-
-          <ResizablePanel
-            ref={previewPanelRef}
-            defaultSize={0}
-            minSize={30}
-            maxSize={70}
-            collapsible={true}
-          >
-            <PreviewPanel
-              isStreaming={status === "streaming" || status === "submitted"}
-              streamingContent={lastMessageContent}
-            />
-          </ResizablePanel>
-        </ResizablePanelGroup>
-      ) : (
         <div
-          className={cn(
-            emptyMessage && "justify-center pb-24",
-            "flex flex-col min-w-0 relative h-full z-40",
+          className={clsx(
+            messages.length && "absolute bottom-14",
+            "w-full z-50",
           )}
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragEnter={handleDragEnter}
-          onDragLeave={handleDragLeave}
         >
-          {/* Drag and drop overlay for the entire chat area */}
-          {isDragOver && !isLoading && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/5 backdrop-blur-sm">
-              <div className="text-center p-4 bg-muted/10 backdrop-blur-md rounded-lg border border-dashed border-muted-foreground/30">
-                <div className="text-2xl mb-2 opacity-50">📄</div>
-                <div className="text-sm text-muted-foreground">Drop files</div>
-              </div>
-            </div>
-          )}
-          {emptyMessage ? (
-            <>
-              <ChatGreeting />
-            </>
-          ) : (
-            <>
-              {/* Mode Banner - Show when in special mode and no messages yet */}
-              <div className="px-4 pt-6 pb-2">
-                <ChatModeBanner messageCount={messages.length} />
-              </div>
-              <div
-                className={"flex flex-col gap-2 overflow-y-auto py-6 z-10"}
-                ref={containerRef}
-                onScroll={handleScroll}
-              >
-                {messages.map((message, index) => {
-                  const isLastMessage = messages.length - 1 === index;
-                  return (
-                    <PreviewMessage
-                      threadId={threadId}
-                      messageIndex={index}
-                      prevMessage={messages[index - 1]}
-                      key={message.id}
-                      message={message}
-                      status={status}
-                      addToolResult={addToolResult}
-                      isLoading={isLoading || isPendingToolCall}
-                      isLastMessage={isLastMessage}
-                      setMessages={setMessages}
-                      sendMessage={sendMessage}
-                      className={
-                        isLastMessage &&
-                        message.role != "user" &&
-                        !space &&
-                        message.parts.length > 1
-                          ? "min-h-[calc(55dvh-40px)]"
-                          : ""
-                      }
-                    />
-                  );
-                })}
-                {space && (
-                  <>
-                    <div className="w-full mx-auto max-w-3xl px-6 relative">
-                      <div className={space == "space" ? "opacity-0" : ""}>
-                        <Think />
-                      </div>
-                    </div>
-                    <div className="min-h-[calc(55dvh-56px)]" />
-                  </>
-                )}
-
-                {error && <ErrorMessage error={error} />}
-                <div className="min-w-0 min-h-64" />
-              </div>
-            </>
-          )}
-
-          <div
-            className={clsx(
-              messages.length && "absolute bottom-14",
-              "w-full z-50",
-            )}
-          >
-            <div className="max-w-3xl mx-auto relative flex justify-center items-center -top-2">
-              <ScrollToBottomButton
-                show={!isAtBottom && messages.length > 0}
-                onClick={scrollToBottom}
-              />
-            </div>
-
-            <PromptInput
-              input={input}
-              threadId={threadId}
-              sendMessage={sendMessage}
-              setInput={setInput}
-              isLoading={isLoading || isPendingToolCall}
-              onStop={stop}
-              onFocus={isFirstTime ? undefined : handleFocus}
-              model={model}
-              setModel={(newModel) =>
-                appStoreMutate((state) => ({ ...state, chatModel: newModel }))
-              }
-              fileAttachments={fileAttachments}
-              setFileAttachments={setFileAttachments}
-              isDragOver={isDragOver}
-              messageCount={messages.length}
+          <div className="max-w-3xl mx-auto relative flex justify-center items-center -top-2">
+            <ScrollToBottomButton
+              show={!isAtBottom && messages.length > 0}
+              onClick={scrollToBottom}
             />
-
-            {/* Disclaimer - Show only if there are messages */}
-            {messages.length > 0 && (
-              <div className="max-w-3xl mx-auto px-4 mt-2 mb-4">
-                <p className="text-xs text-muted-foreground text-center">
-                  {t("Chat.disclaimer")}
-                </p>
-              </div>
-            )}
           </div>
-          <DeleteThreadPopup
+
+          <PromptInput
+            input={input}
             threadId={threadId}
-            onClose={() => setIsDeleteThreadPopupOpen(false)}
-            open={isDeleteThreadPopupOpen}
+            sendMessage={sendMessage}
+            setInput={setInput}
+            isLoading={isLoading || isPendingToolCall}
+            onStop={stop}
+            onFocus={isFirstTime ? undefined : handleFocus}
+            model={model}
+            setModel={(newModel) =>
+              appStoreMutate((state) => ({ ...state, chatModel: newModel }))
+            }
+            fileAttachments={fileAttachments}
+            setFileAttachments={setFileAttachments}
+            isDragOver={isDragOver}
+            messageCount={messages.length}
           />
+
+          {/* Disclaimer - Show only if there are messages */}
+          {messages.length > 0 && (
+            <div className="max-w-3xl mx-auto px-4 mt-2 mb-4">
+              <p className="text-xs text-muted-foreground text-center">
+                {t("Chat.disclaimer")}
+              </p>
+            </div>
+          )}
         </div>
-      )}
+        <DeleteThreadPopup
+          threadId={threadId}
+          onClose={() => setIsDeleteThreadPopupOpen(false)}
+          open={isDeleteThreadPopupOpen}
+        />
+      </div>
     </>
   );
 }
