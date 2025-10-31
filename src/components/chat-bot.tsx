@@ -151,6 +151,19 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           }
           const lastMessage = messages.at(-1)!;
 
+          // Components mode uses a different request format
+          if (latestRef.current.chatMode === "components") {
+            return {
+              body: {
+                messages,
+                chatModel:
+                  (body as { model: ChatModel })?.model ??
+                  latestRef.current.model,
+              },
+            };
+          }
+
+          // Standard chat mode format
           const requestBody: ChatApiSchemaRequestBody = {
             ...body,
             id,
