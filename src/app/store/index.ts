@@ -8,7 +8,12 @@ import { AppDefaultToolkit } from "lib/ai/tools";
 import { AgentSummary } from "app-types/agent";
 import { ArchiveWithItemCount } from "app-types/archive";
 
-export type ChatMode = "normal" | "coder" | "promptBuilder" | "learn";
+export type ChatMode =
+  | "normal"
+  | "coder"
+  | "promptBuilder"
+  | "learn"
+  | "components";
 
 export interface AppState {
   threadList: ChatThread[];
@@ -44,6 +49,10 @@ export interface AppState {
     chatModel?: ChatModel;
   };
   learn: {
+    isOpen: boolean;
+    chatModel?: ChatModel;
+  };
+  components: {
     isOpen: boolean;
     chatModel?: ChatModel;
   };
@@ -104,6 +113,9 @@ const initialState: AppState = {
   learn: {
     isOpen: false,
   },
+  components: {
+    isOpen: false,
+  },
   voiceChat: {
     isOpen: false,
     options: {
@@ -146,6 +158,10 @@ export const appStore = create<AppState & AppDispatch>()(
         },
         learn: {
           chatModel: state.learn?.chatModel || state.chatModel,
+          isOpen: false,
+        },
+        components: {
+          chatModel: state.components?.chatModel || state.chatModel,
           isOpen: false,
         },
         toolPresets: state.toolPresets || initialState.toolPresets,

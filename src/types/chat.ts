@@ -78,7 +78,9 @@ export const chatApiSchemaRequestBodySchema = z.object({
       model: z.string(),
     })
     .optional(),
-  chatMode: z.enum(["normal", "coder", "promptBuilder", "learn"]).optional(),
+  chatMode: z
+    .enum(["normal", "coder", "promptBuilder", "learn", "components"])
+    .optional(),
   toolChoice: z.enum(["auto", "none", "manual"]),
   mentions: z.array(ChatMentionSchema).optional(),
   allowedAppDefaultToolkit: z.array(z.string()).optional(),

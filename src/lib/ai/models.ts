@@ -30,6 +30,7 @@ const internalModels = {
   "uvala-prompter": openai("gpt-5-nano"),
   "uvala-coder": bedrock("qwen.qwen3-32b-v1:0"),
   "uvala-sensei": bedrock("qwen.qwen3-32b-v1:0"),
+  "uvala-components": bedrock("qwen.qwen3-32b-v1:0"),
 };
 
 const staticUnsupportedModels = new Set([

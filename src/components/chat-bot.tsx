@@ -30,9 +30,10 @@ import { ChatApiSchemaRequestBody, ChatModel } from "app-types/chat";
 import { useToRef } from "@/hooks/use-latest";
 import { isShortcutEvent, Shortcuts } from "lib/keyboard-shortcuts";
 import { Button } from "ui/button";
+import { Progress } from "ui/progress";
 import { deleteThreadAction } from "@/app/api/chat/actions";
 import { useRouter } from "next/navigation";
-import { ArrowDown, Loader } from "lucide-react";
+import { ArrowDown, Loader, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -49,6 +50,8 @@ import { useMounted } from "@/hooks/use-mounted";
 import { getStorageManager } from "lib/browser-stroage";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChatModeBanner } from "./chat-mode-banner";
+import { ComponentsPanel } from "./components/components-panel";
+import { ComponentsPreview } from "./components/components-preview";
 
 type Props = {
   threadId: string;
@@ -134,6 +137,39 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
 
   const [input, setInput] = useState("");
 
+  const transportApi =
+    chatMode === "components" ? "/api/chat/components" : undefined;
+
+  const transport = useMemo(
+    () =>
+      new DefaultChatTransport({
+        api: transportApi,
+        prepareSendMessagesRequest: ({ messages, body, id }) => {
+          if (window.location.pathname !== `/chat/${threadId}`) {
+            console.log("replace-state");
+            window.history.replaceState({}, "", `/chat/${threadId}`);
+          }
+          const lastMessage = messages.at(-1)!;
+
+          const requestBody: ChatApiSchemaRequestBody = {
+            ...body,
+            id,
+            chatModel:
+              (body as { model: ChatModel })?.model ?? latestRef.current.model,
+            chatMode: latestRef.current.chatMode,
+            toolChoice: latestRef.current.toolChoice,
+            allowedAppDefaultToolkit: latestRef.current.mentions?.length
+              ? []
+              : latestRef.current.allowedAppDefaultToolkit,
+            mentions: latestRef.current.mentions,
+            message: lastMessage,
+          };
+          return { body: requestBody };
+        },
+      }),
+    [transportApi, threadId],
+  );
+
   const {
     messages,
     status,
@@ -145,30 +181,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
   } = useChat({
     id: threadId,
     sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
-    transport: new DefaultChatTransport({
-      prepareSendMessagesRequest: ({ messages, body, id }) => {
-        if (window.location.pathname !== `/chat/${threadId}`) {
-          console.log("replace-state");
-          window.history.replaceState({}, "", `/chat/${threadId}`);
-        }
-        const lastMessage = messages.at(-1)!;
-
-        const requestBody: ChatApiSchemaRequestBody = {
-          ...body,
-          id,
-          chatModel:
-            (body as { model: ChatModel })?.model ?? latestRef.current.model,
-          chatMode: latestRef.current.chatMode,
-          toolChoice: latestRef.current.toolChoice,
-          allowedAppDefaultToolkit: latestRef.current.mentions?.length
-            ? []
-            : latestRef.current.allowedAppDefaultToolkit,
-          mentions: latestRef.current.mentions,
-          message: lastMessage,
-        };
-        return { body: requestBody };
-      },
-    }),
+    transport,
     messages: initialMessages,
     generateId: generateUUID,
     experimental_throttle: 100,
@@ -229,7 +242,104 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     return hasPendingToolCall;
   }, [status, messages]);
 
+  const componentBuildActive =
+    chatMode === "components" && (isLoading || isPendingToolCall);
+  const [showComponentProgressCard, setShowComponentProgressCard] =
+    useState(false);
+  const [componentProgress, setComponentProgress] = useState(0);
+
+  const _currentThread = useMemo(
+    () => threadList.find((thread) => thread.id === threadId),
+    [threadList, threadId],
+  );
+
+  const latestComponentMessage = useMemo(() => {
+    if (chatMode !== "components") return null;
+
+    for (let index = messages.length - 1; index >= 0; index -= 1) {
+      const message = messages[index];
+      if (message.role === "assistant") {
+        return message;
+      }
+    }
+
+    return null;
+  }, [messages, chatMode]);
+
+  const componentPreviewContent = useMemo(() => {
+    if (!latestComponentMessage) return "";
+
+    return latestComponentMessage.parts
+      .filter((part) => part.type === "text")
+      .map((part) => (part.type === "text" ? part.text : ""))
+      .join("\n\n");
+  }, [latestComponentMessage]);
+
+  const hasComponentPreview =
+    componentBuildActive || componentPreviewContent.trim().length > 0;
+
+  const getAssistantDisplayMessage = useCallback(
+    (message: UIMessage): UIMessage | null => {
+      const textParts = message.parts.filter(
+        (part): part is Extract<UIMessage["parts"][number], { type: "text" }> =>
+          part.type === "text",
+      );
+      if (!textParts.length) return null;
+
+      const combinedText = textParts
+        .map((part) => part.text ?? "")
+        .join("\n\n");
+      const intro = combinedText.split(/```/)[0]?.trim();
+
+      if (!intro) return null;
+
+      return {
+        ...message,
+        parts: [
+          {
+            ...textParts[0],
+            text: intro,
+          },
+        ],
+      };
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!componentBuildActive) return;
+
+    setShowComponentProgressCard(true);
+    setComponentProgress(12);
+
+    const interval = window.setInterval(() => {
+      setComponentProgress((prev) => {
+        if (prev >= 92) {
+          return prev;
+        }
+        const increment = Math.random() * 8 + 3;
+        return Math.min(prev + increment, 92);
+      });
+    }, 500);
+
+    return () => window.clearInterval(interval);
+  }, [componentBuildActive]);
+
+  useEffect(() => {
+    if (componentBuildActive) return;
+    if (!showComponentProgressCard) return;
+
+    setComponentProgress(100);
+    const timeout = window.setTimeout(() => {
+      setShowComponentProgressCard(false);
+      setComponentProgress(0);
+    }, 400);
+
+    return () => window.clearTimeout(timeout);
+  }, [componentBuildActive, showComponentProgressCard]);
+
   const space = useMemo(() => {
+    if (chatMode === "components") return false;
     if (!isLoading || error) return false;
     const lastMessage = messages.at(-1);
     if (lastMessage?.role == "user") return "think";
@@ -427,129 +537,173 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
       {/* Show Ripple only when starting new chat (no messages) */}
       {emptyMessage && <RippleBackground />}
 
-      <div
-        className={cn(
-          emptyMessage && "justify-center pb-24",
-          "flex flex-col min-w-0 relative h-full z-40",
-        )}
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragEnter={handleDragEnter}
-        onDragLeave={handleDragLeave}
+      <ComponentsPanel
+        messageCount={messages.length}
+        preview={
+          chatMode === "components" && hasComponentPreview ? (
+            <ComponentsPreview
+              content={componentPreviewContent}
+              isStreaming={componentBuildActive}
+            />
+          ) : undefined
+        }
       >
-        {/* Drag and drop overlay for the entire chat area */}
-        {isDragOver && !isLoading && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/5 backdrop-blur-sm">
-            <div className="text-center p-4 bg-muted/10 backdrop-blur-md rounded-lg border border-dashed border-muted-foreground/30">
-              <div className="text-2xl mb-2 opacity-50">📄</div>
-              <div className="text-sm text-muted-foreground">Drop files</div>
+        <div
+          className={cn(
+            emptyMessage && "justify-center pb-24",
+            "flex flex-col min-w-0 relative h-full z-40",
+          )}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+        >
+          {/* Drag and drop overlay for the entire chat area */}
+          {isDragOver && !isLoading && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/5 backdrop-blur-sm">
+              <div className="text-center p-4 bg-muted/10 backdrop-blur-md rounded-lg border border-dashed border-muted-foreground/30">
+                <div className="text-2xl mb-2 opacity-50">📄</div>
+                <div className="text-sm text-muted-foreground">Drop files</div>
+              </div>
             </div>
-          </div>
-        )}
-        {emptyMessage ? (
-          <>
-            <ChatGreeting />
-          </>
-        ) : (
-          <>
-            {/* Mode Banner - Show when in special mode and no messages yet */}
-            <div className="px-4 pt-6 pb-2">
-              <ChatModeBanner messageCount={messages.length} />
-            </div>
-            <div
-              className={"flex flex-col gap-2 overflow-y-auto py-6 z-10"}
-              ref={containerRef}
-              onScroll={handleScroll}
-            >
-              {messages.map((message, index) => {
-                const isLastMessage = messages.length - 1 === index;
-                return (
-                  <PreviewMessage
-                    threadId={threadId}
-                    messageIndex={index}
-                    prevMessage={messages[index - 1]}
-                    key={message.id}
-                    message={message}
-                    status={status}
-                    addToolResult={addToolResult}
-                    isLoading={isLoading || isPendingToolCall}
-                    isLastMessage={isLastMessage}
-                    setMessages={setMessages}
-                    sendMessage={sendMessage}
-                    className={
-                      isLastMessage &&
-                      message.role != "user" &&
-                      !space &&
-                      message.parts.length > 1
-                        ? "min-h-[calc(55dvh-40px)]"
-                        : ""
-                    }
-                  />
-                );
-              })}
-              {space && (
-                <>
-                  <div className="w-full mx-auto max-w-3xl px-6 relative">
-                    <div className={space == "space" ? "opacity-0" : ""}>
-                      <Think />
+          )}
+          {emptyMessage ? (
+            <>
+              <ChatGreeting />
+            </>
+          ) : (
+            <>
+              {/* Mode Banner - Show when in special mode and no messages yet */}
+              <div className="px-4 pt-6 pb-2">
+                <ChatModeBanner messageCount={messages.length} />
+              </div>
+              <div
+                className={"flex flex-col gap-2 overflow-y-auto py-6 z-10"}
+                ref={containerRef}
+                onScroll={handleScroll}
+              >
+                {messages.map((message, index) => {
+                  const isLastMessage = messages.length - 1 === index;
+                  const displayMessage =
+                    chatMode === "components" && message.role === "assistant"
+                      ? getAssistantDisplayMessage(message)
+                      : message;
+
+                  if (!displayMessage) {
+                    return null;
+                  }
+
+                  return (
+                    <PreviewMessage
+                      threadId={threadId}
+                      messageIndex={index}
+                      prevMessage={messages[index - 1]}
+                      key={`${message.id}-${chatMode === "components" && message.role === "assistant" ? "intro" : "default"}`}
+                      message={displayMessage}
+                      status={status}
+                      addToolResult={addToolResult}
+                      isLoading={isLoading || isPendingToolCall}
+                      isLastMessage={isLastMessage}
+                      setMessages={setMessages}
+                      sendMessage={sendMessage}
+                      className={
+                        isLastMessage &&
+                        message.role != "user" &&
+                        !space &&
+                        displayMessage.parts.length > 1
+                          ? "min-h-[calc(55dvh-40px)]"
+                          : ""
+                      }
+                    />
+                  );
+                })}
+                {showComponentProgressCard && (
+                  <div className="w-full mx-auto max-w-3xl px-6">
+                    <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 shadow-sm backdrop-blur-sm">
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <p className="text-base font-semibold text-foreground">
+                            Generating component preview...
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            This may take a few seconds while the UI compiles.
+                          </p>
+                        </div>
+                        <Loader2 className="h-4 w-4 text-primary animate-spin" />
+                      </div>
+                      <div className="mt-3">
+                        <Progress
+                          value={componentProgress}
+                          className="h-1.5 bg-primary/10"
+                        />
+                      </div>
                     </div>
                   </div>
-                  <div className="min-h-[calc(55dvh-56px)]" />
-                </>
-              )}
+                )}
+                {space && (
+                  <>
+                    <div className="w-full mx-auto max-w-3xl px-6 relative">
+                      <div className={space == "space" ? "opacity-0" : ""}>
+                        <Think />
+                      </div>
+                    </div>
+                    <div className="min-h-[calc(55dvh-56px)]" />
+                  </>
+                )}
 
-              {error && <ErrorMessage error={error} />}
-              <div className="min-w-0 min-h-64" />
-            </div>
-          </>
-        )}
-
-        <div
-          className={clsx(
-            messages.length && "absolute bottom-14",
-            "w-full z-50",
+                {error && <ErrorMessage error={error} />}
+                <div className="min-w-0 min-h-64" />
+              </div>
+            </>
           )}
-        >
-          <div className="max-w-3xl mx-auto relative flex justify-center items-center -top-2">
-            <ScrollToBottomButton
-              show={!isAtBottom && messages.length > 0}
-              onClick={scrollToBottom}
+
+          <div
+            className={clsx(
+              messages.length && "absolute bottom-14",
+              "w-full z-50",
+            )}
+          >
+            <div className="max-w-3xl mx-auto relative flex justify-center items-center -top-2">
+              <ScrollToBottomButton
+                show={!isAtBottom && messages.length > 0}
+                onClick={scrollToBottom}
+              />
+            </div>
+
+            <PromptInput
+              input={input}
+              threadId={threadId}
+              sendMessage={sendMessage}
+              setInput={setInput}
+              isLoading={isLoading || isPendingToolCall}
+              onStop={stop}
+              onFocus={isFirstTime ? undefined : handleFocus}
+              model={model}
+              setModel={(newModel) =>
+                appStoreMutate((state) => ({ ...state, chatModel: newModel }))
+              }
+              fileAttachments={fileAttachments}
+              setFileAttachments={setFileAttachments}
+              isDragOver={isDragOver}
+              messageCount={messages.length}
             />
+
+            {/* Disclaimer - Show only if there are messages */}
+            {messages.length > 0 && (
+              <div className="max-w-3xl mx-auto px-4 mt-2 mb-4">
+                <p className="text-xs text-muted-foreground text-center">
+                  {t("Chat.disclaimer")}
+                </p>
+              </div>
+            )}
           </div>
-
-          <PromptInput
-            input={input}
+          <DeleteThreadPopup
             threadId={threadId}
-            sendMessage={sendMessage}
-            setInput={setInput}
-            isLoading={isLoading || isPendingToolCall}
-            onStop={stop}
-            onFocus={isFirstTime ? undefined : handleFocus}
-            model={model}
-            setModel={(newModel) =>
-              appStoreMutate((state) => ({ ...state, chatModel: newModel }))
-            }
-            fileAttachments={fileAttachments}
-            setFileAttachments={setFileAttachments}
-            isDragOver={isDragOver}
-            messageCount={messages.length}
+            onClose={() => setIsDeleteThreadPopupOpen(false)}
+            open={isDeleteThreadPopupOpen}
           />
-
-          {/* Disclaimer - Show only if there are messages */}
-          {messages.length > 0 && (
-            <div className="max-w-3xl mx-auto px-4 mt-2 mb-4">
-              <p className="text-xs text-muted-foreground text-center">
-                {t("Chat.disclaimer")}
-              </p>
-            </div>
-          )}
         </div>
-        <DeleteThreadPopup
-          threadId={threadId}
-          onClose={() => setIsDeleteThreadPopupOpen(false)}
-          open={isDeleteThreadPopupOpen}
-        />
-      </div>
+      </ComponentsPanel>
     </>
   );
 }
