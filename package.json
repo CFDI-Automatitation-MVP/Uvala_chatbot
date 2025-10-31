@@ -49,6 +49,7 @@
     "@ai-sdk/openai-compatible": "^1.0.11",
     "@ai-sdk/react": "^2.0.22",
     "@ai-sdk/xai": "^2.0.11",
+    "@codesandbox/sandpack-react": "^2.20.0",
     "@getbrevo/brevo": "^3.0.1",
     "@modelcontextprotocol/sdk": "^1.17.4",
     "@openrouter/ai-sdk-provider": "^1.1.2",

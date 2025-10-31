@@ -18,6 +18,7 @@ import {
   CODER_SYSTEM,
   PROMPT_BUILDER_SYSTEM,
   LEARN_SYSTEM,
+  COMPONENTS_SYSTEM,
 } from "lib/ai/mode-prompts";
 
 import { errorIf, safe } from "ts-safe";
@@ -232,6 +233,8 @@ export async function POST(request: Request) {
           systemPrompt = PROMPT_BUILDER_SYSTEM;
         } else if (chatMode === "learn") {
           systemPrompt = LEARN_SYSTEM;
+        } else if (chatMode === "components") {
+          systemPrompt = COMPONENTS_SYSTEM;
         } else {
           systemPrompt = buildUserSystemPrompt(
             session.user,

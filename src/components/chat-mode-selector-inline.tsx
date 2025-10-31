@@ -2,7 +2,13 @@
 
 import { appStore } from "@/app/store";
 import { useShallow } from "zustand/shallow";
-import { MessageSquare, Code, Brain, GraduationCap } from "lucide-react";
+import {
+  MessageSquare,
+  Code,
+  Brain,
+  GraduationCap,
+  Layout,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { ChatMode } from "@/app/store";
 
@@ -38,6 +44,11 @@ export function ChatModeSelectorInline({
           provider: "Internal",
           model: "uvala-sensei",
         };
+      } else if (newMode === "components") {
+        updates.chatModel = {
+          provider: "Internal",
+          model: "uvala-components",
+        };
       } else if (newMode === "normal") {
         // When switching back to normal mode, reset to default normal chat model
         // Check if current model is a special mode model
@@ -45,7 +56,8 @@ export function ChatModeSelectorInline({
         if (
           currentModel?.model === "uvala-coder" ||
           currentModel?.model === "uvala-prompter" ||
-          currentModel?.model === "uvala-sensei"
+          currentModel?.model === "uvala-sensei" ||
+          currentModel?.model === "uvala-components"
         ) {
           // Reset to default normal chat model
           updates.chatModel = {
@@ -73,6 +85,7 @@ export function ChatModeSelectorInline({
     { value: "learn", icon: GraduationCap, label: t("learn") },
     { value: "promptBuilder", icon: Brain, label: t("promptBuilder") },
     { value: "coder", icon: Code, label: t("coder") },
+    { value: "components", icon: Layout, label: t("components") },
   ];
 
   const getModeInfo = () => {
@@ -104,6 +117,16 @@ export function ChatModeSelectorInline({
           t("learnSuggestion2"),
           t("learnSuggestion3"),
           t("learnSuggestion4"),
+        ],
+      };
+    } else if (chatMode === "components") {
+      return {
+        description: t("componentsModeDescription"),
+        suggestions: [
+          t("componentsSuggestion1"),
+          t("componentsSuggestion2"),
+          t("componentsSuggestion3"),
+          t("componentsSuggestion4"),
         ],
       };
     }
