@@ -155,6 +155,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           if (latestRef.current.chatMode === "components") {
             return {
               body: {
+                id, // Include thread ID for message saving
                 messages,
                 chatModel:
                   (body as { model: ChatModel })?.model ??
