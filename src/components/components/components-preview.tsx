@@ -176,6 +176,9 @@ export function ComponentsPreview({
     if (/['"]lucide-react['"]/.test(source)) {
       base["lucide-react"] = "^0.491.0";
     }
+    if (/['"]pptxgenjs['"]/.test(source) || /\bPptxGenJS\b/.test(source)) {
+      base.pptxgenjs = "^3.12.0";
+    }
 
     return base;
   }, [finalCode, trimmedStreamingCode]);

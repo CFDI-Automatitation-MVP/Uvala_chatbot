@@ -30,7 +30,7 @@ const internalModels = {
   "uvala-prompter": openai("gpt-5-nano"),
   "uvala-coder": bedrock("qwen.qwen3-coder-30b-a3b-v1:0"), // Qwen3 Coder 30B - specialized coding model
   "uvala-sensei": bedrock("openai.gpt-oss-120b-1:0"), // OpenAI GPT-OSS 120B for Learn Mode - reasoning_effort set via additionalModelRequestFields in route
-  "uvala-components": bedrock("qwen.qwen3-coder-30b-a3b-v1:0"), // Qwen3 Coder 30B - specialized coding model for Components Mode
+  "uvala-components": bedrock("openai.gpt-oss-20b-1:0"), // OpenAI GPT-OSS 20B for Components Mode
 };
 
 const staticUnsupportedModels = new Set([
