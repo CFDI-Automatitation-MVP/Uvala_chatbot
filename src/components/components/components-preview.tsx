@@ -179,6 +179,15 @@ export function ComponentsPreview({
     if (/['"]pptxgenjs['"]/.test(source) || /\bPptxGenJS\b/.test(source)) {
       base.pptxgenjs = "^3.12.0";
     }
+    if (
+      /['"]react-chartjs-2['"]/.test(source) ||
+      /\bLine\b/.test(source) ||
+      /\bBar\b/.test(source) ||
+      /\bPie\b/.test(source)
+    ) {
+      base["react-chartjs-2"] = "^5.2.0";
+      base["chart.js"] = "^4.4.0";
+    }
 
     return base;
   }, [finalCode, trimmedStreamingCode]);
