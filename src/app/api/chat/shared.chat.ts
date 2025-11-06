@@ -298,7 +298,10 @@ export const loadAppDefaultTools = (opt?: {
   mentions?: ChatMention[];
   allowedAppDefaultToolkit?: string[];
   userId?: string;
+  threadId?: string; // Thread ID for file search context
   messages?: UIMessage[];
+  onlyFileSearch?: boolean; // For Learn Mode: only load fileSearch and filesList tools
+  skipFileTools?: boolean; // Skip file tools entirely (e.g., Learn Mode with only images)
 }) =>
   safe(APP_DEFAULT_TOOL_KIT)
     .map((tools) => {
@@ -314,7 +317,21 @@ export const loadAppDefaultTools = (opt?: {
         }, {});
       }
 
-      // Context-aware tool loading
+      // Skip file tools entirely (e.g., Learn Mode with only images, no documents)
+      if (opt?.skipFileTools) {
+        return {};
+      }
+
+      // Learn Mode: ONLY load file search tools (no web search, no other tools)
+      if (opt?.onlyFileSearch && opt?.userId) {
+        const fileTools = createFileTools(opt.userId, opt.threadId);
+        return {
+          [DefaultToolName.FileSearch]: fileTools.fileSearch,
+          [DefaultToolName.FilesList]: fileTools.filesList,
+        };
+      }
+
+      // Context-aware tool loading (for non-Learn modes)
       let toolkitsToInclude: string[];
 
       if (opt?.messages) {
@@ -354,8 +371,19 @@ export const loadAppDefaultTools = (opt?: {
         toolkitsToInclude.reduce(
           (acc, key) => {
             if (key === AppDefaultToolkit.FileSearch && opt?.userId) {
-              // Special handling for file tools - create them with userId
-              const fileTools = createFileTools(opt.userId);
+              // Special handling for file tools - create them with userId and threadId
+              const fileTools = createFileTools(opt.userId, opt.threadId);
+
+              // For Learn Mode, only include fileSearch and filesList (exclude problematic UUID-based tools)
+              if (opt.onlyFileSearch) {
+                return {
+                  ...acc,
+                  [DefaultToolName.FileSearch]: fileTools.fileSearch,
+                  [DefaultToolName.FilesList]: fileTools.filesList,
+                };
+              }
+
+              // For Chat Mode, include all file tools
               return {
                 ...acc,
                 [DefaultToolName.FileSearch]: fileTools.fileSearch,

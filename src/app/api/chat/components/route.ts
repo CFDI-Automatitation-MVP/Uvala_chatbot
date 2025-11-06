@@ -3,21 +3,93 @@ import { getSession } from "@/lib/auth/supabase-auth";
 import {
   UIMessage,
   convertToModelMessages,
-  smoothStream,
+  createUIMessageStream,
+  createUIMessageStreamResponse,
   streamText,
+  stepCountIs,
 } from "ai";
 import { customModelProvider } from "lib/ai/models";
-import { chatRepository } from "lib/db/repository";
 import globalLogger from "logger";
 import { colorize } from "consola/utils";
 import { checkUserLimits } from "@/lib/subscription-limits";
 import { trackUsage } from "@/lib/ai/usage-tracker";
 import { COMPONENTS_SYSTEM } from "@/lib/ai/mode-prompts";
-import { chatApiSchemaRequestBodySchema } from "app-types/chat";
+import { chatRepository } from "lib/db/repository";
+import { generateUUID } from "lib/utils";
+import { handleError } from "../shared.chat";
+// import { pexelsSearchTool } from "@/lib/ai/tools/image/pexels-search"; // Disabled for AI-only testing
+import { generateImageComponentsTool } from "@/lib/ai/tools/image/generate-image-components";
 
 const logger = globalLogger.withDefaults({
   message: colorize("magentaBright", `Components API: `),
 });
+
+/**
+ * Replace fake replicate.delivery URLs with real ones from tool responses
+ * This fixes the model's hallucination issue where it creates plausible-looking URLs
+ * instead of using the actual URLs returned by the generateImage tool.
+ */
+function replaceFakeURLsWithReal(
+  messageParts: any[],
+  realUrls: string[],
+): any[] {
+  if (realUrls.length === 0) {
+    return messageParts; // No real URLs to replace with
+  }
+
+  // Regex to match replicate.delivery URLs
+  const replicateUrlRegex =
+    /https:\/\/replicate\.delivery\/[a-zA-Z0-9]+\/[a-zA-Z0-9_\-\.]+\/[a-zA-Z0-9_\-\.]+\.[a-z]+/g;
+
+  return messageParts.map((part) => {
+    if (part.type === "text" && typeof part.text === "string") {
+      const originalText = part.text;
+      let replacementCount = 0;
+
+      // Find all replicate.delivery URLs in the text
+      const urlsInText = originalText.match(replicateUrlRegex) || [];
+
+      // Check which URLs are fake (not in realUrls list)
+      const fakeUrls = urlsInText.filter((url) => !realUrls.includes(url));
+
+      if (fakeUrls.length > 0) {
+        logger.info(
+          `🔧 COMPONENTS - URL Replacement: Found ${fakeUrls.length} fake URLs, ${realUrls.length} real URLs available`,
+        );
+
+        let modifiedText = originalText;
+
+        // Replace ALL fake URLs with real ones (cycle through real URLs if needed)
+        fakeUrls.forEach((fakeUrl, index) => {
+          // Cycle through real URLs if we have more fake URLs than real ones
+          const realUrl = realUrls[index % realUrls.length];
+          // Replace ALL occurrences of this fake URL with the real one
+          const regex = new RegExp(
+            fakeUrl.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+            "g",
+          );
+          modifiedText = modifiedText.replace(regex, realUrl);
+          replacementCount++;
+          logger.info(
+            `🔄 COMPONENTS - Replaced fake URL:\n  FROM: ${fakeUrl}\n  TO: ${realUrl}`,
+          );
+        });
+
+        if (replacementCount > 0) {
+          logger.info(
+            `✅ COMPONENTS - Successfully replaced ${replacementCount} fake URL(s) with real ones`,
+          );
+        }
+
+        return {
+          ...part,
+          text: modifiedText,
+        };
+      }
+    }
+    return part;
+  });
+}
 
 export async function POST(request: Request) {
   try {
@@ -29,182 +101,43 @@ export async function POST(request: Request) {
       return redirect("/sign-in");
     }
 
-    const { messages, chatModel } = json as {
-      messages?: UIMessage[];
+    const { id, messages, chatModel } = json as {
+      id: string;
+      messages: UIMessage[];
       chatModel?: {
         provider: string;
         model: string;
       };
     };
 
+    // Get or create thread
+    let thread = await chatRepository.selectThreadDetails(id);
+
+    if (!thread) {
+      logger.info(`📝 Create Components thread: ${id}`);
+      const newThread = await chatRepository.insertThread({
+        id,
+        title: "",
+        userId: session.user.id,
+      });
+      thread = await chatRepository.selectThreadDetails(newThread.id);
+    }
+
+    if (thread!.userId !== session.user.id) {
+      return new Response("Forbidden", { status: 403 });
+    }
+
     logger.info(
       `🎨 COMPONENTS MODE - Using model: ${chatModel?.provider}/${chatModel?.model}`,
     );
     const model = customModelProvider.getModel(chatModel);
     logger.info(
-      `🔧 COMPONENTS MODE - Resolved to actual model: qwen3-32b (uvala-components)`,
+      `🔧 COMPONENTS MODE - Resolved to actual model: gpt-oss-120b with medium reasoning (uvala-components)`,
     );
-
-    let normalizedMessages: UIMessage[] | undefined = Array.isArray(messages)
-      ? messages
-      : undefined;
-
-    if (!normalizedMessages) {
-      const legacyRequest = chatApiSchemaRequestBodySchema.safeParse(json);
-      if (legacyRequest.success) {
-        const { id, message } = legacyRequest.data;
-
-        let thread = await chatRepository.selectThreadDetails(id);
-
-        if (!thread) {
-          logger.info(`🧵 COMPONENTS - Creating new thread for id ${id}`);
-          const newThread = await chatRepository.insertThread({
-            id,
-            title: "",
-            userId: session.user.id,
-          });
-          thread = await chatRepository.selectThreadDetails(newThread.id);
-        }
-
-        if (!thread || thread.userId !== session.user.id) {
-          return new Response("Forbidden", { status: 403 });
-        }
-
-        normalizedMessages = (thread.messages ?? []).map((m) => ({
-          id: m.id,
-          role: m.role,
-          parts: m.parts,
-          metadata: m.metadata,
-        }));
-
-        if (normalizedMessages.at(-1)?.id === message.id) {
-          normalizedMessages.pop();
-        }
-
-        normalizedMessages.push(message);
-
-        logger.info(
-          `🔁 COMPONENTS - Reconstructed ${normalizedMessages.length} messages from thread ${id}`,
-        );
-      } else if ((json as { message?: UIMessage }).message) {
-        const fallbackMessage = (json as { message?: UIMessage }).message;
-        normalizedMessages = fallbackMessage ? [fallbackMessage] : undefined;
-
-        logger.warn(
-          `⚠️ COMPONENTS - Received legacy payload without valid thread context; proceeding with ${normalizedMessages?.length ?? 0} message(s)`,
-          {
-            issues: legacyRequest.error.flatten(),
-          },
-        );
-      }
-    }
-
-    if (!normalizedMessages?.length) {
-      logger.error("❌ COMPONENTS - No messages provided in request body");
-      return new Response(
-        JSON.stringify({
-          error: "No messages provided",
-        }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-    }
-
-    let processedMessages = [...normalizedMessages];
-
-    const latestUserMessage = processedMessages.at(-1);
-    const previousAssistantMessage = processedMessages
-      .slice(0, -1)
-      .reverse()
-      .find((msg) => msg.role === "assistant");
-
-    const extractExistingComponentCode = (message?: UIMessage) => {
-      if (!message) return null;
-      const combinedText = message.parts
-        .filter(
-          (part): part is Extract<typeof part, { type: "text" }> =>
-            part.type === "text" && !!part.text,
-        )
-        .map((part) => part.text || "")
-        .join("\n\n");
-
-      const codeMatch =
-        combinedText.match(/```(?:jsx|tsx|js|ts)?\s*[\r\n]+([\s\S]*?)```/) ??
-        combinedText.match(/~~~(?:jsx|tsx|js|ts)?\s*[\r\n]+([\s\S]*?)~~~/);
-
-      return codeMatch?.[1]?.trim() || null;
-    };
-
-    if (
-      latestUserMessage?.role === "user" &&
-      previousAssistantMessage?.role === "assistant"
-    ) {
-      const existingComponentCode = extractExistingComponentCode(
-        previousAssistantMessage,
-      );
-
-      if (existingComponentCode) {
-        const instructionMarker =
-          "Modify only the parts needed for the requested changes while keeping the rest intact.";
-
-        const hasInstruction = latestUserMessage.parts?.some(
-          (part) =>
-            part.type === "text" &&
-            part.text?.includes(instructionMarker) &&
-            part.text.includes(existingComponentCode),
-        );
-
-        if (!hasInstruction) {
-          const contextInstruction = [
-            "",
-            "Please update the existing component below instead of rebuilding it. Modify only the parts needed for the requested changes while keeping the rest intact.",
-            "",
-            "```jsx",
-            existingComponentCode,
-            "```",
-          ].join("\n");
-
-          let appended = false;
-          const updatedParts =
-            latestUserMessage.parts?.map((part) => {
-              if (!appended && part.type === "text") {
-                appended = true;
-                const baseText = part.text ?? "";
-                const separator =
-                  baseText.endsWith("\n") || baseText === "" ? "" : "\n";
-                return {
-                  ...part,
-                  text: `${baseText}${separator}${contextInstruction}`,
-                };
-              }
-              return part;
-            }) ?? [];
-
-          if (!appended) {
-            updatedParts.push({
-              type: "text",
-              text: contextInstruction.trimStart(),
-            } as UIMessage["parts"][number]);
-          }
-
-          const updatedUserMessage: UIMessage = {
-            ...latestUserMessage,
-            parts: updatedParts,
-          };
-
-          processedMessages = [
-            ...processedMessages.slice(0, -1),
-            updatedUserMessage,
-          ];
-        }
-      }
-    }
 
     // Estimate token usage for limit checking
     const estimatedInputTokens =
-      processedMessages.reduce((acc, msg) => {
+      (messages || []).reduce((acc, msg) => {
         if (!msg || !msg.parts) return acc;
         const textParts =
           msg.parts.filter((part) => part && part.type === "text") || [];
@@ -238,40 +171,177 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create the streaming response with usage tracking
-    const result = streamText({
-      model,
-      system: COMPONENTS_SYSTEM,
-      messages: convertToModelMessages(processedMessages),
-      experimental_transform: smoothStream({ chunking: "word" }),
-      maxOutputTokens: 16000, // Qwen3-32B supports up to 16k tokens
-      onFinish: async (completion) => {
-        if (completion.usage) {
+    // Get the last user message
+    const lastUserMessage = messages[messages.length - 1];
+    const metadata: any = {};
+    let toolCallsCount = 0; // Track tool usage for this session
+    let imageGenerations = 0; // Track AI image generations
+    const generatedImageUrls: string[] = []; // Store real URLs from generateImage tool
+
+    // Create UI message stream for proper message handling
+    const stream = createUIMessageStream({
+      execute: async ({ writer: dataStream }) => {
+        const result = streamText({
+          model,
+          system: COMPONENTS_SYSTEM,
+          messages: convertToModelMessages(messages),
+          maxOutputTokens: 16000, // GPT-OSS 120B supports up to 16k tokens
+          temperature: 0.4, // Low temperature for determinism with slight flexibility
+          topP: 1.0, // Full vocabulary distribution
+          stopWhen: stepCountIs(5), // CRITICAL: Enable multi-step execution (tool calls → automatic continuation → code generation) - AI SDK 5.0 syntax
+          tools: {
+            // searchStockImages: pexelsSearchTool, // Pexels stock photos (free) - DISABLED for testing
+            generateImage: generateImageComponentsTool, // AI image generation (AI-only mode)
+          },
+          toolChoice: "auto", // Model uses AI generation for all images
+          // AWS Bedrock-specific settings for GPT-OSS 120B (uvala-components)
+          ...{
+            additionalModelRequestFields: {
+              reasoning_effort: "high", // High = deep reasoning for tool calling workflows
+            },
+          },
+          onStepFinish: async ({ toolCalls, toolResults }) => {
+            // Log tool usage for debugging
+            if (toolCalls && toolCalls.length > 0) {
+              toolCallsCount += toolCalls.length; // Track total tool calls
+
+              // Count image generations
+              toolCalls.forEach((call: any) => {
+                if (call.toolName === "generateImage") {
+                  imageGenerations++;
+                }
+              });
+
+              logger.info(`🔧 COMPONENTS - Tool calls detected:`, {
+                count: toolCalls.length,
+                tools: toolCalls.map((call: any) => ({
+                  name: call.toolName,
+                  args: call.args,
+                })),
+              });
+            }
+            if (toolResults && toolResults.length > 0) {
+              // Collect real image URLs from generateImage tool responses
+              toolResults.forEach((result: any) => {
+                if (
+                  result.toolName === "generateImage" &&
+                  result.output?.success === true &&
+                  result.output?.imageUrl
+                ) {
+                  generatedImageUrls.push(result.output.imageUrl);
+                  logger.info(
+                    `📸 COMPONENTS - Captured real URL: ${result.output.imageUrl}`,
+                  );
+                }
+              });
+
+              // Log full result structure for debugging
+              logger.info(`✅ COMPONENTS - Tool results received (RAW):`, {
+                fullResults: JSON.stringify(toolResults, null, 2),
+              });
+              logger.info(`✅ COMPONENTS - Tool results (formatted):`, {
+                count: toolResults.length,
+                results: toolResults.map((result: any) => ({
+                  name: result.toolName,
+                  success: !result.output?.isError,
+                  imageCount: result.output?.count || 0,
+                  hasImages: !!result.output?.images,
+                  firstImageUrl: result.output?.images?.[0]?.urls?.medium,
+                  photographer: result.output?.images?.[0]?.photographer,
+                })),
+              });
+            }
+          },
+        });
+
+        result.consumeStream();
+        dataStream.merge(
+          result.toUIMessageStream({
+            messageMetadata: ({ part }) => {
+              if (part.type === "finish") {
+                metadata.usage = part.totalUsage;
+                metadata.chatModel = chatModel || {
+                  provider: "Internal",
+                  model: "uvala-components",
+                };
+                return metadata;
+              }
+            },
+          }),
+        );
+      },
+
+      generateId: generateUUID,
+      onFinish: async ({ responseMessage }) => {
+        // POST-PROCESSING: Replace fake URLs with real ones from generateImage tool
+        const correctedParts = replaceFakeURLsWithReal(
+          responseMessage.parts,
+          generatedImageUrls,
+        );
+
+        // Create corrected message
+        const correctedMessage = {
+          ...responseMessage,
+          parts: correctedParts,
+        };
+
+        // Save user and assistant messages with corrected URLs
+        if (responseMessage.id === lastUserMessage.id) {
+          // Single message case
+          await chatRepository.upsertMessage({
+            threadId: thread!.id,
+            ...correctedMessage,
+            metadata,
+          });
+        } else {
+          // User message and assistant message are separate
+          await chatRepository.upsertMessage({
+            threadId: thread!.id,
+            role: lastUserMessage.role,
+            parts: lastUserMessage.parts,
+            id: lastUserMessage.id,
+          });
+          await chatRepository.upsertMessage({
+            threadId: thread!.id,
+            role: correctedMessage.role,
+            id: correctedMessage.id,
+            parts: correctedMessage.parts,
+            metadata,
+          });
+        }
+
+        if (metadata.usage) {
           logger.info(`🔍 COMPONENTS - USAGE BREAKDOWN:`, {
-            inputTokens: completion.usage.inputTokens,
-            outputTokens: completion.usage.outputTokens,
-            totalTokens: completion.usage.totalTokens,
+            inputTokens: metadata.usage.inputTokens,
+            outputTokens: metadata.usage.outputTokens,
+            totalTokens: metadata.usage.totalTokens,
+            toolCalls: toolCallsCount,
+            imageGenerations: imageGenerations,
           });
 
           // Track usage (counts toward main limits)
           await trackUsage({
-            usage: completion.usage,
+            usage: metadata.usage,
             userId: session.user.id,
-            chatModel: chatModel || {
-              provider: "Internal",
-              model: "uvala-components",
+            chatModel: metadata.chatModel,
+            toolCallsCount, // Track total tool calls
+            toolUsage: {
+              imageGenerations, // Track AI image generations separately
             },
-            toolCallsCount: 0, // Components mode doesn't use tools
           });
 
           logger.info(
-            `✅ COMPONENTS - Session completed for user ${session.user.id}`,
+            `✅ COMPONENTS - Messages saved and session completed for user ${session.user.id}`,
           );
         }
       },
+      onError: handleError,
+      originalMessages: messages,
     });
 
-    return result.toUIMessageStreamResponse();
+    return createUIMessageStreamResponse({
+      stream,
+    });
   } catch (error) {
     logger.error("Components API error:", error);
     return new Response(

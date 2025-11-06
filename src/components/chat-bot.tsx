@@ -151,10 +151,11 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           }
           const lastMessage = messages.at(-1)!;
 
-          // For components mode, send all messages directly
+          // Components mode uses a different request format
           if (latestRef.current.chatMode === "components") {
             return {
               body: {
+                id, // Include thread ID for message saving
                 messages,
                 chatModel:
                   (body as { model: ChatModel })?.model ??
@@ -163,7 +164,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
             };
           }
 
-          // For normal mode, use the standard request body format
+          // Standard chat mode format
           const requestBody: ChatApiSchemaRequestBody = {
             ...body,
             id,
@@ -261,6 +262,11 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     useState(false);
   const [componentProgress, setComponentProgress] = useState(0);
 
+  const _currentThread = useMemo(
+    () => threadList.find((thread) => thread.id === threadId),
+    [threadList, threadId],
+  );
+
   const latestComponentMessage = useMemo(() => {
     if (chatMode !== "components") return null;
 
@@ -297,37 +303,16 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
       const combinedText = textParts
         .map((part) => part.text ?? "")
         .join("\n\n");
+      const intro = combinedText.split(/```/)[0]?.trim();
 
-      const segments: string[] = [];
-      const fenceRegex = /```[\s\S]*?```/g;
-      let lastIndex = 0;
-      let match: RegExpExecArray | null;
-      while ((match = fenceRegex.exec(combinedText))) {
-        const segment = combinedText.slice(lastIndex, match.index).trim();
-        if (segment) segments.push(segment);
-        lastIndex = match.index + match[0].length;
-      }
-      const tail = combinedText.slice(lastIndex).trim();
-      if (tail) segments.push(tail);
-
-      if (!segments.length) return null;
-
-      const intro = segments[0];
-      const outro =
-        segments.length > 1 ? segments[segments.length - 1] : undefined;
-
-      const displayText = [intro, outro && outro !== intro ? outro : undefined]
-        .filter(Boolean)
-        .join("\n\n");
-
-      if (!displayText) return null;
+      if (!intro) return null;
 
       return {
         ...message,
         parts: [
           {
             ...textParts[0],
-            text: displayText,
+            text: intro,
           },
         ],
       };

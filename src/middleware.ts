@@ -6,6 +6,24 @@ import { csrfMiddleware } from "@/lib/security/csrf";
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  const shouldEnforceHttps =
+    process.env.NODE_ENV === "production" && process.env.NO_HTTPS !== "1";
+  if (shouldEnforceHttps) {
+    const host = request.headers.get("host") || request.nextUrl.host;
+    const isLocalhost =
+      host?.includes("localhost") ||
+      host?.startsWith("127.") ||
+      host?.includes("::1");
+    const forwardedProto = request.headers.get("x-forwarded-proto");
+    const protocol = forwardedProto?.split(",")[0] || request.nextUrl.protocol;
+    const normalizedProtocol = protocol?.toLowerCase().replace(/:$/, "");
+    if (!isLocalhost && normalizedProtocol !== "https") {
+      const redirectUrl = new URL(request.url);
+      redirectUrl.protocol = "https:";
+      return NextResponse.redirect(redirectUrl, { status: 308 });
+    }
+  }
+
   // Apply rate limiting first (before any other processing)
   const rateLimitResult = await rateLimitMiddleware(request);
   if (rateLimitResult instanceof Response) {
