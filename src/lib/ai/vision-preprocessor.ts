@@ -66,7 +66,7 @@ Be brief but complete. Focus on educational value.`,
           ],
         },
       ],
-      maxTokens: 300, // Max output tokens for vision analysis
+      maxOutputTokens: 300, // Max output tokens for vision analysis
       // GPT-5-mini is a reasoning model - use minimal reasoning effort for fast vision analysis
       providerOptions: {
         openai: {

@@ -262,11 +262,6 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     useState(false);
   const [componentProgress, setComponentProgress] = useState(0);
 
-  const _currentThread = useMemo(
-    () => threadList.find((thread) => thread.id === threadId),
-    [threadList, threadId],
-  );
-
   const latestComponentMessage = useMemo(() => {
     if (chatMode !== "components") return null;
 
