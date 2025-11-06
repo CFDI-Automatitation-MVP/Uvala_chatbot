@@ -687,6 +687,7 @@
     "coder": "Coder",
     "promptBuilder": "Prompt Builder",
     "learn": "Learn",
+    "components": "Components",
     "coderModeTitle": "Coder Mode",
     "coderModeDescription": "Expert coding assistance powered by AI",
     "coderSuggestion1": "Create dashboard card with chart",
@@ -705,6 +706,12 @@
     "learnSuggestion2": "Quiz me on algebra",
     "learnSuggestion3": "Explain the French Revolution",
     "learnSuggestion4": "Practice Spanish conversation",
+    "componentsModeTitle": "Components Mode",
+    "componentsModeDescription": "Create beautiful, reusable UI components",
+    "componentsSuggestion1": "Create a modern button component",
+    "componentsSuggestion2": "Build a responsive navbar",
+    "componentsSuggestion3": "Design a card component with image",
+    "componentsSuggestion4": "Create an input field with validation",
     "suggestedPrompts": "Suggested Prompts"
   },
   "Pricing": {

@@ -743,6 +743,7 @@
     "coder": "Programador",
     "promptBuilder": "Diseñador de Prompts",
     "learn": "Aprende",
+    "components": "Componentes",
     "coderModeTitle": "Modo Programador",
     "coderModeDescription": "Asistencia experta en programación impulsada por IA",
     "coderSuggestion1": "Crear tarjeta de dashboard con gráfica",
@@ -761,6 +762,12 @@
     "learnSuggestion2": "Hazme un quiz sobre álgebra",
     "learnSuggestion3": "Explícame la Revolución Francesa",
     "learnSuggestion4": "Practica conversación en inglés",
+    "componentsModeTitle": "Modo Componentes",
+    "componentsModeDescription": "Crea componentes de UI hermosos y reutilizables",
+    "componentsSuggestion1": "Crea un componente de botón moderno",
+    "componentsSuggestion2": "Construye una barra de navegación responsive",
+    "componentsSuggestion3": "Diseña un componente de tarjeta con imagen",
+    "componentsSuggestion4": "Crea un campo de entrada con validación",
     "suggestedPrompts": "Prompts Sugeridos"
   },
   "Sidebar": {

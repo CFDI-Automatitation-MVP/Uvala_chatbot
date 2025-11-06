@@ -14,6 +14,9 @@ export const MODEL_PRICING = {
     output: 2.0,
     cachedInput: 0.025,
     reasoning: 2.0,
+    // Vision pricing: Images processed as tokens
+    // Low detail: ~85 tokens = $0.00002125 per image
+    // High detail: ~765 tokens = $0.00019125 per image (1024×1024)
   },
   "openai/gpt-5-nano": {
     input: 0.05,
@@ -62,6 +65,12 @@ export const MODEL_PRICING = {
   "Internal/uvala-coder": {
     input: 0.15, // $0.15 per 1M input tokens (Fireworks pricing)
     output: 0.6, // $0.60 per 1M output tokens (Fireworks pricing)
+    cachedInput: 0.15,
+    reasoning: 0.6,
+  },
+  "Internal/uvala-sensei": {
+    input: 0.15, // AWS Bedrock GPT-OSS-120B pricing
+    output: 0.6,
     cachedInput: 0.15,
     reasoning: 0.6,
   },
@@ -289,6 +298,7 @@ function normalizeModelId(modelId: string): string {
     "uvala-everest": "openai/gpt-5-mini", // Main Uvala model using mini pricing
     "uvala-prompter": "openai/gpt-5-nano", // Prompt builder model
     "uvala-coder": "Internal/uvala-coder", // Coder model
+    "uvala-sensei": "Internal/uvala-sensei", // Learn mode model (Qwen3-32B)
     "gpt-4.1": "openai/gpt-4.1",
     "gpt-4.1-mini": "openai/gpt-4.1-mini",
     o3: "openai/o3",

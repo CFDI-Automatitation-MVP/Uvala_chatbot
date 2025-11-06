@@ -18,6 +18,7 @@ import {
   CODER_SYSTEM,
   PROMPT_BUILDER_SYSTEM,
   LEARN_SYSTEM,
+  COMPONENTS_SYSTEM,
 } from "lib/ai/mode-prompts";
 
 import { errorIf, safe } from "ts-safe";
@@ -44,6 +45,7 @@ import {
   logTruncationResult,
 } from "lib/ai/context-manager";
 import { checkUserLimits, formatLimitError } from "@/lib/subscription-limits";
+import { preprocessFileAttachments } from "@/lib/ai/vision-preprocessor";
 
 const logger = globalLogger.withDefaults({
   message: colorize("blackBright", `Chat API: `),
@@ -121,10 +123,60 @@ export async function POST(request: Request) {
       chatModel: chatModel,
     };
 
+    // Vision preprocessing variables (for Learn Mode)
+    let visionTokensUsed = 0;
+    let visionCost = 0;
+
     const stream = createUIMessageStream({
       execute: async ({ writer: dataStream }) => {
         const WORKFLOW_TOOLS = {};
 
+        // Note: APP_DEFAULT_TOOLS and tool handling will be done after we check for files in Learn Mode
+
+        logger.info(
+          `${agent ? `agent: ${agent.name}, ` : ""}tool mode: ${toolChoice}, mentions: ${mentions.length}`,
+        );
+
+        logger.info(
+          `allowedAppDefaultToolkit: ${allowedAppDefaultToolkit?.length ?? 0}`,
+        );
+        logger.info(`model: ${chatModel?.provider}/${chatModel?.model}`);
+
+        // For Learn Mode with documents, query database for uploaded files in this thread
+        // (since we strip document file parts from messages)
+        let dbFiles: Array<{ id: string; name: string; contentType: string }> =
+          [];
+        if (chatMode === "learn") {
+          try {
+            const { createClient } = await import("@supabase/supabase-js");
+            const supabase = createClient(
+              process.env.NEXT_PUBLIC_SUPABASE_URL!,
+              process.env.SUPABASE_SERVICE_ROLE_KEY!,
+            );
+
+            const { data: filesData } = await supabase
+              .from("files")
+              .select("id, original_filename, content_type")
+              .eq("user_id", session.user.id)
+              .eq("thread_id", id)
+              .order("created_at", { ascending: false });
+
+            if (filesData && filesData.length > 0) {
+              dbFiles = filesData.map((f) => ({
+                id: f.id,
+                name: f.original_filename,
+                contentType: f.content_type,
+              }));
+              logger.info(
+                `📚 LEARN MODE - Found ${dbFiles.length} files in database for thread ${id}`,
+              );
+            }
+          } catch (error) {
+            logger.error("Error querying files from database:", error);
+          }
+        }
+
+        // Load tools AFTER we know if there are files (needed for skipFileTools check)
         const APP_DEFAULT_TOOLS = safe()
           .map(errorIf(() => !isToolCallAllowed && "Not allowed"))
           .map(() =>
@@ -132,10 +184,25 @@ export async function POST(request: Request) {
               mentions,
               allowedAppDefaultToolkit,
               userId: session.user.id,
-              messages, // Pass messages for context-aware tool loading
+              threadId: id,
+              messages,
+              onlyFileSearch: chatMode === "learn",
+              skipFileTools: chatMode === "learn" && dbFiles.length === 0,
             }),
           )
           .orElse({});
+
+        logger.info(
+          `🔧 Loaded tools: ${Object.keys(APP_DEFAULT_TOOLS).join(", ")}`,
+        );
+        logger.info(
+          `🔧 Chat mode: ${chatMode}, DB files: ${dbFiles.length}, Skip file tools: ${chatMode === "learn" && dbFiles.length === 0}`,
+        );
+        logger.info(
+          `binding tool count APP_DEFAULT: ${Object.keys(APP_DEFAULT_TOOLS ?? {}).length}, Workflow: ${Object.keys(WORKFLOW_TOOLS ?? {}).length}`,
+        );
+
+        // Handle in-progress tool calls
         const inProgressToolParts = extractInProgressToolPart(message);
         if (inProgressToolParts.length) {
           await Promise.all(
@@ -166,6 +233,8 @@ export async function POST(request: Request) {
           systemPrompt = PROMPT_BUILDER_SYSTEM;
         } else if (chatMode === "learn") {
           systemPrompt = LEARN_SYSTEM;
+        } else if (chatMode === "components") {
+          systemPrompt = COMPONENTS_SYSTEM;
         } else {
           systemPrompt = buildUserSystemPrompt(
             session.user,
@@ -174,6 +243,7 @@ export async function POST(request: Request) {
           );
         }
 
+        // Merge workflow and app default tools
         const vercelAITooles = safe({ ...WORKFLOW_TOOLS })
           .map((t) => {
             const bindingTools =
@@ -183,33 +253,21 @@ export async function POST(request: Request) {
                 : t;
             return {
               ...bindingTools,
-              ...APP_DEFAULT_TOOLS, // APP_DEFAULT_TOOLS Not Supported Manual
+              ...APP_DEFAULT_TOOLS,
             };
           })
           .unwrap();
         metadata.toolCount = Object.keys(vercelAITooles).length;
 
-        logger.info(
-          `${agent ? `agent: ${agent.name}, ` : ""}tool mode: ${toolChoice}, mentions: ${mentions.length}`,
-        );
-
-        logger.info(
-          `allowedAppDefaultToolkit: ${allowedAppDefaultToolkit?.length ?? 0}`,
-        );
-        logger.info(
-          `binding tool count APP_DEFAULT: ${Object.keys(APP_DEFAULT_TOOLS ?? {}).length}, Workflow: ${Object.keys(WORKFLOW_TOOLS ?? {}).length}`,
-        );
-        logger.info(`model: ${chatModel?.provider}/${chatModel?.model}`);
-
-        // Collect file attachments before truncation for persistence
+        // Collect file attachments from messages (for non-Learn modes)
         const allAttachments: Array<{
           name: string;
           contentType: string;
           url: string;
         }> = [];
 
-        // Only process files if messages exist and are valid
-        if (messages && Array.isArray(messages)) {
+        // Only process files if messages exist and are valid (skip for Learn Mode)
+        if (messages && Array.isArray(messages) && chatMode !== "learn") {
           for (const msg of messages) {
             if (
               msg?.role === "user" &&
@@ -234,8 +292,107 @@ export async function POST(request: Request) {
           }
         }
 
+        // ============= VISION PREPROCESSING FOR LEARN MODE =============
+        let messagesForProcessing = messages;
+
+        if (chatMode === "learn") {
+          // Check for drag-and-drop file attachments
+          const lastMessage = messages[messages.length - 1];
+          const fileParts =
+            lastMessage.parts?.filter((p) => p.type === "file") || [];
+
+          // Separate images from documents
+          const imageParts = fileParts.filter((p) =>
+            p.mediaType?.startsWith("image/"),
+          );
+          const documentParts = fileParts.filter(
+            (p) => !p.mediaType?.startsWith("image/"),
+          );
+
+          // Process images with vision preprocessing (GPT-5 mini)
+          if (imageParts.length > 0) {
+            // Process images with vision preprocessing
+            logger.info(
+              `🔍 LEARN MODE - Detected ${imageParts.length} image(s)`,
+            );
+
+            const { contextString, analyses, totalTokens, totalCost } =
+              await preprocessFileAttachments(imageParts);
+
+            visionTokensUsed = totalTokens;
+            visionCost = totalCost;
+
+            logger.info(
+              `📊 LEARN MODE - Vision preprocessing: ${totalTokens} tokens, $${totalCost.toFixed(6)}`,
+            );
+
+            // Log each analysis summary
+            analyses.forEach((analysis) => {
+              logger.info(
+                `  - 🖼️ ${analysis.filename}: ${analysis.tokensUsed} tokens (${analysis.processingTimeMs}ms)`,
+              );
+            });
+
+            // Inject file analysis into the user's message
+            const textContent = lastMessage.parts
+              ?.filter((p) => p.type === "text")
+              .map((p) => (p as any).text)
+              .join("\n");
+
+            // Create enhanced message with file context
+            const enhancedMessage: UIMessage = {
+              ...lastMessage,
+              parts: [
+                {
+                  type: "text",
+                  text: `${contextString}\n\n---\n\n**Student Question:** ${textContent}`,
+                },
+              ],
+            };
+
+            // Replace last message with enhanced version
+            messagesForProcessing = [...messages.slice(0, -1), enhancedMessage];
+
+            logger.info(`✅ LEARN MODE - Image preprocessing complete`);
+          }
+
+          // Documents will be handled via file search tools (not preprocessing)
+          // Strip document file parts from messages since Qwen doesn't support document attachments
+          if (documentParts.length > 0) {
+            logger.info(
+              `📄 LEARN MODE - Detected ${documentParts.length} document(s) - will use file search tools`,
+            );
+
+            // Remove document file parts from the last message (keep only text and images)
+            const currentMsg =
+              messagesForProcessing[messagesForProcessing.length - 1];
+            const filteredParts = currentMsg.parts?.filter(
+              (p) =>
+                p.type !== "file" || (p as any).mediaType?.startsWith("image/"),
+            );
+
+            const cleanedMessage: UIMessage = {
+              ...currentMsg,
+              parts: filteredParts,
+            };
+
+            messagesForProcessing = [
+              ...messagesForProcessing.slice(0, -1),
+              cleanedMessage,
+            ];
+
+            logger.info(
+              `🧹 LEARN MODE - Removed document file parts from message (AI will access via tools)`,
+            );
+          }
+        }
+        // ================================================================
+
         // Context truncation optimization
-        const truncationResult = truncateConversation(messages, chatModel!);
+        const truncationResult = truncateConversation(
+          messagesForProcessing,
+          chatModel!,
+        );
         logTruncationResult(truncationResult, logger);
 
         // Use truncated messages for the API call
@@ -305,25 +462,95 @@ export async function POST(request: Request) {
         logger.info(
           `Processing ${optimizedMessages.length} messages after truncation`,
         );
-        logger.info(
-          `Final files to include: ${allAttachments.length > 0 ? allAttachments.map((f) => f.name).join(", ") : "none"}`,
-        );
+
+        const fileList =
+          chatMode === "learn"
+            ? dbFiles.map((f) => f.name).join(", ") || "none"
+            : allAttachments.map((f) => f.name).join(", ") || "none";
+
+        logger.info(`Final files to include: ${fileList}`);
 
         // Verify files are preserved even if messages were truncated
-        if (allAttachments.length > 0 && truncationResult.truncated) {
+        if (
+          (allAttachments.length > 0 || dbFiles.length > 0) &&
+          truncationResult.truncated
+        ) {
           logger.info(
-            `Truncation occurred but ${allAttachments.length} files preserved for persistent access`,
+            `Truncation occurred but ${allAttachments.length + dbFiles.length} files preserved for persistent access`,
           );
         }
 
         // Update system prompt to include file information if files are available
-        const enhancedSystemPrompt =
-          allAttachments.length > 0
+        const hasFiles =
+          chatMode === "learn" ? dbFiles.length > 0 : allAttachments.length > 0;
+        const fileListForPrompt =
+          chatMode === "learn"
+            ? dbFiles.map((f) => `- ${f.name} (${f.contentType})`).join("\n")
+            : allAttachments
+                .map((f) => `- ${f.name} (${f.contentType})`)
+                .join("\n");
+
+        const enhancedSystemPrompt = hasFiles
+          ? chatMode === "learn"
             ? `${systemPrompt}
+
+<document_access>
+The student has uploaded document(s) for learning assistance:
+${fileListForPrompt}
+
+**AVAILABLE TOOLS:**
+
+1. **fileSearch** - Search document content (USE THIS TO READ THE DOCUMENT)
+   - Input: { query: "what to search for", searchMode: "semantic" | "exact" }
+   - Output: Array of results with "content" field containing REAL document text
+   - Use searchMode: "semantic" for concepts, topics, themes, main ideas
+   - Use searchMode: "exact" for specific terms, quotes, section numbers
+   - Example: fileSearch({ query: "introduction main topic", searchMode: "semantic" })
+
+2. **filesList** - Get list of uploaded files (rarely needed)
+   - Use only when student asks "what files do I have?"
+
+**HOW TO TEACH WITH DOCUMENTS:**
+
+Step 1: Call fileSearch with relevant query based on student's question
+   - Student asks: "What is this document about?"
+   - You call: fileSearch({ query: "introduction purpose overview main topic", searchMode: "semantic" })
+   - Student asks: "What does section 3.2 say?"
+   - You call: fileSearch({ query: "3.2", searchMode: "exact" })
+
+Step 2: Read the "content" field from results CAREFULLY
+   - Tool returns: [{ content: "This paper presents...", fileName: "doc.pdf", similarity: 95 }]
+   - The "content" field contains ACTUAL text from the document - READ IT WORD BY WORD!
+
+Step 3: Base your teaching ONLY on that REAL content
+   - Quote specific parts from what you read
+   - Use Socratic method to guide the student
+   - Ask questions that help them discover insights
+   - If no results, say "I couldn't find that in the document"
+
+**CRITICAL RULES:**
+✅ DO: Base ALL answers on content returned by fileSearch
+✅ DO: Quote or reference specific parts you read
+✅ DO: Call fileSearch multiple times with different queries if needed
+✅ DO: Say "I couldn't find information about X" if search returns no results
+❌ DON'T: Make up or hallucinate document content - NEVER!
+❌ DON'T: Provide detailed summaries without calling fileSearch first
+❌ DON'T: Say "Based on the document..." unless you ACTUALLY read it via fileSearch
+❌ DON'T: Ignore tool results or pretend you read something you didn't
+
+**Query Construction Tips:**
+- For document overview: query: "introduction abstract summary purpose" (semantic)
+- For specific sections: query: "section 2.1" or "chapter 3" (exact)
+- For conclusions: query: "conclusion findings recommendations" (semantic)
+- For specific topics: query: "market analysis" or "technical specifications" (semantic)
+
+The documents ARE searchable and you CAN read them via fileSearch. You MUST use fileSearch before answering questions about document content!
+</document_access>`
+            : `${systemPrompt}
 
 <conversation_files>
 You have access to the following files uploaded in this conversation:
-${allAttachments.map((f) => `- ${f.name} (${f.contentType})`).join("\n")}
+${fileListForPrompt}
 
 FILE SEARCH CAPABILITIES:
 You have access to powerful file search and analysis tools:
@@ -350,7 +577,7 @@ TOOL SELECTION STRATEGY:
 
 The files remain available throughout the entire conversation for analysis and reference.
 </conversation_files>`
-            : systemPrompt;
+          : systemPrompt;
 
         const result = streamText({
           model,
@@ -367,7 +594,7 @@ The files remain available throughout the entire conversation for analysis and r
             chatModel?.model === "uvala-fuji"
               ? 3000
               : chatModel?.model === "uvala-sensei"
-                ? 5000 // Sensei uses Qwen3-32B with 5000 max output
+                ? 8000 // Sensei uses Qwen3-32B (32K context, 8K output for teaching)
                 : chatMode === "coder"
                   ? 16000 // Coder needs larger output for code generation
                   : 4000,
@@ -401,6 +628,12 @@ The files remain available throughout the entire conversation for analysis and r
                       includeReasoning: false,
                     },
                   },
+          // AWS Bedrock-specific settings for GPT-OSS (uvala-sensei)
+          ...(chatModel?.model === "uvala-sensei" && {
+            additionalModelRequestFields: {
+              reasoning_effort: "low", // Low reasoning effort for faster responses
+            },
+          }),
         });
         result.consumeStream();
         dataStream.merge(
@@ -529,6 +762,36 @@ The files remain available throughout the entire conversation for analysis and r
                 provider: "Internal",
                 model: "uvala-prompter",
               },
+            });
+          } else if (chatMode === "learn") {
+            // Learn mode tracking with vision tokens
+            logger.info(`🔍 LEARN MODE - USAGE BREAKDOWN:`, {
+              visionTokens: visionTokensUsed,
+              visionCost: `$${visionCost.toFixed(6)}`,
+              inputTokens: metadata.usage?.inputTokens,
+              outputTokens: metadata.usage?.outputTokens,
+              totalTokens: metadata.usage?.totalTokens,
+              combinedTotal:
+                (metadata.usage?.totalTokens || 0) + visionTokensUsed,
+            });
+
+            await trackUsage({
+              usage: {
+                ...metadata.usage,
+                // Add vision tokens to input tokens for accurate tracking
+                inputTokens:
+                  (metadata.usage?.inputTokens || 0) + visionTokensUsed,
+                totalTokens:
+                  (metadata.usage?.totalTokens || 0) + visionTokensUsed,
+              },
+              userId: session.user.id,
+              threadId: thread?.id,
+              messageId: responseMessage.id,
+              chatModel: metadata.chatModel || {
+                provider: "Internal",
+                model: "uvala-sensei",
+              },
+              toolCallsCount: 0, // Learn mode doesn't use tools
             });
           } else {
             // Normal mode tracking with full features

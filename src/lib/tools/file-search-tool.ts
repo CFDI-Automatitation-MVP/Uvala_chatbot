@@ -3,15 +3,14 @@ import { z } from "zod";
 import {
   searchFiles,
   searchFilesExact,
-  searchFilesByContent,
   getFileChunks,
   getFileChunkRange,
   getUserFiles,
 } from "../embedding/vector-search";
 import { createClient } from "@supabase/supabase-js";
 
-// Create a function that returns file tools with userId injected
-export function createFileTools(userId: string) {
+// Create a function that returns file tools with userId and optional threadId injected
+export function createFileTools(userId: string, threadId?: string) {
   // Create service role client for file operations
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -29,121 +28,85 @@ export function createFileTools(userId: string) {
         .describe(
           "The search query - describe what information you're looking for",
         ),
-      threadId: z
-        .string()
-        .optional()
-        .describe(
-          "Optional: limit search to files uploaded in this conversation thread",
-        ),
-      matchCount: z
-        .number()
-        .optional()
-        .default(5)
-        .describe("Maximum number of results to return (default: 5)"),
-      searchType: z
-        .enum(["chunks", "files"])
-        .optional()
-        .default("chunks")
-        .describe(
-          "Search individual chunks (more detailed) or files (broader overview)",
-        ),
       searchMode: z
         .enum(["semantic", "exact"])
-        .optional()
-        .default("semantic")
         .describe(
-          "Use semantic search (for concepts) or exact text search (for section numbers, specific terms)",
+          'Use "semantic" for concepts/topics or "exact" for specific terms/quotes',
         ),
     }),
 
-    execute: async ({
-      query,
-      threadId,
-      matchCount,
-      searchType,
-      searchMode,
-    }) => {
+    execute: async ({ query, searchMode }) => {
+      // Use defaults for simplified schema
+      const matchCount = 5;
+      // Use provided threadId from context, or undefined to search all user's files
+
+      console.log("🔍 fileSearch tool called with:", {
+        query,
+        searchMode,
+        matchCount,
+        userId,
+        threadId,
+      });
       try {
-        if (searchType === "files") {
-          // Search for files and return file-level results
-          const results = await searchFilesByContent(
-            query,
-            {
-              userId,
-              threadId,
-              matchCount,
-              matchThreshold: 0.6, // Lower threshold for broader search
-            },
-            supabaseClient,
-          );
+        // Always search chunks (most useful for document analysis)
+        // Search for specific chunks with detailed content
+        const results =
+          searchMode === "exact"
+            ? await searchFilesExact(
+                query,
+                {
+                  userId,
+                  threadId,
+                  matchCount,
+                },
+                supabaseClient,
+              )
+            : await searchFiles(
+                query,
+                {
+                  userId,
+                  threadId,
+                  matchCount,
+                  matchThreshold: 0.2, // Lower threshold for better recall - "Deliverable 3" matched at 0.407
+                },
+                supabaseClient,
+              );
 
-          if (results.length === 0) {
-            return {
-              success: true,
-              message: "No relevant files found for your query.",
-              results: [],
-            };
-          }
+        console.log(`📊 fileSearch results: ${results.length} matches found`);
+        if (results.length > 0) {
+          console.log(`   Best match similarity: ${results[0].similarity}`);
+        }
 
+        if (results.length === 0) {
+          console.log("⚠️ fileSearch returned 0 results for query:", query);
           return {
             success: true,
-            message: `Found ${results.length} relevant file(s)`,
-            results: results.map((result) => ({
-              type: "file",
-              fileName: result.fileName,
-              fileType: result.fileType,
-              relevantContent: result.bestChunkContent,
-              similarity: Math.round(result.similarity * 100),
-              summary: `File "${result.fileName}" contains relevant information about your query.`,
-            })),
-          };
-        } else {
-          // Search for specific chunks with detailed content
-          const results =
-            searchMode === "exact"
-              ? await searchFilesExact(
-                  query,
-                  {
-                    userId,
-                    threadId,
-                    matchCount,
-                  },
-                  supabaseClient,
-                )
-              : await searchFiles(
-                  query,
-                  {
-                    userId,
-                    threadId,
-                    matchCount,
-                    matchThreshold: 0.6,
-                  },
-                  supabaseClient,
-                );
-
-          if (results.length === 0) {
-            return {
-              success: true,
-              message:
-                "No relevant content found in your uploaded files for this query.",
-              results: [],
-            };
-          }
-
-          return {
-            success: true,
-            message: `Found ${results.length} relevant section(s) from your files`,
-            results: results.map((result) => ({
-              type: "chunk",
-              fileName: result.fileName,
-              fileType: result.fileType,
-              content: result.content,
-              similarity: Math.round(result.similarity * 100),
-              chunkIndex: result.chunkIndex,
-              context: `This is section ${result.chunkIndex + 1} from "${result.fileName}"`,
-            })),
+            message:
+              "No relevant content found in your uploaded files for this query.",
+            results: [],
           };
         }
+
+        console.log(
+          `✅ fileSearch found ${results.length} results for query: "${query}"`,
+        );
+        console.log(
+          `   First result preview: ${results[0].content.substring(0, 100)}...`,
+        );
+
+        return {
+          success: true,
+          message: `Found ${results.length} relevant section(s) from your files`,
+          results: results.map((result) => ({
+            type: "chunk",
+            fileName: result.fileName,
+            fileType: result.fileType,
+            content: result.content,
+            similarity: Math.round(result.similarity * 100),
+            chunkIndex: result.chunkIndex,
+            context: `This is section ${result.chunkIndex + 1} from "${result.fileName}"`,
+          })),
+        };
       } catch (error) {
         console.error("File search tool error:", error);
         return {
@@ -160,20 +123,16 @@ export function createFileTools(userId: string) {
    * Use this when you need to get all content from a specific file
    */
   const fileContentTool = createTool({
-    description: `Get complete file content by ID. TOKEN EXPENSIVE - prefer fileSearch for finding info or fileChunkRange for specific sections.`,
+    description: `[RARELY NEEDED] Get complete file content by ID. TOKEN EXPENSIVE and requires file ID from filesList first. Use fileSearch instead - it's more efficient and reliable.`,
 
     inputSchema: z.object({
       fileId: z
         .string()
         .describe("The ID of the file to retrieve content from"),
-      maxChunks: z
-        .number()
-        .optional()
-        .default(10)
-        .describe("Maximum number of chunks to return (default: 10)"),
     }),
 
-    execute: async ({ fileId, maxChunks }) => {
+    execute: async ({ fileId }) => {
+      const maxChunks = 10; // Default value
       try {
         const chunks = await getFileChunks(fileId, userId, supabaseClient);
 
@@ -220,27 +179,21 @@ export function createFileTools(userId: string) {
    * Use this for document structure questions and when you need specific parts
    */
   const fileChunkRangeTool = createTool({
-    description: `Get specific chunks from files. Use fromEnd: 3-5 for conclusions/endings, start: 0, end: 2 for introductions. Most token efficient.`,
+    description: `[RARELY NEEDED] Get specific chunks from files. Requires file ID from filesList first. Use fileSearch instead - it's more reliable and doesn't need file IDs.`,
 
     inputSchema: z.object({
       fileId: z.string().describe("The ID of the file to retrieve chunks from"),
-      start: z
-        .number()
-        .optional()
-        .describe("Starting chunk index (0-based, inclusive)"),
-      end: z.number().optional().describe("Ending chunk index (inclusive)"),
       fromEnd: z
         .number()
-        .optional()
-        .describe("Get last N chunks (most useful for conclusions)"),
-      limit: z
-        .number()
-        .optional()
-        .default(10)
-        .describe("Maximum chunks to return (default: 10)"),
+        .describe(
+          "Get last N chunks - use 3-5 for conclusions, 1-2 for ending",
+        ),
     }),
 
-    execute: async ({ fileId, start, end, fromEnd, limit }) => {
+    execute: async ({ fileId, fromEnd }) => {
+      const start = undefined;
+      const end = undefined;
+      const limit = 10; // Default
       try {
         const chunks = await getFileChunkRange(
           fileId,

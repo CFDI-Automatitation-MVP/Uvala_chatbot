@@ -1,0 +1,779 @@
+================================================================================
+UVALA AI PRESENTATION GENERATOR - IMPLEMENTATION PLAN
+================================================================================
+
+Project: Add AI-powered presentation generation to Coder Mode
+Target Framework: Reveal.js (HTML-based presentations)
+Model: Qwen3 Coder 30B (qwen.qwen3-coder-30b-a3b-v1:0)
+Architecture: LLM → JSON → Renderer → HTML Preview
+
+================================================================================
+MAIN IDEA & PURPOSE
+================================================================================
+
+Enable users to generate professional, modern slide presentations from uploaded
+content (PDFs, text files, case studies) directly within Coder Mode.
+
+Key Value Propositions:
+- Upload PDF → Get presentation in same chat (no context switching)
+- Thread-scoped (tied to conversation/project context)
+- Iterative refinement ("make slide 3 more visual" → regenerates)
+- Multi-format export (HTML shareable, PDF printable)
+- Privacy-first (all processing via Bedrock, no third-party SaaS)
+- Modern visuals (charts, diagrams, stock images)
+
+User Flow:
+1. User uploads case study PDF to chat
+2. User: "Create a 10-slide executive presentation from this"
+3. AI analyzes PDF, generates structured JSON
+4. System renders Reveal.js HTML presentation
+5. Preview displays in chat (like flashcards do)
+6. User can download HTML or export to PDF
+
+================================================================================
+EXISTING CAPABILITIES WE LEVERAGE
+================================================================================
+
+✅ PDF Processing
+   - File: src/lib/embedding/document-processor.ts
+   - extractTextFromFile() - Uses unpdf library
+   - processDocument() - Chunks text (400 tokens, 80 overlap)
+   - Already used in Learn Mode for RAG
+
+✅ Coder Mode
+   - Model: qwen.qwen3-coder-30b-a3b-v1:0
+   - Specialized for structured code generation
+   - 16,000 token output limit
+   - Perfect for generating presentation JSON
+
+✅ HTML Rendering in Chat
+   - Learn Mode renders full HTML flashcards
+   - Uses ```html code blocks with <style>, <script> tags
+   - Interactive JavaScript already supported
+   - Same pattern works for Reveal.js slides
+
+✅ File Upload & Thread Association
+   - Route: /api/files/upload
+   - Thread-scoped file storage (prevents cross-contamination)
+   - Metadata in Supabase with thread_id foreign key
+
+✅ Structured Output System
+   - Can add "generatePresentation" tool
+   - Or extend Coder Mode to detect presentation requests
+
+================================================================================
+ARCHITECTURE OVERVIEW
+================================================================================
+
+High-Level Flow:
+┌─────────────┐     ┌──────────────┐     ┌─────────────┐     ┌──────────────┐
+│ User Upload │ --> │ Extract Text │ --> │ LLM JSON    │ --> │ Render HTML  │
+│ PDF/Text    │     │ (existing)   │     │ Generation  │     │ (Reveal.js)  │
+└─────────────┘     └──────────────┘     └─────────────┘     └──────────────┘
+                                                │
+                                                v
+                                         ┌──────────────┐
+                                         │ Display in   │
+                                         │ Chat Preview │
+                                         └──────────────┘
+
+Technical Pattern:
+1. Input: PDF/Text file + user requirements ("10 slides, executive audience")
+2. Extraction: Use existing processDocument() to get text
+3. LLM Call: Qwen Coder generates structured JSON (NOT raw HTML)
+4. Rendering: Convert JSON → Reveal.js HTML template
+5. Display: Show in chat using ```html code block (proven with flashcards)
+6. Export: Provide download buttons for HTML/PDF
+
+Why JSON Output (not direct HTML):
+- LLM focuses on content, not formatting
+- Deterministic rendering (consistent styling)
+- Easy to validate and debug
+- Separation of concerns (content vs presentation)
+- Can reuse same JSON for different themes
+
+JSON Schema Example:
+{
+  "title": "Presentation Title",
+  "theme": "white",
+  "slides": [
+    {
+      "type": "content",
+      "title": "Slide Title",
+      "content": ["Bullet 1", "Bullet 2"],
+      "notes": "Speaker notes",
+      "chart": { "type": "bar", "data": {...} },
+      "mermaid": "graph TD\n  A-->B"
+    }
+  ]
+}
+
+================================================================================
+PHASE 1: MVP (PROOF OF CONCEPT) - 1-2 Days
+================================================================================
+
+Goal: Get basic presentation generation working end-to-end
+
+Tasks:
+1. Create PRESENTATION_SYSTEM_PROMPT in src/lib/ai/mode-prompts.ts
+   - Instructs Qwen Coder to output JSON
+   - Provides JSON schema and examples
+   - Specifies content guidelines (3-5 bullets/slide, 5-10 slides)
+
+2. Add presentation detection in Coder Mode
+   - File: src/app/api/chat/route.ts
+   - Detect keywords: "create presentation", "make slides", "presentation from"
+   - Route to presentation generator instead of regular code response
+
+3. Build JSON → Reveal.js renderer
+   - File: src/lib/presentation/reveal-renderer.ts (NEW)
+   - Function: renderRevealPresentation(json) → HTML string
+   - Include Reveal.js CDN links
+   - Support basic slide types (title, content)
+
+4. Test with text input
+   - User provides text directly (not file yet)
+   - Example: "Create 5 slides about Q4 sales: 25% growth, 3 new products"
+   - Verify JSON generation and HTML rendering
+
+Deliverables:
+- Presentation system prompt
+- Basic renderer function
+- Working demo with hardcoded text input
+- Slides display in chat interface
+
+Success Criteria:
+- User can request presentation via chat
+- AI generates valid JSON
+- HTML renders correctly in chat preview
+- 5 slides with title + bullets display properly
+
+================================================================================
+PHASE 2: PDF INTEGRATION - 1 Day
+================================================================================
+
+Goal: Connect to existing PDF upload flow
+
+Tasks:
+1. Hook into file upload system
+   - Monitor uploads in threads with Coder Mode active
+   - Detect when user says "create presentation from this PDF"
+
+2. Use processDocument() for text extraction
+   - File: src/lib/embedding/document-processor.ts
+   - Extract full text from uploaded PDF
+   - Pass to LLM for outline generation
+
+3. Add outline generation step (optional)
+   - For large PDFs, generate outline first
+   - User can review/modify outline before full generation
+   - Then generate slides based on approved outline
+
+4. Test with real PDF files
+   - Case studies
+   - Reports
+   - Research papers
+
+Deliverables:
+- PDF upload → presentation flow working
+- Text extraction integrated
+- Outline generation (optional pre-step)
+
+Success Criteria:
+- Upload 10-page PDF
+- Request presentation
+- Get 8-10 relevant slides based on content
+- Content accurately reflects PDF key points
+
+================================================================================
+PHASE 3: VISUAL ENHANCEMENTS - 2-3 Days
+================================================================================
+
+Goal: Add charts, diagrams, and images
+
+Tasks:
+1. Add Mermaid diagram support
+   - Include mermaid.js library
+   - Support flowcharts, sequence diagrams, Gantt charts
+   - LLM generates mermaid syntax in JSON
+   - Renderer includes <div class="mermaid">
+
+2. Integrate Chart.js for data visualization
+   - Bar charts, line charts, pie charts
+   - LLM generates chart data in JSON
+   - Renderer creates <canvas> and Chart.js initialization
+
+3. Add stock image support (optional)
+   - Integrate Pexels or Unsplash API
+   - LLM specifies image keywords in JSON
+   - Renderer fetches and includes images
+   - Include proper attribution
+
+4. Create professional themes
+   - Minimalist theme (clean, lots of whitespace)
+   - Corporate theme (professional, branded)
+   - Modern theme (vibrant, 2025-style)
+   - Let user choose theme or auto-select based on content
+
+Deliverables:
+- Mermaid diagrams rendering
+- Charts displaying correctly
+- (Optional) Stock images integrated
+- 2-3 professional themes available
+
+Success Criteria:
+- Diagrams render for processes/workflows
+- Charts display data accurately
+- Visual elements enhance understanding
+- Consistent styling across all slides
+
+Technology Stack:
+- Reveal.js 5.0+ (presentation framework)
+- Mermaid.js (diagrams)
+- Chart.js 4.0+ (charts)
+- Pexels/Unsplash API (images - optional)
+
+================================================================================
+PHASE 4: EXPORT & POLISH - 2-3 Days
+================================================================================
+
+Goal: Production-ready feature with export options
+
+Tasks:
+1. Add PDF export
+   - Option A: DeckTape (headless browser, generates PDF)
+   - Option B: Puppeteer (more control)
+   - Option C: Client-side print to PDF
+   - Generate downloadable PDF file
+
+2. Implement theme selector
+   - UI dropdown to choose theme
+   - Preview theme changes live
+   - Save theme preference per user
+
+3. Add "Edit Slide" interactive mode
+   - User can click slide to edit
+   - Modify content in JSON
+   - Regenerate specific slide
+   - "Regenerate slide 3 with more visuals"
+
+4. Create download button for standalone HTML
+   - Single-file export (inline CSS/JS)
+   - Can open in any browser
+   - Shareable link generation
+
+5. Add presentation templates (optional)
+   - Product launch template
+   - Sales report template
+   - Case study template
+   - User picks template, AI fills content
+
+Deliverables:
+- PDF export working
+- Theme selection UI
+- Slide editing capability
+- Standalone HTML download
+- (Optional) Template system
+
+Success Criteria:
+- Export PDF with proper formatting
+- Themes switch without breaking layout
+- Edit individual slides without full regeneration
+- HTML file opens standalone in browser
+- Professional appearance matching 2025 standards
+
+================================================================================
+TECHNICAL IMPLEMENTATION DETAILS
+================================================================================
+
+File Structure (New Files):
+src/lib/ai/mode-prompts.ts
+  + PRESENTATION_SYSTEM_PROMPT (export const)
+
+src/lib/presentation/ (NEW DIRECTORY)
+  - reveal-renderer.ts - JSON to Reveal.js HTML
+  - json-schema.ts - Zod schema for presentation JSON
+  - themes.ts - Theme definitions and CSS
+  - export-pdf.ts - PDF generation utilities
+
+src/components/presentation/ (NEW DIRECTORY)
+  - presentation-preview.tsx - Chat preview component
+  - theme-selector.tsx - Theme picker UI
+  - slide-editor.tsx - Edit individual slides
+  - download-buttons.tsx - HTML/PDF download
+
+src/app/api/presentation/ (NEW DIRECTORY)
+  - generate/route.ts - API endpoint for generation
+  - export-pdf/route.ts - PDF export endpoint
+
+Modified Files:
+src/lib/ai/mode-prompts.ts
+  + Add PRESENTATION_SYSTEM_PROMPT
+
+src/app/api/chat/route.ts
+  + Detect presentation requests
+  + Route to presentation generation flow
+  + Use PRESENTATION_SYSTEM_PROMPT when appropriate
+
+src/components/message-parts.tsx
+  + Add presentation preview rendering (similar to flashcards)
+
+Dependencies to Add:
+{
+  "dependencies": {
+    "reveal.js": "^5.0.0",      // Presentation framework
+    "mermaid": "^10.0.0",       // Diagrams
+    "chart.js": "^4.0.0",       // Charts
+    "html-pdf-node": "^1.0.0",  // PDF export (optional)
+    "zod": "^3.22.0"            // JSON validation (already exists?)
+  }
+}
+
+Or use CDN links (lighter, faster to implement):
+- https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css
+- https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js
+- https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js
+- https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.js
+
+================================================================================
+PRESENTATION SYSTEM PROMPT (CORE LOGIC)
+================================================================================
+
+Key Instructions for LLM:
+1. Output ONLY valid JSON, no explanations or markdown
+2. Structure: { title, subtitle, theme, slides[] }
+3. Each slide: { type, title, content[], notes, chart?, mermaid? }
+4. Slide types: title, content, two-column, quote, image, blank
+5. Content: 3-5 bullets per slide, concise (1-2 lines each)
+6. Visuals: Use mermaid for processes, chart.js for data
+7. Total slides: 5-10 (depending on content depth)
+8. Professional tone, minimal text (support speech, don't replace)
+
+Example JSON Output:
+{
+  "title": "Q4 Sales Review",
+  "subtitle": "Record Growth",
+  "theme": "white",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Q4 Sales Review",
+      "content": ["Record Growth & Expansion", "Q4 2024"]
+    },
+    {
+      "type": "content",
+      "title": "Key Metrics",
+      "content": [
+        "25% YoY growth",
+        "3 new products launched",
+        "5 new markets entered"
+      ],
+      "notes": "Exceeded all targets",
+      "chart": {
+        "type": "bar",
+        "data": {
+          "labels": ["Q1", "Q2", "Q3", "Q4"],
+          "datasets": [{
+            "label": "Revenue ($M)",
+            "data": [8.5, 9.2, 10.1, 12.5]
+          }]
+        }
+      }
+    },
+    {
+      "type": "content",
+      "title": "Market Expansion",
+      "content": [
+        "Germany, France, Japan, Brazil, Australia",
+        "35% international revenue",
+        "Strong local partnerships"
+      ],
+      "mermaid": "graph LR\n  A[Home]-->B[Europe]\n  A-->C[Asia]\n  A-->D[LATAM]\n  A-->E[Oceania]"
+    }
+  ]
+}
+
+Mermaid Examples:
+- Flowchart: graph TD\n  A[Start]-->B{Decision}\n  B-->|Yes|C[Action]\n  B-->|No|D[End]
+- Sequence: sequenceDiagram\n  Alice->>Bob: Hello\n  Bob-->>Alice: Hi
+- Gantt: gantt\n  title Timeline\n  Task 1: 2024-01-01, 30d
+
+Chart Types:
+- bar (vertical bars)
+- line (trend lines)
+- pie (percentages)
+- doughnut (pie with center hole)
+
+================================================================================
+REVEAL.JS RENDERER TEMPLATE
+================================================================================
+
+Basic Template Structure:
+
+function renderRevealPresentation(presentationData) {
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>${presentationData.title}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/${presentationData.theme}.css">
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.js"></script>
+  <style>
+    .reveal .slides { text-align: left; }
+    .reveal ul { margin-left: 1em; }
+    .reveal h2 { margin-bottom: 0.5em; }
+  </style>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+      ${presentationData.slides.map((slide, index) => renderSlide(slide, index)).join('')}
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true,
+      transition: 'slide',
+      backgroundTransition: 'fade'
+    });
+    mermaid.initialize({ startOnLoad: true });
+  </script>
+</body>
+</html>`;
+}
+
+function renderSlide(slide, index) {
+  if (slide.type === 'title') {
+    return `
+      <section>
+        <h1>${slide.title}</h1>
+        ${slide.content ? `<h3>${slide.content.join('<br>')}</h3>` : ''}
+      </section>
+    `;
+  }
+
+  if (slide.type === 'content') {
+    return `
+      <section>
+        <h2>${slide.title}</h2>
+        <ul>
+          ${slide.content.map(item => `<li>${item}</li>`).join('')}
+        </ul>
+        ${slide.mermaid ? `<div class="mermaid">${slide.mermaid}</div>` : ''}
+        ${slide.chart ? `
+          <canvas id="chart-${index}" width="400" height="300"></canvas>
+          <script>
+            new Chart(document.getElementById('chart-${index}'), {
+              type: '${slide.chart.type}',
+              data: ${JSON.stringify(slide.chart.data)}
+            });
+          </script>
+        ` : ''}
+      </section>
+    `;
+  }
+
+  return '<section><p>Unsupported slide type</p></section>';
+}
+
+================================================================================
+DETECTION LOGIC (CODER MODE ROUTE)
+================================================================================
+
+In src/app/api/chat/route.ts, add detection:
+
+const isPresentationRequest = (lastUserMessage: string) => {
+  const keywords = [
+    'create presentation',
+    'make slides',
+    'generate slides',
+    'presentation from',
+    'create a deck',
+    'make a deck',
+    'powerpoint from',
+    'slides about',
+    'slide deck'
+  ];
+
+  const lowerMessage = lastUserMessage.toLowerCase();
+  return keywords.some(keyword => lowerMessage.includes(keyword));
+};
+
+// In chat route:
+if (chatMode === 'coder' && isPresentationRequest(lastUserMessage)) {
+  systemPrompt = PRESENTATION_SYSTEM_PROMPT;
+  // Set temperature lower for structured output
+  temperature = 0.3;
+  // Request JSON format
+  // ... rest of presentation flow
+}
+
+================================================================================
+TESTING PLAN
+================================================================================
+
+Phase 1 Tests:
+1. Text input: "Create 5 slides about AI in healthcare"
+2. Verify JSON structure is valid
+3. Check HTML renders in chat preview
+4. Confirm navigation works (arrow keys)
+5. Test different themes (white, black, sky)
+
+Phase 2 Tests:
+1. Upload 5-page case study PDF
+2. Request "Create 8 slides from this"
+3. Verify content matches PDF key points
+4. Check no hallucination beyond source material
+5. Test with different PDF formats (text-heavy, tables, images)
+
+Phase 3 Tests:
+1. Request presentation with charts
+2. Verify Chart.js renders correctly
+3. Test mermaid diagrams (flowchart, sequence)
+4. Check image integration (if implemented)
+5. Validate visual consistency across slides
+
+Phase 4 Tests:
+1. Export to PDF, check formatting
+2. Download standalone HTML, verify it opens
+3. Edit slide 3, verify only that slide regenerates
+4. Switch themes, confirm no layout breaks
+5. Load test with 15+ slide presentation
+
+================================================================================
+POTENTIAL CHALLENGES & MITIGATIONS
+================================================================================
+
+Challenge 1: LLM generates invalid JSON
+Mitigation:
+- Use JSON mode / structured output if available
+- Add JSON validation with zod schema
+- Retry with error feedback
+- Fallback to template if parsing fails
+
+Challenge 2: Large PDFs exceed token limits
+Mitigation:
+- Chunk document, generate outline first
+- Let user approve outline before full generation
+- Generate slides in batches
+- Summarize each chunk before slide generation
+
+Challenge 3: Inconsistent styling
+Mitigation:
+- Don't let LLM control CSS
+- Use fixed Reveal.js themes
+- JSON controls content only, not presentation
+- Deterministic renderer ensures consistency
+
+Challenge 4: Image licensing issues
+Mitigation:
+- Use only free stock APIs (Pexels, Unsplash)
+- Include proper attribution
+- Clearly mark images as placeholders
+- Let user upload custom images
+
+Challenge 5: PDF export quality
+Mitigation:
+- Use proven tools (DeckTape, Puppeteer)
+- Pre-render all slides before PDF generation
+- Set proper print CSS
+- Test with multiple browsers
+
+Challenge 6: Slow generation for complex presentations
+Mitigation:
+- Stream JSON generation (show progress)
+- Render slides incrementally
+- Cache common templates
+- Optimize LLM prompt for speed
+
+================================================================================
+SUCCESS METRICS
+================================================================================
+
+Phase 1 (MVP):
+- Users can generate basic presentations from text
+- 90%+ JSON validity rate
+- Slides render correctly in chat preview
+- Navigation works smoothly
+
+Phase 2 (PDF Integration):
+- PDF → presentation flow completes in <30 seconds
+- Content accuracy >80% (matches PDF key points)
+- Supports PDFs up to 20 pages
+- Zero crashes on file upload
+
+Phase 3 (Visuals):
+- Charts render correctly 95%+ of time
+- Mermaid diagrams display properly
+- Visual elements enhance (not clutter) slides
+- Professional appearance matching 2025 standards
+
+Phase 4 (Export):
+- PDF export preserves formatting
+- HTML download works in all major browsers
+- Slide editing saves user time vs full regeneration
+- Theme switching takes <2 seconds
+
+Business Metrics:
+- Feature adoption: >30% of Coder Mode users
+- Repeat usage: >50% generate 2+ presentations
+- User satisfaction: >4.5/5 rating
+- Time savings: 80% faster than manual creation
+
+================================================================================
+FUTURE ENHANCEMENTS (POST-MVP)
+================================================================================
+
+1. Collaboration Features
+   - Share presentation link with team
+   - Real-time collaborative editing
+   - Comment on specific slides
+
+2. Advanced Templates
+   - Industry-specific templates (tech, finance, healthcare)
+   - Branded templates (company logo, colors)
+   - Layout variations (minimalist, detailed, visual-heavy)
+
+3. AI Presenter Coach
+   - Analyze speaker notes
+   - Suggest improvements to flow
+   - Time estimation per slide
+   - Practice mode with feedback
+
+4. Multi-format Export
+   - PowerPoint (.pptx) export
+   - Google Slides integration
+   - Keynote compatibility
+   - Video export with voiceover
+
+5. Advanced Visuals
+   - DALL-E integration for custom images
+   - 3D charts and animations
+   - Video embedding
+   - Interactive elements (polls, quizzes)
+
+6. Version Control
+   - Save presentation versions
+   - Compare versions side-by-side
+   - Rollback to previous version
+   - Track changes over time
+
+7. Analytics
+   - Track who viewed presentation
+   - Time spent per slide
+   - Engagement metrics
+   - Feedback collection
+
+8. Accessibility
+   - Screen reader optimization
+   - Keyboard navigation
+   - High contrast mode
+   - Closed captions for videos
+
+================================================================================
+COMPETITIVE ANALYSIS
+================================================================================
+
+Presenton (Open Source):
+  Pros: Fully open source, local processing, supports multiple LLMs
+  Cons: Standalone tool, not integrated into workflow
+  Our Advantage: Integrated into chat, thread-scoped, iterative editing
+
+Gamma.app (SaaS):
+  Pros: Beautiful templates, easy to use, collaborative
+  Cons: Closed source, cloud-only, expensive ($20/mo)
+  Our Advantage: Open source, privacy-first, free (included in Uvala)
+
+Beautiful.ai (SaaS):
+  Pros: Smart templates, auto-layout
+  Cons: Cloud-only, limited LLM integration
+  Our Advantage: AI-first, integrated workflow, no vendor lock-in
+
+Tome (SaaS):
+  Pros: Story-telling focus, AI generation
+  Cons: Expensive, cloud-only
+  Our Advantage: Local processing, cheaper, integrated chat
+
+PowerPoint Copilot (Microsoft):
+  Pros: Native integration, familiar interface
+  Cons: Requires Microsoft 365, limited customization
+  Our Advantage: Open formats, custom LLMs, no subscription
+
+Our Unique Position:
+- Only presentation tool integrated into AI chat workflow
+- Thread-scoped (presentations tied to project context)
+- Iterative refinement via conversation
+- Privacy-first (Bedrock vs cloud SaaS)
+- Open source (extensible, no vendor lock-in)
+
+================================================================================
+ESTIMATED TIMELINE & RESOURCES
+================================================================================
+
+Phase 1: MVP - 1-2 days
+  - 1 developer
+  - System prompt creation: 2 hours
+  - Renderer function: 4 hours
+  - Integration: 4 hours
+  - Testing: 2 hours
+
+Phase 2: PDF Integration - 1 day
+  - 1 developer
+  - File upload hookup: 2 hours
+  - Text extraction integration: 2 hours
+  - Outline generation: 2 hours
+  - Testing: 2 hours
+
+Phase 3: Visual Enhancements - 2-3 days
+  - 1 developer
+  - Mermaid integration: 4 hours
+  - Chart.js integration: 4 hours
+  - Theme creation: 6 hours
+  - Image API (optional): 4 hours
+  - Testing: 4 hours
+
+Phase 4: Export & Polish - 2-3 days
+  - 1 developer
+  - PDF export: 6 hours
+  - Theme selector UI: 4 hours
+  - Slide editing: 6 hours
+  - Download buttons: 2 hours
+  - Polish & bug fixes: 6 hours
+
+Total Estimate: 7-9 days (1 developer, full-time)
+Or: 2-3 weeks (1 developer, part-time)
+
+================================================================================
+CONCLUSION
+================================================================================
+
+This feature is highly feasible and aligned with Uvala's architecture:
+
+✅ Leverages existing capabilities (PDF processing, HTML rendering, Qwen Coder)
+✅ Proven patterns (flashcards use same HTML preview system)
+✅ Research-backed approach (LLM → JSON → Renderer is robust)
+✅ Unique value proposition (integrated workflow, thread-scoped, iterative)
+✅ Clear implementation path (4 phases, 7-9 days)
+
+The presentation generator would be a powerful differentiator for Uvala,
+combining the best of AI generation (Gamma, Tome) with privacy-first
+local processing (Presenton) in an integrated chat workflow that no
+competitor currently offers.
+
+Next Steps:
+1. Approve this plan
+2. Start Phase 1 (MVP) - 1-2 days to working prototype
+3. User testing with initial version
+4. Iterate based on feedback
+5. Roll out Phases 2-4 incrementally
+
+================================================================================
+END OF IMPLEMENTATION PLAN
+================================================================================
+
+Generated: 2025-10-30
+Author: Claude (Uvala AI Assistant)
+Status: Ready for Implementation
