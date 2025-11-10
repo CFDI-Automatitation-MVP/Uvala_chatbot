@@ -121,10 +121,22 @@ export async function POST(request: Request) {
         userId: session.user.id,
       });
       thread = await chatRepository.selectThreadDetails(newThread.id);
+
+      // If thread is still null after creation, something is wrong
+      if (!thread) {
+        logger.error(`Failed to create or fetch Components thread: ${id}`);
+        return new Response("Failed to create thread", { status: 500 });
+      }
     }
 
-    if (thread!.userId !== session.user.id) {
+    if (thread.userId !== session.user.id) {
       return new Response("Forbidden", { status: 403 });
+    }
+
+    // Validate messages array
+    if (!messages || !Array.isArray(messages)) {
+      logger.error(`Invalid messages array for thread: ${id}`);
+      return new Response("Invalid messages format", { status: 400 });
     }
 
     logger.info(

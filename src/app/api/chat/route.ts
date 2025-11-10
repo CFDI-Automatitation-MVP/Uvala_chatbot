@@ -82,9 +82,15 @@ export async function POST(request: Request) {
         userId: session.user.id,
       });
       thread = await chatRepository.selectThreadDetails(newThread.id);
+
+      // If thread is still null after creation, something is wrong
+      if (!thread) {
+        logger.error(`Failed to create or fetch thread: ${id}`);
+        return new Response("Failed to create chat thread", { status: 500 });
+      }
     }
 
-    if (thread!.userId !== session.user.id) {
+    if (thread.userId !== session.user.id) {
       return new Response("Forbidden", { status: 403 });
     }
 
@@ -126,6 +132,9 @@ export async function POST(request: Request) {
     // Vision preprocessing variables (for Learn Mode)
     let visionTokensUsed = 0;
     let visionCost = 0;
+
+    // Store threadId for use in callbacks (avoid accessing thread.id which might be undefined in closures)
+    const currentThreadId = thread.id;
 
     const stream = createUIMessageStream({
       execute: async ({ writer: dataStream }) => {
@@ -652,20 +661,20 @@ The files remain available throughout the entire conversation for analysis and r
       onFinish: async ({ responseMessage }) => {
         if (responseMessage.id == message.id) {
           await chatRepository.upsertMessage({
-            threadId: thread!.id,
+            threadId: currentThreadId,
             ...responseMessage,
             parts: responseMessage.parts.map(convertToSavePart),
             metadata,
           });
         } else {
           await chatRepository.upsertMessage({
-            threadId: thread!.id,
+            threadId: currentThreadId,
             role: message.role,
             parts: message.parts.map(convertToSavePart),
             id: message.id,
           });
           await chatRepository.upsertMessage({
-            threadId: thread!.id,
+            threadId: currentThreadId,
             role: responseMessage.role,
             id: responseMessage.id,
             parts: responseMessage.parts.map(convertToSavePart),
@@ -785,7 +794,7 @@ The files remain available throughout the entire conversation for analysis and r
                   (metadata.usage?.totalTokens || 0) + visionTokensUsed,
               },
               userId: session.user.id,
-              threadId: thread?.id,
+              threadId: currentThreadId,
               messageId: responseMessage.id,
               chatModel: metadata.chatModel || {
                 provider: "Internal",
@@ -798,7 +807,7 @@ The files remain available throughout the entire conversation for analysis and r
             await trackUsage({
               usage: metadata.usage,
               userId: session.user.id,
-              threadId: thread?.id,
+              threadId: currentThreadId,
               messageId: responseMessage.id,
               chatModel: metadata.chatModel,
               toolCallsCount,
