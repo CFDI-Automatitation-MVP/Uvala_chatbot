@@ -137,13 +137,27 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
 
   const [input, setInput] = useState("");
 
-  const transportApi =
-    chatMode === "components" ? "/api/chat/components" : undefined;
-
   const transport = useMemo(
-    () =>
-      new DefaultChatTransport({
-        api: transportApi,
+    () => {
+      console.log("[TRANSPORT CREATION] ThreadId:", threadId);
+
+      return new DefaultChatTransport({
+        fetch: async (_url, options) => {
+          // Dynamically determine the correct endpoint based on current mode
+          const currentMode = appStore.getState().chatMode;
+          const apiEndpoint =
+            currentMode === "components" ? "/api/chat/components" : "/api/chat";
+
+          console.log(
+            "[TRANSPORT FETCH] Mode:",
+            currentMode,
+            "→ Endpoint:",
+            apiEndpoint,
+          );
+
+          // Replace the URL with the correct endpoint
+          return fetch(apiEndpoint, options);
+        },
         prepareSendMessagesRequest: ({ messages, body, id }) => {
           if (window.location.pathname !== `/chat/${threadId}`) {
             console.log("replace-state");
@@ -151,15 +165,35 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           }
           const lastMessage = messages.at(-1)!;
 
+          // CRITICAL FIX: Read current state from store at REQUEST TIME
+          // This ensures mode switches take effect immediately without stale closures
+          const currentState = appStore.getState();
+          const currentChatMode = currentState.chatMode;
+          const currentModel = currentState.chatModel;
+
+          // Determine endpoint based on current mode
+          const endpoint =
+            currentChatMode === "components"
+              ? "/api/chat/components"
+              : "/api/chat";
+
+          console.log(
+            "[TRANSPORT] Mode:",
+            currentChatMode,
+            "→ Endpoint:",
+            endpoint,
+            "Model:",
+            currentModel?.model,
+          );
+
           // Components mode uses a different request format
-          if (latestRef.current.chatMode === "components") {
+          if (currentChatMode === "components") {
             return {
               body: {
-                id, // Include thread ID for message saving
+                id,
                 messages,
                 chatModel:
-                  (body as { model: ChatModel })?.model ??
-                  latestRef.current.model,
+                  (body as { model: ChatModel })?.model ?? currentModel,
               },
             };
           }
@@ -168,9 +202,8 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           const requestBody: ChatApiSchemaRequestBody = {
             ...body,
             id,
-            chatModel:
-              (body as { model: ChatModel })?.model ?? latestRef.current.model,
-            chatMode: latestRef.current.chatMode,
+            chatModel: (body as { model: ChatModel })?.model ?? currentModel,
+            chatMode: currentChatMode,
             toolChoice: latestRef.current.toolChoice,
             allowedAppDefaultToolkit: latestRef.current.mentions?.length
               ? []
@@ -180,8 +213,9 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           };
           return { body: requestBody };
         },
-      }),
-    [transportApi, threadId],
+      });
+    },
+    [threadId], // Only recreate when threadId changes, mode is read dynamically
   );
 
   const {
