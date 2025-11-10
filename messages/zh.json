@@ -587,10 +587,10 @@
     "aiCodingAssistant": "AI Coding Assistant",
     "description": "Expert coding help powered by Qwen3 Coder. Get code solutions, debugging help, and best practices.",
     "examples": "Examples",
-    "example1": "\"Create a REST API with authentication\"",
-    "example2": "\"Debug this JavaScript error\"",
-    "example3": "\"Optimize this SQL query\"",
-    "example4": "\"Write unit tests for this function\"",
+    "example1": "\"Build a login form with OAuth authentication\"",
+    "example2": "\"Create a data table with search and filters\"",
+    "example3": "\"Design a responsive dashboard layout\"",
+    "example4": "\"Generate API endpoint with error handling\"",
     "placeholder": "Describe your coding task and I'll help you solve it..."
   },
   "Pricing": {
