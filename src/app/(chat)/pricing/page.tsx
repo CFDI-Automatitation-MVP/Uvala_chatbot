@@ -25,6 +25,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useCSRF } from "@/hooks/use-csrf";
 
 type Currency = "USD" | "MXN";
 
@@ -150,6 +151,7 @@ export default function PricingPage() {
     subscription,
     loading: subscriptionLoading,
   } = useSubscription();
+  const { getCSRFHeaders, token: csrfToken } = useCSRF();
   const t = useTranslations("Pricing");
 
   // Lazy load video only on mobile after initial render
@@ -179,6 +181,12 @@ export default function PricingPage() {
       return;
     }
 
+    // Check if CSRF token is available
+    if (!csrfToken) {
+      alert("Security token not ready. Please refresh the page and try again.");
+      return;
+    }
+
     // Prevent double clicks on mobile
     if (isLoading === plan.id) {
       console.log("Already processing, ignoring click");
@@ -197,6 +205,7 @@ export default function PricingPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...getCSRFHeaders(),
         },
         body: JSON.stringify({
           priceId: priceId,
