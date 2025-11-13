@@ -26,6 +26,7 @@ import {
   // Brain,
   Code,
   // Mail,
+  Presentation,
 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Skeleton } from "ui/skeleton";
@@ -220,6 +221,23 @@ export function AppSidebarMenus() {
               </SidebarMenuSub>
             </>
           )}
+        </SidebarMenu>
+        <SidebarMenu>
+          <Tooltip>
+            <SidebarMenuItem>
+              <Link href="/presentations" onClick={() => setOpenMobile(false)}>
+                <SidebarMenuButton
+                  className="font-semibold group-data-[collapsible=icon]:w-12 group-data-[collapsible=icon]:h-12 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:mx-auto transition-all duration-200 sm:h-auto h-12 sm:py-2 py-3 sm:text-base text-lg"
+                  tooltip={t("Layout.presentations")}
+                >
+                  <Presentation className="sm:size-4 size-5 group-data-[collapsible=icon]:size-6 transition-all duration-200 flex-shrink-0" />
+                  <span className="ml-2 whitespace-nowrap overflow-hidden transition-all duration-200 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:opacity-0">
+                    {t("Layout.presentations")}
+                  </span>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+          </Tooltip>
         </SidebarMenu>
       </SidebarGroupContent>
       <ArchiveDialog
