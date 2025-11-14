@@ -8,6 +8,7 @@ import {
 
 import { BaseTablePlugin } from "@platejs/table";
 import { SlateElement } from "platejs";
+import { Children as ReactChildren } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -34,9 +35,26 @@ export function PresentationTableElementStatic({
 }
 
 export function PresentationTableRowElementStatic(props: SlateElementProps) {
+  // Filter out empty text nodes that Slate adds between table cells
+  // to prevent invalid HTML structure (<tr> can only contain <td>/<th>)
+  const filteredChildren = ReactChildren.toArray(props.children).filter(
+    (child) => {
+      // Keep only elements (React components), filter out text nodes
+      if (typeof child === "object" && child !== null && "type" in child) {
+        return true;
+      }
+      return false;
+    }
+  );
+
   return (
-    <SlateElement {...props} as="tr" className="h-full">
-      {props.children}
+    <SlateElement
+      {...props}
+      as="tr"
+      className="slate-tr h-full"
+      style={{ position: "relative" }}
+    >
+      {filteredChildren}
     </SlateElement>
   );
 }
