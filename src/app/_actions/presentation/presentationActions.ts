@@ -45,7 +45,7 @@ export async function createPresentation({
       success: true,
       message: "Presentation created successfully",
       presentation: {
-        ...result.base_document,
+        ...result.baseDoc,
         presentation: result.presentation,
       },
     };
@@ -126,7 +126,7 @@ export async function updatePresentation({
       message: "Presentation updated successfully",
       presentation: updated
         ? {
-            ...updated.base_document,
+            ...updated.baseDoc,
             presentation: updated.presentation,
           }
         : null,
@@ -157,7 +157,7 @@ export async function updatePresentationTitle(id: string, title: string) {
       message: "Presentation title updated successfully",
       presentation: updated
         ? {
-            ...updated.base_document,
+            ...updated.baseDoc,
             presentation: updated.presentation,
           }
         : null,
@@ -238,7 +238,7 @@ export async function getPresentation(id: string) {
     return {
       success: true,
       presentation: {
-        ...result.base_document,
+        ...result.baseDoc,
         presentation: result.presentation,
       },
     };
@@ -269,7 +269,7 @@ export async function getPresentationContent(id: string) {
     }
 
     // Check if the user has access to this presentation
-    if (result.base_document.userId !== userId && !result.base_document.isPublic) {
+    if (result.baseDoc.userId !== userId && !result.baseDoc.isPublic) {
       return {
         success: false,
         message: "Unauthorized access",
@@ -335,7 +335,7 @@ export async function duplicatePresentation(id: string, newTitle?: string) {
 
     // Create a new presentation with the same content
     const duplicated = await presentationRepository.createPresentation({
-      title: newTitle ?? `${original.base_document.title} (Copy)`,
+      title: newTitle ?? `${original.baseDoc.title} (Copy)`,
       userId,
       content: original.presentation.content,
       theme: original.presentation.theme,
@@ -345,7 +345,7 @@ export async function duplicatePresentation(id: string, newTitle?: string) {
       success: true,
       message: "Presentation duplicated successfully",
       presentation: {
-        ...duplicated.base_document,
+        ...duplicated.baseDoc,
         presentation: duplicated.presentation,
       },
     };
