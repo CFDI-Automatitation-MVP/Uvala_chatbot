@@ -1,4 +1,3 @@
-/** biome-ignore-all lint/suspicious/noExplicitAny: This use requires any */
 import React from "react";
 
 import { MarkdownPlugin } from "@platejs/markdown";

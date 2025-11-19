@@ -45,7 +45,7 @@ export async function createPresentation({
       success: true,
       message: "Presentation created successfully",
       presentation: {
-        ...result.baseDoc,
+        ...result.base_document,
         presentation: result.presentation,
       },
     };
@@ -81,9 +81,9 @@ export async function updatePresentation({
   theme,
   outline,
   searchResults,
-  imageSource,
-  presentationStyle,
-  language,
+  imageSource: _imageSource,
+  presentationStyle: _presentationStyle,
+  language: _language,
   thumbnailUrl,
 }: {
   id: string;
@@ -126,7 +126,7 @@ export async function updatePresentation({
       message: "Presentation updated successfully",
       presentation: updated
         ? {
-            ...updated.baseDoc,
+            ...updated.base_document,
             presentation: updated.presentation,
           }
         : null,
@@ -157,7 +157,7 @@ export async function updatePresentationTitle(id: string, title: string) {
       message: "Presentation title updated successfully",
       presentation: updated
         ? {
-            ...updated.baseDoc,
+            ...updated.base_document,
             presentation: updated.presentation,
           }
         : null,
@@ -238,7 +238,7 @@ export async function getPresentation(id: string) {
     return {
       success: true,
       presentation: {
-        ...result.baseDoc,
+        ...result.base_document,
         presentation: result.presentation,
       },
     };
@@ -269,7 +269,7 @@ export async function getPresentationContent(id: string) {
     }
 
     // Check if the user has access to this presentation
-    if (result.baseDoc.userId !== userId && !result.baseDoc.isPublic) {
+    if (result.base_document.userId !== userId && !result.base_document.isPublic) {
       return {
         success: false,
         message: "Unauthorized access",
@@ -335,7 +335,7 @@ export async function duplicatePresentation(id: string, newTitle?: string) {
 
     // Create a new presentation with the same content
     const duplicated = await presentationRepository.createPresentation({
-      title: newTitle ?? `${original.baseDoc.title} (Copy)`,
+      title: newTitle ?? `${original.base_document.title} (Copy)`,
       userId,
       content: original.presentation.content,
       theme: original.presentation.theme,
@@ -345,7 +345,7 @@ export async function duplicatePresentation(id: string, newTitle?: string) {
       success: true,
       message: "Presentation duplicated successfully",
       presentation: {
-        ...duplicated.baseDoc,
+        ...duplicated.base_document,
         presentation: duplicated.presentation,
       },
     };

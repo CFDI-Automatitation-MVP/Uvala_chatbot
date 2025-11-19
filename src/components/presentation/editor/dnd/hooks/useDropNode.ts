@@ -1,4 +1,3 @@
-/** biome-ignore-all lint/suspicious/noExplicitAny: This use requires any */
 import {
   type DropTargetHookSpec,
   type DropTargetMonitor,

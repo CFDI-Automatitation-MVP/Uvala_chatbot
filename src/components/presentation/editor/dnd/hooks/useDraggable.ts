@@ -1,4 +1,4 @@
-/** biome-ignore-all lint/suspicious/noExplicitAny: This is a valid use case */
+/* biome-ignore lint/suspicious/noExplicitAny: This is a valid use case */
 import React from "react";
 
 import { useEditorRef } from "platejs/react";
@@ -36,10 +36,7 @@ export const useDraggable = (props: UseDndNodeOptions): DraggableState => {
 
   const multiplePreviewRef = React.useRef<HTMLDivElement>(null);
 
-  if (!editor.plugins.dnd) return {} as any;
-
-  // biome-ignore lint/correctness/useHookAtTopLevel: We don't need to calculate anything when props are not available
-  const { dragRef, isAboutToDrag, isDragging } = useDndNode({
+  const dndResult = useDndNode({
     multiplePreviewRef,
     nodeRef,
     type,
@@ -47,6 +44,10 @@ export const useDraggable = (props: UseDndNodeOptions): DraggableState => {
     orientation,
     ...props,
   });
+
+  const { dragRef, isAboutToDrag, isDragging } = editor.plugins.dnd
+    ? dndResult
+    : { dragRef: null, isAboutToDrag: false, isDragging: false };
 
   return {
     isAboutToDrag,

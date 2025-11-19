@@ -33,8 +33,8 @@ function slideSignature(slide?: PlateSlide): string {
   }
 }
 
-const PresentationEditorStaticView = React.memo(
-  ({ initialContent, className, id }: PresentationEditorStaticViewProps) => {
+const PresentationEditorStaticView = React.memo(function PresentationEditorStaticView(
+  { initialContent, className, id }: PresentationEditorStaticViewProps) {
     const { isPresenting } = usePresentationState();
     const editor = useMemo(
       () =>

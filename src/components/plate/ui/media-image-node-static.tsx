@@ -21,7 +21,7 @@ export function ImageElementStatic(
           className="relative min-w-[92px] max-w-full"
           style={{ textAlign: align }}
         >
-          {/** biome-ignore lint/performance/noImgElement: This is a valid use case */}
+          
           <img
             className={cn(
               "w-full max-w-full cursor-default object-cover px-0",

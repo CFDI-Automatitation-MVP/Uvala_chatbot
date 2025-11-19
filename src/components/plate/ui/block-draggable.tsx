@@ -54,10 +54,8 @@ const requiresSiblingOnlyDrop = (elementType: string): boolean => {
 export const BlockDraggable: RenderNodeWrapper = (props) => {
   const { editor, element, path } = props;
 
-  if (!props) return;
-
-  // biome-ignore lint/correctness/useHookAtTopLevel: We don't need to calculate anything when props are not available
   const enabled = React.useMemo(() => {
+    if (!props) return false;
     if (editor.dom.readOnly) return false;
     if (!path) return false;
 

@@ -162,7 +162,7 @@ export default function RootImage({
                   }}
                   onDoubleClick={handleImageDoubleClick}
                 >
-                  {/** biome-ignore lint/performance/noImgElement: This is a valid use case */}
+                  
                   <img
                     src={computedImageUrl}
                     alt={image.query}

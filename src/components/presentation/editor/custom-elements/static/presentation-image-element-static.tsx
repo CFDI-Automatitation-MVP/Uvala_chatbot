@@ -31,7 +31,7 @@ export function PresentationImageElementStatic(
 
   return (
     <SlateElement {...props} className={cn(props.className)}>
-      {/** biome-ignore lint/performance/noImgElement: This is a valid use case */}
+      
       <img
         src={url}
         alt={query ?? ""}

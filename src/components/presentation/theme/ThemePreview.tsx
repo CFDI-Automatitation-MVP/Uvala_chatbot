@@ -33,7 +33,7 @@ export function ThemePreview({
     >
       {logoPreview && (
         <div className="mb-4 flex justify-center">
-          {/** biome-ignore lint/performance/noImgElement: This is a valid use case */}
+          
           <img
             src={logoPreview}
             alt="Theme Logo"

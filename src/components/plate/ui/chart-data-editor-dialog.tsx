@@ -320,7 +320,7 @@ export function ChartDataEditorDialog({
 
             {(localData as (LabelValueData | XYData)[]).length === 0 && (
               <div className="text-center py-8 text-muted-foreground">
-                No data points. Click "Add Row" to get started.
+                No data points. Click &quot;Add Row&quot; to get started.
               </div>
             )}
           </div>

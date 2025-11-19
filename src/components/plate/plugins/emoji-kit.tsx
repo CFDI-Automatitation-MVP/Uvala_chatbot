@@ -1,4 +1,3 @@
-/** biome-ignore-all lint/suspicious/noExplicitAny: This use requires any */
 "use client";
 
 import emojiMartData from "@emoji-mart/data";

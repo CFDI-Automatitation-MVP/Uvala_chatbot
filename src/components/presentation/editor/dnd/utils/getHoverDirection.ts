@@ -1,4 +1,3 @@
-/** biome-ignore-all lint/suspicious/noExplicitAny: This use requires any */
 import { type TElement } from "platejs";
 import { type DropTargetMonitor, type XYCoord } from "react-dnd";
 

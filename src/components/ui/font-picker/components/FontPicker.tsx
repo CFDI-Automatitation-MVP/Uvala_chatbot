@@ -1,4 +1,3 @@
-/** biome-ignore-all lint/suspicious/noExplicitAny: This use requires any */
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 // The font info is now imported statically at the top of the file.

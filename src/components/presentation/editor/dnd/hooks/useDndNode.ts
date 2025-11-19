@@ -1,4 +1,3 @@
-/** biome-ignore-all lint/suspicious/noExplicitAny: This use requires any */
 import { getEmptyImage, NativeTypes } from "react-dnd-html5-backend";
 
 import { type ConnectDragSource, type DropTargetMonitor } from "react-dnd";

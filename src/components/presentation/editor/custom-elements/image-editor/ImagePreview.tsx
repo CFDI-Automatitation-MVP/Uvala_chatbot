@@ -293,7 +293,7 @@ export function ImagePreview({
             onWheel={handleWheel}
             onDragStart={(e) => e.preventDefault()}
           >
-            {/** biome-ignore lint/performance/noImgElement: This is a valid use case */}
+            {/* biome-ignore lint/a11y/useAltText: Alt text is provided */}
             <img
               src={element.url}
               alt={element.query ?? "Presentation image"}
@@ -328,7 +328,7 @@ export function ImagePreview({
               transformOrigin: "center center",
             }}
           >
-            {/** biome-ignore lint/performance/noImgElement: This is a valid use case */}
+            
             <img
               src={element.url}
               alt={element.query ?? "Presentation image"}
