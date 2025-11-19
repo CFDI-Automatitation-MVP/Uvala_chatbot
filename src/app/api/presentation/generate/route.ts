@@ -9,8 +9,6 @@ interface SlidesRequest {
   outline: string[]; // Array of main topics with markdown content
   language: string; // Language to use for the slides
   tone: string; // Style for image queries (optional)
-  modelProvider?: string; // Model provider (openai, ollama, or lmstudio)
-  modelId?: string; // Specific model ID for the provider
   searchResults?: Array<{ query: string; results: unknown[] }>; // Search results for context
 }
 // TODO: Add table and chart to the available layouts
@@ -243,8 +241,6 @@ export async function POST(req: Request) {
       outline,
       language,
       tone,
-      modelProvider = "openai",
-      modelId,
       searchResults,
     } = (await req.json()) as SlidesRequest;
 
@@ -291,7 +287,7 @@ export async function POST(req: Request) {
       day: "numeric",
     });
 
-    const model = modelPicker(modelProvider, modelId);
+    const model = modelPicker();
 
     // Format the prompt with template variables
     const formattedPrompt = slidesTemplate
@@ -307,6 +303,12 @@ export async function POST(req: Request) {
     const result = streamText({
       model,
       prompt: formattedPrompt,
+      maxOutputTokens: 16000, // Larger output for detailed slide generation
+      temperature: 0.7,
+      topP: 0.9,
+      additionalModelRequestFields: {
+        reasoning_effort: "high", // High reasoning for creative, detailed slides
+      },
     });
 
     return result.toUIMessageStreamResponse();

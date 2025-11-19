@@ -30,8 +30,6 @@ export function PresentationGenerationManager() {
     shouldStartOutlineGeneration,
     shouldStartPresentationGeneration,
     webSearchEnabled,
-    modelProvider,
-    modelId,
     setIsGeneratingOutline,
     setShouldStartOutlineGeneration,
     setShouldStartPresentationGeneration,
@@ -194,7 +192,10 @@ export function PresentationGenerationManager() {
     // Get the last message - this is where all the current data is
     const lastMessage = messages[messages.length - 1];
     if (!lastMessage) return;
-    console.log("[OUTLINE DEBUG] Last message:", JSON.stringify(lastMessage, null, 2));
+    console.log(
+      "[OUTLINE DEBUG] Last message:",
+      JSON.stringify(lastMessage, null, 2),
+    );
 
     // Extract search results from the last message only (much more efficient)
     if (webSearchEnabled && lastMessage.parts) {
@@ -340,8 +341,6 @@ export function PresentationGenerationManager() {
             prompt: presentationInput,
             numberOfCards: numSlides,
             language,
-            modelProvider,
-            modelId,
           };
 
           return fetch(apiEndpoint, {
@@ -350,55 +349,56 @@ export function PresentationGenerationManager() {
           });
         },
       }),
-    [webSearchEnabled, presentationInput, numSlides, language, modelProvider, modelId],
+    [webSearchEnabled, presentationInput, numSlides, language],
   );
 
   // Outline generation with or without web search
-  const { messages: outlineMessages, sendMessage: sendOutlineMessage } = useChat({
-    transport: outlineTransport,
-    onFinish: () => {
-      setIsGeneratingOutline(false);
-      setShouldStartOutlineGeneration(false);
-      setShouldStartPresentationGeneration(false);
+  const { messages: outlineMessages, sendMessage: sendOutlineMessage } =
+    useChat({
+      transport: outlineTransport,
+      onFinish: () => {
+        setIsGeneratingOutline(false);
+        setShouldStartOutlineGeneration(false);
+        setShouldStartPresentationGeneration(false);
 
-      const {
-        currentPresentationId,
-        outline,
-        searchResults,
-        currentPresentationTitle,
-        theme,
-        imageSource,
-      } = usePresentationState.getState();
-
-      if (currentPresentationId) {
-        void updatePresentation({
-          id: currentPresentationId,
+        const {
+          currentPresentationId,
           outline,
           searchResults,
-          prompt: presentationInput,
-          title: currentPresentationTitle ?? "",
+          currentPresentationTitle,
           theme,
           imageSource,
-        });
-      }
+        } = usePresentationState.getState();
 
-      // Cancel any pending outline animation frame
-      if (outlineRafIdRef.current !== null) {
-        cancelAnimationFrame(outlineRafIdRef.current);
-        outlineRafIdRef.current = null;
-      }
-    },
-    onError: (error) => {
-      toast.error("Failed to generate outline: " + error.message);
-      resetGeneration();
+        if (currentPresentationId) {
+          void updatePresentation({
+            id: currentPresentationId,
+            outline,
+            searchResults,
+            prompt: presentationInput,
+            title: currentPresentationTitle ?? "",
+            theme,
+            imageSource,
+          });
+        }
 
-      // Cancel any pending outline animation frame
-      if (outlineRafIdRef.current !== null) {
-        cancelAnimationFrame(outlineRafIdRef.current);
-        outlineRafIdRef.current = null;
-      }
-    },
-  });
+        // Cancel any pending outline animation frame
+        if (outlineRafIdRef.current !== null) {
+          cancelAnimationFrame(outlineRafIdRef.current);
+          outlineRafIdRef.current = null;
+        }
+      },
+      onError: (error) => {
+        toast.error("Failed to generate outline: " + error.message);
+        resetGeneration();
+
+        // Cancel any pending outline animation frame
+        if (outlineRafIdRef.current !== null) {
+          cancelAnimationFrame(outlineRafIdRef.current);
+          outlineRafIdRef.current = null;
+        }
+      },
+    });
 
   // Lightweight useEffect that only schedules RAF updates
   useEffect(() => {
@@ -499,8 +499,6 @@ export function PresentationGenerationManager() {
         presentationStyle,
         currentPresentationTitle,
         searchResults: stateSearchResults,
-        modelProvider,
-        modelId,
         setThumbnailUrl,
       } = usePresentationState.getState();
 
@@ -516,8 +514,6 @@ export function PresentationGenerationManager() {
           searchResults: stateSearchResults,
           language,
           tone: presentationStyle,
-          modelProvider,
-          modelId,
         },
       });
     }

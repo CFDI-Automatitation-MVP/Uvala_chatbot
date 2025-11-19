@@ -7,8 +7,6 @@ interface OutlineRequest {
   prompt: string;
   numberOfCards: number;
   language: string;
-  modelProvider?: string;
-  modelId?: string;
 }
 
 const outlineTemplate = `Given the following presentation topic and requirements, generate a structured outline with {numberOfCards} main topics in markdown format.
@@ -61,29 +59,25 @@ export async function POST(req: Request) {
     console.log("[OUTLINE API] Request body:", JSON.stringify(body, null, 2));
 
     // AI SDK v5 sends messages array and body params
-    const {
-      prompt,
-      numberOfCards,
-      language,
-      modelProvider = "openai",
-      modelId,
-    } = body as OutlineRequest;
+    const { prompt, numberOfCards, language } = body as OutlineRequest;
 
     // Get the user message content from messages array (v5 format)
-    const userMessage = body.messages?.[body.messages.length - 1]?.content || prompt;
+    const userMessage =
+      body.messages?.[body.messages.length - 1]?.content || prompt;
 
     console.log("[OUTLINE API] Extracted values:", {
       userMessage,
       numberOfCards,
       language,
-      modelProvider,
-      modelId,
     });
 
     if (!userMessage || !numberOfCards || !language) {
       console.log("[OUTLINE API] Missing required fields - returning 400");
       return NextResponse.json(
-        { error: "Missing required fields", details: { userMessage, numberOfCards, language } },
+        {
+          error: "Missing required fields",
+          details: { userMessage, numberOfCards, language },
+        },
         { status: 400 },
       );
     }
@@ -110,7 +104,7 @@ export async function POST(req: Request) {
       day: "numeric",
     });
 
-    const model = modelPicker(modelProvider, modelId);
+    const model = modelPicker();
 
     // Format the prompt with template variables
     const formattedPrompt = outlineTemplate
@@ -122,6 +116,12 @@ export async function POST(req: Request) {
     const result = streamText({
       model,
       messages: [{ role: "user", content: formattedPrompt }],
+      maxOutputTokens: 8000, // GPT-OSS 120B supports large outputs
+      temperature: 0.7,
+      topP: 0.9,
+      additionalModelRequestFields: {
+        reasoning_effort: "medium", // Medium reasoning for outline generation
+      },
     });
 
     const stream = result.toUIMessageStream();

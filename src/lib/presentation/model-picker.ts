@@ -1,32 +1,17 @@
-import { createOpenAI } from "@ai-sdk/openai";
-import { type LanguageModelV1 } from "ai";
-import { createOllama } from "ollama-ai-provider";
+import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
+import { type LanguageModel } from "ai";
 
 /**
  * Centralized model picker function for all presentation generation routes
- * Supports OpenAI, Ollama, and LM Studio models
+ * Uses GPT-OSS-120B via Amazon Bedrock for consistent, high-quality generation
  */
-export function modelPicker(
-  modelProvider: string,
-  modelId?: string,
-): LanguageModelV1 {
-  if (modelProvider === "ollama" && modelId) {
-    // Use Ollama AI provider
-    const ollama = createOllama();
-    return ollama(modelId) as unknown as LanguageModelV1;
-  }
+export function modelPicker(): LanguageModel {
+  const bedrock = createAmazonBedrock({
+    region: process.env.AWS_REGION ?? "us-east-1",
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "",
+  });
 
-  if (modelProvider === "lmstudio" && modelId) {
-    // Use LM Studio with OpenAI compatible provider
-    const lmstudio = createOpenAI({
-      name: "lmstudio",
-      baseURL: "http://localhost:1234/v1",
-      apiKey: "lmstudio",
-    });
-    return lmstudio(modelId) as unknown as LanguageModelV1;
-  }
-
-  // Default to OpenAI
-  const openai = createOpenAI();
-  return openai("gpt-4o-mini") as unknown as LanguageModelV1;
+  // Use GPT-OSS 120B - same model as main chat API (uvala-sensei)
+  return bedrock("openai.gpt-oss-120b-1:0");
 }
