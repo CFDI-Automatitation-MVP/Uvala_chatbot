@@ -8,6 +8,7 @@ export function PresentationParagraphElementStatic(props: SlateElementProps) {
   return (
     <SlateElement
       {...props}
+      as="div"
       className={cn("presentation-paragraph m-0 px-0 py-1 text-base")}
     >
       {props.children}

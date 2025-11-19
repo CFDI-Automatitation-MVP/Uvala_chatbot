@@ -17,7 +17,7 @@ export const PresentationParagraphElement = withRef<
   return (
     <PlateElement
       ref={ref}
-      as="p"
+      as="div"
       className={cn(
         "presentation-paragraph m-0 px-0 py-1 text-base",
         className,
