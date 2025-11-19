@@ -598,7 +598,12 @@ export const EnvironmentalUsageSchema = pgTable(
 );
 
 // Presentation Feature Schemas
-export const documentTypeEnum = ["NOTE", "DOCUMENT", "PRESENTATION", "DRAWING"] as const;
+export const documentTypeEnum = [
+  "NOTE",
+  "DOCUMENT",
+  "PRESENTATION",
+  "DRAWING",
+] as const;
 
 // Base Document Schema
 export const BaseDocumentSchema = pgTable("base_document", {
@@ -617,7 +622,9 @@ export const BaseDocumentSchema = pgTable("base_document", {
 
 // Presentation Schema
 export const PresentationSchema = pgTable("presentation", {
-  id: uuid("id").primaryKey().notNull()
+  id: uuid("id")
+    .primaryKey()
+    .notNull()
     .references(() => BaseDocumentSchema.id, { onDelete: "cascade" }),
   content: json("content").notNull(), // Presentation slides and content
   theme: text("theme").default("default").notNull(),
@@ -625,42 +632,52 @@ export const PresentationSchema = pgTable("presentation", {
   prompt: text("prompt"), // AI generation prompt
   presentationStyle: text("presentation_style"),
   language: text("language").default("en-US"),
-  outline: json("outline").$type<string[]>(), // Presentation outline
+  outline: text("outline").array(), // Presentation outline as PostgreSQL text array
   searchResults: json("search_results"), // Search results from Tavily
   templateId: text("template_id"),
   customThemeId: uuid("custom_theme_id"), // Foreign key added below
 });
 
 // Custom Theme Schema
-export const CustomThemeSchema = pgTable("custom_theme", {
-  id: uuid("id").primaryKey().notNull().defaultRandom(),
-  name: text("name").notNull(),
-  description: text("description"),
-  userId: uuid("user_id")
-    .notNull()
-    .references(() => UserSchema.id, { onDelete: "cascade" }),
-  logoUrl: text("logo_url"),
-  isPublic: boolean("is_public").default(false).notNull(),
-  themeData: json("theme_data").notNull(), // Complete theme configuration
-  createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-}, (table) => [
-  index("custom_theme_user_id_idx").on(table.userId),
-]);
+export const CustomThemeSchema = pgTable(
+  "custom_theme",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    name: text("name").notNull(),
+    description: text("description"),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => UserSchema.id, { onDelete: "cascade" }),
+    logoUrl: text("logo_url"),
+    isPublic: boolean("is_public").default(false).notNull(),
+    themeData: json("theme_data").notNull(), // Complete theme configuration
+    createdAt: timestamp("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [index("custom_theme_user_id_idx").on(table.userId)],
+);
 
 // Favorite Documents Schema
-export const FavoriteDocumentSchema = pgTable("favorite_document", {
-  id: uuid("id").primaryKey().notNull().defaultRandom(),
-  documentId: uuid("document_id")
-    .notNull()
-    .references(() => BaseDocumentSchema.id, { onDelete: "cascade" }),
-  userId: uuid("user_id")
-    .notNull()
-    .references(() => UserSchema.id, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-}, (table) => [
-  unique().on(table.userId, table.documentId),
-]);
+export const FavoriteDocumentSchema = pgTable(
+  "favorite_document",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    documentId: uuid("document_id")
+      .notNull()
+      .references(() => BaseDocumentSchema.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => UserSchema.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [unique().on(table.userId, table.documentId)],
+);
 
 // Generated Images Schema (for AI image generation history)
 export const GeneratedImageSchema = pgTable("generated_image", {
