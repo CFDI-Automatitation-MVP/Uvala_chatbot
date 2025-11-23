@@ -253,7 +253,7 @@ export class SlideParser {
     this.parsedSlides = [];
     this.lastInputLength = 0;
     this.latestContent = "";
-    // Don't reset sectionIdMap to maintain IDs across reset calls
+    this.sectionIdMap.clear(); // Clear section ID map to prevent duplicate IDs
   }
 
   /**

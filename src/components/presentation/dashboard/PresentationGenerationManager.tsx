@@ -68,6 +68,8 @@ export function PresentationGenerationManager() {
   const lastProcessedMessagesLength = useRef<number>(0);
   // Track if title has already been extracted to avoid unnecessary processing
   const titleExtractedRef = useRef<boolean>(false);
+  // Track last parsed content to avoid re-parsing unchanged content
+  const lastParsedContentRef = useRef<string>("");
 
   // Function to update slides using requestAnimationFrame
   const updateSlidesWithRAF = (): void => {
@@ -83,9 +85,19 @@ export function PresentationGenerationManager() {
     const processedPresentationCompletion = stripXmlCodeBlock(
       presentationContentToParse,
     );
+
+    // Skip parsing if content is identical to last parse
+    if (processedPresentationCompletion === lastParsedContentRef.current) {
+      slidesRafIdRef.current = null;
+      return;
+    }
+
+    // Reset parser before each parse to avoid accumulating duplicate slides
+    // This clears parsedSlides array and sectionIdMap to ensure fresh parsing
     streamingParserRef.current.reset();
     streamingParserRef.current.parseChunk(processedPresentationCompletion);
     streamingParserRef.current.finalize();
+    lastParsedContentRef.current = processedPresentationCompletion;
     const allSlides = streamingParserRef.current.getAllSlides();
     // Merge any completed root image URLs from state into streamed slides
     const mergedSlides = allSlides.map((slide) => {
@@ -192,45 +204,42 @@ export function PresentationGenerationManager() {
     // Get the last message - this is where all the current data is
     const lastMessage = messages[messages.length - 1];
     if (!lastMessage) return;
-    console.log(
-      "[OUTLINE DEBUG] Last message:",
-      JSON.stringify(lastMessage, null, 2),
-    );
 
     // Extract search results from the last message only (much more efficient)
     if (webSearchEnabled && lastMessage.parts) {
       const searchResults: Array<{ query: string; results: unknown[] }> = [];
 
       for (const part of lastMessage.parts) {
-        if (part.type === "tool-invocation" && part.toolInvocation) {
-          const invocation = part.toolInvocation;
-          if (
-            invocation.toolName === "webSearch" &&
-            invocation.state === "result" &&
-            "result" in invocation &&
-            invocation.result
-          ) {
-            const query =
-              typeof invocation.args?.query === "string"
-                ? invocation.args.query
-                : "Unknown query";
+        // AI SDK v5: Check for tool-call type with output-available state
+        if (
+          part.type.startsWith("tool-") &&
+          "toolName" in part &&
+          part.toolName === "webSearch" &&
+          "state" in part &&
+          part.state === "output-available"
+        ) {
+          const query =
+            "input" in part &&
+            typeof part.input === "object" &&
+            part.input &&
+            "query" in part.input
+              ? String(part.input.query)
+              : "Unknown query";
 
-            // Parse the search result
-            let parsedResult;
-            try {
-              parsedResult =
-                typeof invocation.result === "string"
-                  ? JSON.parse(invocation.result)
-                  : invocation.result;
-            } catch {
-              parsedResult = invocation.result;
-            }
-
-            searchResults.push({
-              query,
-              results: parsedResult?.results || [],
-            });
+          // Parse the search result from output
+          const output = "output" in part ? part.output : null;
+          let parsedResult;
+          try {
+            parsedResult =
+              typeof output === "string" ? JSON.parse(output) : output;
+          } catch {
+            parsedResult = output;
           }
+
+          searchResults.push({
+            query,
+            results: parsedResult?.results || [],
+          });
         }
       }
 
@@ -241,24 +250,20 @@ export function PresentationGenerationManager() {
     }
 
     // Extract outline from the last assistant message
-    // In AI SDK v5, content might be in parts array
+    // In AI SDK v5, content is in parts array
     let messageContent = "";
     if (lastMessage.role === "assistant") {
-      // Check if message has parts (v5 format)
+      // AI SDK v5: message has parts array
       if (lastMessage.parts && Array.isArray(lastMessage.parts)) {
         // Extract text from all text parts
         messageContent = lastMessage.parts
-          .filter((part: { type: string }) => part.type === "text")
-          .map((part: { text: string }) => part.text)
+          .filter((part) => part.type === "text")
+          .map((part) => ("text" in part ? part.text : ""))
           .join("");
-      } else if (lastMessage.content) {
-        // Fallback to content property (v4 format or simple string content)
-        messageContent = lastMessage.content;
       }
 
       if (!messageContent) return;
 
-      console.log("[OUTLINE DEBUG] Assistant message content:", messageContent);
       // Extract <think> content from assistant message and keep only the remainder for parsing
       const thinkingExtract = extractThinking(messageContent);
       if (thinkingExtract.hasThinking) {
@@ -402,7 +407,6 @@ export function PresentationGenerationManager() {
 
   // Lightweight useEffect that only schedules RAF updates
   useEffect(() => {
-    console.log("outlineMessages", outlineMessages);
     // Only update if we have new messages
     if (outlineMessages.length > 1) {
       lastProcessedMessagesLength.current = outlineMessages.length;
@@ -439,9 +443,10 @@ export function PresentationGenerationManager() {
               requestAnimationFrame(updateOutlineWithRAF);
           }
 
+          // AI SDK v5: sendMessage uses parts array
           sendOutlineMessage({
             role: "user",
-            content: presentationInput,
+            parts: [{ type: "text", text: presentationInput }],
           });
         } catch (error) {
           console.log(error);
@@ -462,6 +467,35 @@ export function PresentationGenerationManager() {
       onFinish: (_prompt, _completion) => {
         setIsGeneratingPresentation(false);
         setShouldStartPresentationGeneration(false);
+
+        // Save presentation immediately when generation completes
+        const {
+          slides,
+          currentPresentationId,
+          currentPresentationTitle,
+          outline,
+          imageSource,
+          presentationStyle,
+          language,
+          config,
+          thumbnailUrl,
+        } = usePresentationState.getState();
+
+        if (currentPresentationId && slides.length > 0) {
+          void updatePresentation({
+            id: currentPresentationId,
+            content: {
+              slides,
+              config,
+            },
+            title: currentPresentationTitle ?? "",
+            outline,
+            imageSource,
+            presentationStyle,
+            language,
+            thumbnailUrl,
+          });
+        }
       },
       onError: (error) => {
         toast.error("Failed to generate presentation: " + error.message);
@@ -502,8 +536,9 @@ export function PresentationGenerationManager() {
         setThumbnailUrl,
       } = usePresentationState.getState();
 
-      // Reset the parser before starting a new generation
+      // Reset the parser and tracking refs before starting a new generation
       streamingParserRef.current.reset();
+      lastParsedContentRef.current = "";
       setIsGeneratingPresentation(true);
       setThumbnailUrl(undefined);
       void generatePresentation(presentationInput ?? "", {
