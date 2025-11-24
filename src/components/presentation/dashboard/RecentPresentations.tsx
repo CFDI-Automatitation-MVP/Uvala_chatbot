@@ -152,11 +152,7 @@ export function RecentPresentations() {
       }
     } catch (error) {
       console.error("Failed to navigate:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to open presentation",
-      });
+      toast.error("Failed to open presentation");
     } finally {
       setIsNavigating(null);
     }

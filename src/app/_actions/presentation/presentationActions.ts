@@ -238,7 +238,7 @@ export async function getPresentation(id: string) {
     return {
       success: true,
       presentation: {
-        ...result.baseDoc,
+        ...result.base_document,
         presentation: result.presentation,
       },
     };
@@ -269,7 +269,10 @@ export async function getPresentationContent(id: string) {
     }
 
     // Check if the user has access to this presentation
-    if (result.baseDoc.userId !== userId && !result.baseDoc.isPublic) {
+    if (
+      result.base_document.userId !== userId &&
+      !result.base_document.isPublic
+    ) {
       return {
         success: false,
         message: "Unauthorized access",

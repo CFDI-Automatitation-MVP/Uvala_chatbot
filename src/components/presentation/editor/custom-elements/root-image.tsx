@@ -162,7 +162,6 @@ export default function RootImage({
                   }}
                   onDoubleClick={handleImageDoubleClick}
                 >
-                  
                   <img
                     src={computedImageUrl}
                     alt={image.query}
@@ -216,19 +215,21 @@ export default function RootImage({
           )}
         </div>
       </div>
-      {/* Image Editor Sheet */}
-      <PresentationImageEditor
-        open={isSheetOpen}
-        onOpenChange={setIsSheetOpen}
-        layoutType={layoutType ?? ""}
-        slideIndex={slideIndex}
-        isRootImage={true}
-        element={{
-          type: "rootImage",
-          children: [],
-          ...image,
-        }}
-      />
+      {/* Image Editor Sheet - only render when open */}
+      {isSheetOpen && (
+        <PresentationImageEditor
+          open={isSheetOpen}
+          onOpenChange={setIsSheetOpen}
+          layoutType={layoutType ?? ""}
+          slideIndex={slideIndex}
+          isRootImage={true}
+          element={{
+            type: "rootImage",
+            children: [],
+            ...image,
+          }}
+        />
+      )}
     </Resizable>
   );
 }

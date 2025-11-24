@@ -219,21 +219,23 @@ export const PresentationImageElement = withHOC(
             </PlateElement>
           </MediaToolbar>
 
-          {/* Image Editor Sheet */}
-          <PresentationImageEditor
-            open={isSheetOpen}
-            onOpenChange={setIsSheetOpen}
-            element={
-              {
-                ...props.element,
-                type: "rootImage",
-                children: [],
-              } as TImageElement & RootImage
-            }
-            layoutType={""}
-            slideIndex={0}
-            isRootImage={false}
-          />
+          {/* Image Editor Sheet - only render when open */}
+          {isSheetOpen && (
+            <PresentationImageEditor
+              open={isSheetOpen}
+              onOpenChange={setIsSheetOpen}
+              element={
+                {
+                  ...props.element,
+                  type: "rootImage",
+                  children: [],
+                } as TImageElement & RootImage
+              }
+              layoutType={""}
+              slideIndex={0}
+              isRootImage={false}
+            />
+          )}
         </>
       );
     },
