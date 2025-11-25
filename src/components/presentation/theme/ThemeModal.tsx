@@ -89,7 +89,7 @@ export function ThemeModal({ children }: { children?: ReactNode }) {
         {children ? children : <Button variant="link">More Themes</Button>}
       </DialogTrigger>
       <DialogContent
-        shouldHaveClose={false}
+        hideClose={true}
         className="h-[60vh] max-w-5xl overflow-auto"
       >
         <div className="flex h-full flex-col ">

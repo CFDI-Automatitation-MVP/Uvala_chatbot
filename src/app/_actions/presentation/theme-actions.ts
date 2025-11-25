@@ -4,7 +4,7 @@ import { utapi } from "@/app/api/uploadthing/core";
 import { getUser } from "@/lib/auth/supabase-auth";
 import { db } from "@/lib/db";
 import { CustomThemeSchema, UserSchema } from "@/lib/db/pg/schema.pg";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { z } from "zod";
 
 // Schema for creating/updating a theme
@@ -173,9 +173,7 @@ export async function deleteCustomTheme(themeId: string) {
       }
     }
 
-    await db
-      .delete(CustomThemeSchema)
-      .where(eq(CustomThemeSchema.id, themeId));
+    await db.delete(CustomThemeSchema).where(eq(CustomThemeSchema.id, themeId));
 
     return {
       success: true,

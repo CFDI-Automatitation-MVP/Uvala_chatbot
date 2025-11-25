@@ -66,8 +66,8 @@ async function fetchPresentationData(presentationId: string, userId: string) {
   );
 
   return {
-    id: result?.baseDoc.id,
-    title: result?.baseDoc.title,
+    id: result?.base_document.id,
+    title: result?.base_document.title,
     slides: (
       result?.presentation?.content as unknown as { slides: PlateSlide[] }
     )?.slides,

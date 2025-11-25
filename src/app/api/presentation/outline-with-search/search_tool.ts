@@ -1,23 +1,30 @@
-import { env } from "@/env";
 import { tavily } from "@tavily/core";
-import { type Tool } from "ai";
+import { tool } from "ai";
 import z from "zod";
 
-const tavilyService = tavily({ apiKey: env.TAVILY_API_KEY });
+let tavilyService: any;
 
-export const search_tool: Tool = {
+function getTavilyService() {
+  if (!tavilyService) {
+    tavilyService = tavily({ apiKey: process.env.TAVILY_API_KEY || "" });
+  }
+  return tavilyService;
+}
+
+export const search_tool = tool({
   description:
     "A search engine optimized for comprehensive, accurate, and trusted results. Useful for when you need to answer questions about current events like news, weather, stock price etc. Input should be a search query.",
-  parameters: z.object({
-    query: z.string(),
+  inputSchema: z.object({
+    query: z.string().describe("The search query"),
   }),
-  execute: async ({ query }: { query: string }) => {
+  execute: async ({ query }) => {
     try {
+      const tavilyService = getTavilyService();
       const response = await tavilyService.search(query, { max_results: 5 });
-      return JSON.stringify(response);
+      return response;
     } catch (error) {
       console.error("Search error:", error);
-      return "Search failed";
+      throw new Error("Search failed");
     }
   },
-};
+});

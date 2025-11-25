@@ -303,12 +303,8 @@ export async function POST(req: Request) {
     const result = streamText({
       model,
       prompt: formattedPrompt,
-      maxOutputTokens: 16000, // Larger output for detailed slide generation
       temperature: 0.7,
       topP: 0.9,
-      additionalModelRequestFields: {
-        reasoning_effort: "high", // High reasoning for creative, detailed slides
-      },
     });
 
     return result.toUIMessageStreamResponse();

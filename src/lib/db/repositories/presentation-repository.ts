@@ -1,10 +1,5 @@
 import { db } from "@/lib/db";
-import {
-  BaseDocumentSchema,
-  PresentationSchema,
-  CustomThemeSchema,
-  FavoriteDocumentSchema
-} from "@/lib/db/pg/schema.pg";
+import { BaseDocumentSchema, PresentationSchema } from "@/lib/db/pg/schema.pg";
 import { eq, and, desc, inArray } from "drizzle-orm";
 
 export const presentationRepository = {
@@ -54,12 +49,15 @@ export const presentationRepository = {
     const result = await db
       .select()
       .from(BaseDocumentSchema)
-      .leftJoin(PresentationSchema, eq(BaseDocumentSchema.id, PresentationSchema.id))
+      .leftJoin(
+        PresentationSchema,
+        eq(BaseDocumentSchema.id, PresentationSchema.id),
+      )
       .where(
         and(
           eq(BaseDocumentSchema.id, id),
-          eq(BaseDocumentSchema.userId, userId)
-        )
+          eq(BaseDocumentSchema.userId, userId),
+        ),
       )
       .limit(1);
 
@@ -71,21 +69,28 @@ export const presentationRepository = {
     return await db
       .select()
       .from(BaseDocumentSchema)
-      .leftJoin(PresentationSchema, eq(BaseDocumentSchema.id, PresentationSchema.id))
+      .leftJoin(
+        PresentationSchema,
+        eq(BaseDocumentSchema.id, PresentationSchema.id),
+      )
       .where(eq(BaseDocumentSchema.userId, userId))
       .orderBy(desc(BaseDocumentSchema.createdAt));
   },
 
   // Update presentation
-  async updatePresentation(id: string, userId: string, data: {
-    title?: string;
-    content?: any;
-    theme?: string;
-    thumbnailUrl?: string;
-    outline?: string[];
-    prompt?: string;
-    searchResults?: any;
-  }) {
+  async updatePresentation(
+    id: string,
+    userId: string,
+    data: {
+      title?: string;
+      content?: any;
+      theme?: string;
+      thumbnailUrl?: string;
+      outline?: string[];
+      prompt?: string;
+      searchResults?: any;
+    },
+  ) {
     return await db.transaction(async (tx) => {
       // Update base document
       if (data.title || data.thumbnailUrl) {
@@ -99,8 +104,8 @@ export const presentationRepository = {
           .where(
             and(
               eq(BaseDocumentSchema.id, id),
-              eq(BaseDocumentSchema.userId, userId)
-            )
+              eq(BaseDocumentSchema.userId, userId),
+            ),
           );
       }
 
@@ -110,7 +115,8 @@ export const presentationRepository = {
       if (data.theme) presentationData.theme = data.theme;
       if (data.outline) presentationData.outline = data.outline;
       if (data.prompt) presentationData.prompt = data.prompt;
-      if (data.searchResults) presentationData.searchResults = data.searchResults;
+      if (data.searchResults)
+        presentationData.searchResults = data.searchResults;
 
       if (Object.keys(presentationData).length > 0) {
         await tx
@@ -131,8 +137,8 @@ export const presentationRepository = {
       .where(
         and(
           eq(BaseDocumentSchema.id, id),
-          eq(BaseDocumentSchema.userId, userId)
-        )
+          eq(BaseDocumentSchema.userId, userId),
+        ),
       )
       .returning();
 
@@ -146,8 +152,8 @@ export const presentationRepository = {
       .where(
         and(
           eq(BaseDocumentSchema.userId, userId),
-          inArray(BaseDocumentSchema.id, ids)
-        )
+          inArray(BaseDocumentSchema.id, ids),
+        ),
       )
       .returning();
 

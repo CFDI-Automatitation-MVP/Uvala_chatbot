@@ -116,12 +116,8 @@ export async function POST(req: Request) {
     const result = streamText({
       model,
       messages: [{ role: "user", content: formattedPrompt }],
-      maxOutputTokens: 8000, // GPT-OSS 120B supports large outputs
       temperature: 0.7,
       topP: 0.9,
-      additionalModelRequestFields: {
-        reasoning_effort: "medium", // Medium reasoning for outline generation
-      },
     });
 
     const stream = result.toUIMessageStream();

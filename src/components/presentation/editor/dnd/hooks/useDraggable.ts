@@ -1,4 +1,3 @@
-/* biome-ignore lint/suspicious/noExplicitAny: This is a valid use case */
 import React from "react";
 
 import { useEditorRef } from "platejs/react";
@@ -54,6 +53,6 @@ export const useDraggable = (props: UseDndNodeOptions): DraggableState => {
     isDragging,
     nodeRef,
     previewRef: multiplePreviewRef,
-    handleRef: dragRef,
+    handleRef: dragRef || (() => {}),
   };
 };

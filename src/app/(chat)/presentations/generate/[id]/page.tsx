@@ -17,12 +17,11 @@ import {
   type Themes,
 } from "@/lib/presentation/themes";
 import { usePresentationState } from "@/states/presentation-state";
+import { PRESENTATION_GENERATION_COOKIE } from "@/constants/presentation";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Wand2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
-
-export const PRESENTATION_GENERATION_COOKIE = "presentation_generation_pending";
 
 export default function PresentationGenerateWithIdPage() {
   const router = useRouter();

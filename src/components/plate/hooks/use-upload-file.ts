@@ -1,22 +1,17 @@
 import * as React from "react";
 
-import {
-  type ClientUploadedFileData,
-  type UploadFilesOptions,
-} from "uploadthing/types";
+import { type ClientUploadedFileData } from "uploadthing/types";
 
-import { type OurFileRouter } from "@/app/api/uploadthing/core";
 import { uploadFiles } from "@/hooks/globals/useUploadthing";
 import { toast } from "sonner";
 import { z } from "zod";
 
 export type UploadedFile<T = unknown> = ClientUploadedFileData<T>;
 
-interface UseUploadFileProps
-  extends Pick<
-    UploadFilesOptions<OurFileRouter["editorUploader"]>,
-    "headers" | "onUploadBegin" | "onUploadProgress" | "skipPolling"
-  > {
+interface UseUploadFileProps {
+  headers?: Record<string, string>;
+  onUploadBegin?: () => void;
+  onUploadProgress?: (progress: number) => void;
   onUploadComplete?: (file: UploadedFile) => void;
   onUploadError?: (error: unknown) => void;
 }
@@ -24,7 +19,8 @@ interface UseUploadFileProps
 export function useUploadFile({
   onUploadComplete,
   onUploadError,
-  ...props
+  headers,
+  onUploadBegin,
 }: UseUploadFileProps = {}) {
   const [uploadedFile, setUploadedFile] = React.useState<UploadedFile>();
   const [uploadingFile, setUploadingFile] = React.useState<File>();
@@ -36,8 +32,9 @@ export function useUploadFile({
     setUploadingFile(file);
 
     try {
-      const res = await uploadFiles("editorUploader", {
-        ...props,
+      const res = await uploadFiles("imageUploader", {
+        headers,
+        onUploadBegin,
         files: [file],
         onUploadProgress: ({ progress }) => {
           setProgress(Math.min(progress, 100));

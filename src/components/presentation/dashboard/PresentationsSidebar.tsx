@@ -13,7 +13,10 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
 import { usePresentationState } from "@/states/presentation-state";
-import { type Prisma } from "@prisma/client";
+import {
+  type BaseDocumentEntity,
+  type PresentationEntity,
+} from "@/lib/db/pg/schema.pg";
 import {
   useInfiniteQuery,
   useMutation,
@@ -25,11 +28,9 @@ import { useInView } from "react-intersection-observer";
 import { PresentationItem } from "./PresentationItem";
 import { SelectionControls } from "./SelectionControls";
 
-type PresentationDocument = Prisma.BaseDocumentGetPayload<{
-  include: {
-    presentation: true;
-  };
-}>;
+type PresentationDocument = BaseDocumentEntity & {
+  presentation: PresentationEntity | null;
+};
 
 interface PresentationResponse {
   items: PresentationDocument[];
@@ -72,18 +73,11 @@ export function PresentationsSidebar({
       await queryClient.invalidateQueries({ queryKey: ["recent-items"] });
       deselectAllPresentations();
       toggleSelecting();
-      toast({
-        title: "Success",
-        description: result.message || "Selected presentations deleted",
-      });
+      toast.success(result.message || "Selected presentations deleted");
     },
     onError: (error) => {
       console.error("Failed to delete presentations:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to delete presentations",
-      });
+      toast.error("Failed to delete presentations");
     },
   });
 
@@ -181,7 +175,6 @@ export function PresentationsSidebar({
   return (
     <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
       <SheetContent
-        overlay={false}
         side={side}
         className="absolute flex h-full w-[400px] flex-col border p-0"
       >

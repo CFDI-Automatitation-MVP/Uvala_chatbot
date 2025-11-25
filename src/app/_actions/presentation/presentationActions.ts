@@ -126,7 +126,7 @@ export async function updatePresentation({
       message: "Presentation updated successfully",
       presentation: updated
         ? {
-            ...updated.baseDoc,
+            ...updated.base_document,
             presentation: updated.presentation,
           }
         : null,
@@ -157,7 +157,7 @@ export async function updatePresentationTitle(id: string, title: string) {
       message: "Presentation title updated successfully",
       presentation: updated
         ? {
-            ...updated.baseDoc,
+            ...updated.base_document,
             presentation: updated.presentation,
           }
         : null,
@@ -338,7 +338,7 @@ export async function duplicatePresentation(id: string, newTitle?: string) {
 
     // Create a new presentation with the same content
     const duplicated = await presentationRepository.createPresentation({
-      title: newTitle ?? `${original.baseDoc.title} (Copy)`,
+      title: newTitle ?? `${original.base_document.title} (Copy)`,
       userId,
       content: original.presentation.content,
       theme: original.presentation.theme,

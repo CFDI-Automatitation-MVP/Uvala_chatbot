@@ -158,23 +158,12 @@ export function ThemeCreator({ children }: { children?: ReactNode }) {
 
       const result = await createCustomTheme(themeData);
       if (result.success) {
-        toast({
-          title: "Success",
-          description: "Theme created successfully!",
-        });
+        toast.success("Theme created successfully!");
       } else {
-        toast({
-          title: "Error",
-          description: result.message || "Failed to create theme",
-          variant: "destructive",
-        });
+        toast.error(result.message || "Failed to create theme");
       }
     } catch {
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred",
-        variant: "destructive",
-      });
+      toast.error("An unexpected error occurred");
     } finally {
       setIsSubmitting(false);
       setCurrentStep(0);

@@ -97,22 +97,14 @@ export function ExportButton({
         URL.revokeObjectURL(url);
         document.body.removeChild(link);
 
-        toast({
-          title: "Export Successful",
-          description: "Your presentation has been exported successfully.",
-          variant: "default",
-        });
+        toast.success("Your presentation has been exported successfully.");
 
         setIsExportDialogOpen(false);
       } else {
         throw new Error(result.error ?? "Export failed");
       }
     } catch (error) {
-      toast({
-        title: "Export Failed",
-        description: "There was an error exporting your presentation.",
-        variant: "destructive",
-      });
+      toast.error("There was an error exporting your presentation.");
       console.error("Export error:", error);
     } finally {
       setIsExporting(false);

@@ -86,11 +86,13 @@ export function PresentationDashboard({
               <Button
                 onClick={handleGenerate}
                 disabled={!presentationInput?.trim() || isGeneratingOutline}
-                variant={isGeneratingOutline ? "loading" : "default"}
+                variant="default"
                 className="gap-2"
               >
                 <Wand2 className="h-4 w-4" />
-                Generate Presentation
+                {isGeneratingOutline
+                  ? "Generating..."
+                  : "Generate Presentation"}
               </Button>
             </div>
           </div>
