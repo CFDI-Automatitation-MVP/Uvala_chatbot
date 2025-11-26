@@ -1,9 +1,5 @@
 "use client";
 
-import {
-  generateImageAction,
-  type ImageModelList,
-} from "@/app/_actions/image/generate";
 import { generateImageWithImagen } from "@/app/_actions/image/generate-imagen";
 import { ImageSourceSelector } from "@/components/presentation/theme/ImageSourceSelector";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -50,11 +46,8 @@ export function GenerateControls({
 
     setLocalError(null);
     try {
-      // Choose generation method based on model
-      const result =
-        imageModel === "google/imagen-4-fast"
-          ? await generateImageWithImagen(newPrompt, "16:9")
-          : await generateImageAction(newPrompt, imageModel as ImageModelList);
+      // Use Google Imagen 4 Fast via Replicate (only AI option)
+      const result = await generateImageWithImagen(newPrompt, "16:9");
 
       if (result.success && result.image?.url) {
         // Update the element using the editor or global state
@@ -95,14 +88,8 @@ export function GenerateControls({
 
     setLocalError(null);
     try {
-      // Choose generation method based on model
-      const result =
-        imageModel === "google/imagen-4-fast"
-          ? await generateImageWithImagen(element.query, "16:9")
-          : await generateImageAction(
-              element.query,
-              imageModel as ImageModelList,
-            );
+      // Use Google Imagen 4 Fast via Replicate (only AI option)
+      const result = await generateImageWithImagen(element.query, "16:9");
 
       if (result.success && result.image?.url) {
         // Update the element using the editor or global state

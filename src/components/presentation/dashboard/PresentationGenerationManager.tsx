@@ -1,6 +1,5 @@
 "use client";
 
-import { generateImageAction } from "@/app/_actions/image/generate";
 import { generateImageWithImagen } from "@/app/_actions/image/generate-imagen";
 import { getImageFromUnsplash } from "@/app/_actions/image/unsplash";
 import { updatePresentation } from "@/app/_actions/presentation/presentationActions";
@@ -121,12 +120,22 @@ export function PresentationGenerationManager() {
       if (rootImage?.query && !rootImage.url) {
         const already = rootImageGeneration[slideId];
         if (!already || already.status === "error") {
+          console.log(
+            "🎬 [PRESENTATION] Starting image generation for slide:",
+            slideId,
+          );
+          console.log("🎬 [PRESENTATION] Query:", rootImage.query);
+          console.log("🎬 [PRESENTATION] Image source:", imageSource);
           startRootImageGeneration(slideId, rootImage.query);
           void (async () => {
             try {
               let result;
 
               if (imageSource === "stock") {
+                console.log(
+                  "📸 [PRESENTATION] Using Unsplash for slide:",
+                  slideId,
+                );
                 // Use Unsplash for stock images
                 const unsplashResult = await getImageFromUnsplash(
                   rootImage.query,
@@ -135,22 +144,31 @@ export function PresentationGenerationManager() {
                 if (unsplashResult.success && unsplashResult.imageUrl) {
                   result = { image: { url: unsplashResult.imageUrl } };
                 }
-              } else if (imageModel === "google/imagen-4-fast") {
-                // Use Google Imagen 4 Fast via Replicate
+              } else {
+                console.log(
+                  "🤖 [PRESENTATION] Using Google Imagen 4 Fast for slide:",
+                  slideId,
+                );
+                // Use Google Imagen 4 Fast via Replicate (only AI option)
                 result = await generateImageWithImagen(
                   rootImage.query,
                   "16:9", // Default aspect ratio for presentations
                 );
-              } else {
-                // Use FLUX models via Together.ai
-                result = await generateImageAction(rootImage.query, imageModel);
               }
 
               if (result?.image?.url) {
+                console.log(
+                  "✅ [PRESENTATION] Image generated successfully for slide:",
+                  slideId,
+                );
+                console.log("🔗 [PRESENTATION] Image URL:", result.image.url);
                 completeRootImageGeneration(slideId, result.image.url);
                 // If we don't have a thumbnail yet, set it now and persist once
                 const stateNow = usePresentationState.getState();
                 if (!stateNow.thumbnailUrl && stateNow.currentPresentationId) {
+                  console.log(
+                    "🖼️  [PRESENTATION] Setting as presentation thumbnail",
+                  );
                   stateNow.setThumbnailUrl(result.image.url);
                   try {
                     await updatePresentation({
@@ -162,6 +180,9 @@ export function PresentationGenerationManager() {
                   }
                 }
                 // Persist into slides state
+                console.log(
+                  "💾 [PRESENTATION] Updating slide state with image URL",
+                );
                 usePresentationState.getState().setSlides(
                   usePresentationState.getState().slides.map((s) =>
                     s.id === slideId
@@ -176,11 +197,20 @@ export function PresentationGenerationManager() {
                   ),
                 );
               } else {
+                console.log(
+                  "❌ [PRESENTATION] No image URL returned for slide:",
+                  slideId,
+                );
                 failRootImageGeneration(slideId, "No image url returned");
               }
             } catch (err) {
               const message =
                 err instanceof Error ? err.message : "Image generation failed";
+              console.log(
+                "❌ [PRESENTATION] Error generating image for slide:",
+                slideId,
+                message,
+              );
               failRootImageGeneration(slideId, message);
             }
           })();
@@ -588,10 +618,10 @@ export function PresentationGenerationManager() {
                   result = { image: { url: unsplashResult.imageUrl } };
                 }
               } else {
-                // Use AI generation
-                result = await generateImageAction(
+                // Use Google Imagen 4 Fast via Replicate (only AI option)
+                result = await generateImageWithImagen(
                   slide.rootImage!.query,
-                  imageModel,
+                  "16:9",
                 );
               }
 

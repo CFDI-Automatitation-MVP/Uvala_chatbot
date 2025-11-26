@@ -33,7 +33,7 @@ export const presentationRepository = {
           id: baseDoc.id,
           content: data.content,
           theme: data.theme || "default",
-          imageSource: data.imageSource || "stock",
+          imageSource: data.imageSource || "ai",
           outline: data.outline,
           presentationStyle: data.presentationStyle,
           language: data.language || "en-US",

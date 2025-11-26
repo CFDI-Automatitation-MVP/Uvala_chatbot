@@ -68,16 +68,7 @@ export function ImageSourceSelector({
               AI Generated
             </SelectLabel>
             <SelectItem value="ai-google/imagen-4-fast">
-              Imagen 4 Fast (Recommended)
-            </SelectItem>
-            <SelectItem value="ai-black-forest-labs/FLUX.1-schnell-Free">
-              FLUX Fast (Free)
-            </SelectItem>
-            <SelectItem value="ai-black-forest-labs/FLUX.1-dev">
-              FLUX Developer
-            </SelectItem>
-            <SelectItem value="ai-black-forest-labs/FLUX1.1-pro">
-              FLUX Premium
+              Imagen 4 Fast
             </SelectItem>
           </SelectGroup>
           <SelectGroup>

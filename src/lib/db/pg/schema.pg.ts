@@ -628,7 +628,7 @@ export const PresentationSchema = pgTable("presentation", {
     .references(() => BaseDocumentSchema.id, { onDelete: "cascade" }),
   content: json("content").notNull(), // Presentation slides and content
   theme: text("theme").default("default").notNull(),
-  imageSource: text("image_source").default("stock").notNull(), // "stock" for Unsplash
+  imageSource: text("image_source").default("ai").notNull(), // "ai" for Google Imagen 4 Fast, "stock" for Unsplash
   prompt: text("prompt"), // AI generation prompt
   presentationStyle: text("presentation_style"),
   language: text("language").default("en-US"),
