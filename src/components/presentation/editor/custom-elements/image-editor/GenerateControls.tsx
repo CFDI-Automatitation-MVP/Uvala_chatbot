@@ -4,6 +4,7 @@ import {
   generateImageAction,
   type ImageModelList,
 } from "@/app/_actions/image/generate";
+import { generateImageWithImagen } from "@/app/_actions/image/generate-imagen";
 import { ImageSourceSelector } from "@/components/presentation/theme/ImageSourceSelector";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -49,11 +50,13 @@ export function GenerateControls({
 
     setLocalError(null);
     try {
-      const result = await generateImageAction(
-        newPrompt,
-        imageModel as ImageModelList,
-      );
-      if (result.success && result.image) {
+      // Choose generation method based on model
+      const result =
+        imageModel === "google/imagen-4-fast"
+          ? await generateImageWithImagen(newPrompt, "16:9")
+          : await generateImageAction(newPrompt, imageModel as ImageModelList);
+
+      if (result.success && result.image?.url) {
         // Update the element using the editor or global state
         const { slides, setSlides } = usePresentationState.getState();
         if (isRootImage) {
@@ -64,7 +67,7 @@ export function GenerateControls({
                     ...slide,
                     rootImage: {
                       ...slide.rootImage!,
-                      url: result.image.url,
+                      url: result.image!.url,
                       query: newPrompt,
                     },
                   }
@@ -73,7 +76,7 @@ export function GenerateControls({
           );
         } else {
           editor.tf.setNodes(
-            { url: result.image.url, query: newPrompt },
+            { url: result.image!.url, query: newPrompt },
             { at: editor.api.findPath(element) },
           );
         }
@@ -92,11 +95,16 @@ export function GenerateControls({
 
     setLocalError(null);
     try {
-      const result = await generateImageAction(
-        element.query,
-        imageModel as ImageModelList,
-      );
-      if (result.success && result.image) {
+      // Choose generation method based on model
+      const result =
+        imageModel === "google/imagen-4-fast"
+          ? await generateImageWithImagen(element.query, "16:9")
+          : await generateImageAction(
+              element.query,
+              imageModel as ImageModelList,
+            );
+
+      if (result.success && result.image?.url) {
         // Update the element using the editor or global state
         const { slides, setSlides } = usePresentationState.getState();
         if (isRootImage) {
@@ -107,7 +115,7 @@ export function GenerateControls({
                     ...slide,
                     rootImage: {
                       ...slide.rootImage!,
-                      url: result.image.url,
+                      url: result.image!.url,
                     },
                   }
                 : slide,
@@ -115,7 +123,7 @@ export function GenerateControls({
           );
         } else {
           editor.tf.setNodes(
-            { url: result.image.url },
+            { url: result.image!.url },
             { at: editor.api.findPath(element) },
           );
         }

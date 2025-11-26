@@ -1,6 +1,7 @@
 "use client";
 
 import { generateImageAction } from "@/app/_actions/image/generate";
+import { generateImageWithImagen } from "@/app/_actions/image/generate-imagen";
 import { getImageFromUnsplash } from "@/app/_actions/image/unsplash";
 import { updatePresentation } from "@/app/_actions/presentation/presentationActions";
 import { extractThinking } from "@/lib/thinking-extractor";
@@ -134,8 +135,14 @@ export function PresentationGenerationManager() {
                 if (unsplashResult.success && unsplashResult.imageUrl) {
                   result = { image: { url: unsplashResult.imageUrl } };
                 }
+              } else if (imageModel === "google/imagen-4-fast") {
+                // Use Google Imagen 4 Fast via Replicate
+                result = await generateImageWithImagen(
+                  rootImage.query,
+                  "16:9", // Default aspect ratio for presentations
+                );
               } else {
-                // Use AI generation
+                // Use FLUX models via Together.ai
                 result = await generateImageAction(rootImage.query, imageModel);
               }
 

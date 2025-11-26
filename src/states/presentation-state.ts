@@ -138,8 +138,8 @@ export const usePresentationState = create<PresentationState>((set) => ({
   webSearchEnabled: false,
   theme: "mystique",
   customThemeData: null,
-  imageModel: "black-forest-labs/FLUX.1-schnell-Free",
-  imageSource: "stock",
+  imageModel: "google/imagen-4-fast",
+  imageSource: "ai",
   stockImageProvider: "unsplash",
   presentationStyle: "professional",
   slides: [], // Now holds the new slide object structure

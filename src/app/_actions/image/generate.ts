@@ -7,14 +7,17 @@ import { GeneratedImageSchema } from "@/lib/db/pg/schema.pg";
 import Together from "together-ai";
 import { UTFile } from "uploadthing/server";
 
-const together = new Together({ apiKey: process.env.TOGETHER_AI_API_KEY || "" });
+const together = new Together({
+  apiKey: process.env.TOGETHER_AI_API_KEY || "",
+});
 
 export type ImageModelList =
   | "black-forest-labs/FLUX1.1-pro"
   | "black-forest-labs/FLUX.1-schnell"
   | "black-forest-labs/FLUX.1-schnell-Free"
   | "black-forest-labs/FLUX.1-pro"
-  | "black-forest-labs/FLUX.1-dev";
+  | "black-forest-labs/FLUX.1-dev"
+  | "google/imagen-4-fast";
 
 export async function generateImageAction(
   prompt: string,

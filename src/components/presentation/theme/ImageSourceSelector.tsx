@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Image } from "lucide-react";
+import { Bot, Image } from "lucide-react";
 
 interface ImageSourceSelectorProps {
   imageSource: "ai" | "stock";
@@ -34,31 +34,54 @@ export function ImageSourceSelector({
   className,
   showLabel = true,
 }: ImageSourceSelectorProps) {
-  // Always set to stock/unsplash
-  if (imageSource !== "stock") {
-    onImageSourceChange("stock");
-    onStockImageProviderChange("unsplash");
-  }
+  // Determine the current value based on imageSource
+  const currentValue =
+    imageSource === "stock"
+      ? `stock-${stockImageProvider}`
+      : `ai-${imageModel}`;
+
+  const handleValueChange = (value: string) => {
+    if (value.startsWith("stock-")) {
+      const provider = value.replace("stock-", "") as "unsplash";
+      onImageSourceChange("stock");
+      onStockImageProviderChange(provider);
+    } else if (value.startsWith("ai-")) {
+      const model = value.replace("ai-", "") as ImageModelList;
+      onImageSourceChange("ai");
+      onImageModelChange(model);
+    }
+  };
 
   return (
     <div className={className}>
       {showLabel && (
-        <Label className="text-sm font-medium mb-2 block">Image Source</Label>
+        <Label className="mb-2 block text-sm font-medium">Image Source</Label>
       )}
-      <Select
-        value="stock-unsplash"
-        onValueChange={(value) => {
-          const provider = value.replace("stock-", "") as "unsplash";
-          onImageSourceChange("stock");
-          onStockImageProviderChange(provider);
-        }}
-      >
+      <Select value={currentValue} onValueChange={handleValueChange}>
         <SelectTrigger>
-          <SelectValue placeholder="Unsplash Stock Images" />
+          <SelectValue placeholder="Select image source" />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
-            <SelectLabel className="text-primary/80 flex items-center gap-1">
+            <SelectLabel className="flex items-center gap-1 text-primary/80">
+              <Bot size={10} />
+              AI Generated
+            </SelectLabel>
+            <SelectItem value="ai-google/imagen-4-fast">
+              Imagen 4 Fast (Recommended)
+            </SelectItem>
+            <SelectItem value="ai-black-forest-labs/FLUX.1-schnell-Free">
+              FLUX Fast (Free)
+            </SelectItem>
+            <SelectItem value="ai-black-forest-labs/FLUX.1-dev">
+              FLUX Developer
+            </SelectItem>
+            <SelectItem value="ai-black-forest-labs/FLUX1.1-pro">
+              FLUX Premium
+            </SelectItem>
+          </SelectGroup>
+          <SelectGroup>
+            <SelectLabel className="flex items-center gap-1 text-primary/80">
               <Image size={10} />
               Stock Images
             </SelectLabel>
