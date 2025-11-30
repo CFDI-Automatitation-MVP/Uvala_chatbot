@@ -9,6 +9,7 @@ import { COOKIE_KEY_SIDEBAR_STATE } from "lib/const";
 import { AppPopupProvider } from "@/components/layouts/app-popup-provider";
 import { SWRConfigProvider } from "./swr-config";
 import { OnboardingProvider } from "@/components/onboarding/onboarding-provider";
+import { ChatLayoutClient } from "./layout-client";
 
 export const experimental_ppr = true;
 
@@ -19,18 +20,10 @@ export default async function ChatLayout({
   const session = await getSessionWithRedirect();
   const isCollapsed =
     cookieStore.get(COOKIE_KEY_SIDEBAR_STATE)?.value !== "true";
+
   return (
-    <SidebarProvider defaultOpen={!isCollapsed}>
-      <SWRConfigProvider>
-        <AppPopupProvider />
-        <OnboardingProvider />
-        <AppSidebar session={session} />
-        <SidebarHoverZone />
-        <SidebarInset className="relative bg-background flex flex-col h-screen">
-          <AppHeader />
-          <div className="flex-1 overflow-y-auto relative z-30">{children}</div>
-        </SidebarInset>
-      </SWRConfigProvider>
-    </SidebarProvider>
+    <ChatLayoutClient session={session} isCollapsed={isCollapsed}>
+      {children}
+    </ChatLayoutClient>
   );
 }

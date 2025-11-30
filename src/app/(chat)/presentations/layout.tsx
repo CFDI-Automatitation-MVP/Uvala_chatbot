@@ -11,7 +11,8 @@ export default function PresentationLayout({
   return (
     <TanstackQueryProvider>
       <PresentationGenerationManager />
-      <div className="flex h-screen w-screen flex-col supports-[(height:100dvh)]:h-[100dvh]">
+      {/* Fixed positioning to cover the entire viewport and hide the parent sidebar */}
+      <div className="fixed inset-0 z-[100] flex h-screen w-screen flex-col bg-background supports-[(height:100dvh)]:h-[100dvh]">
         <PresentationHeader />
         <main className="relative flex flex-1 overflow-hidden">
           <div className="sheet-container h-[calc(100vh-3.8rem)] flex-1 place-items-center overflow-y-auto overflow-x-clip supports-[(height:100dvh)]:h-[calc(100dvh-3.8rem)]">

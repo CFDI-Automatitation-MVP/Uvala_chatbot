@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -11,8 +10,8 @@ import { type Themes, themes } from "@/lib/presentation/themes";
 import { cn } from "@/lib/utils";
 import { usePresentationState } from "@/states/presentation-state";
 import { useTheme } from "next-themes";
+import { useTranslations } from "next-intl";
 import { ImageSourceSelector } from "./ImageSourceSelector";
-import { ThemeModal } from "./ThemeModal";
 
 const PRESENTATION_STYLES = [
   { value: "professional", label: "Professional" },
@@ -23,6 +22,7 @@ const PRESENTATION_STYLES = [
 ];
 
 export function ThemeSettings() {
+  const t = useTranslations("Presentation");
   const {
     theme,
     setTheme,
@@ -39,82 +39,74 @@ export function ThemeSettings() {
   return (
     <div className="space-y-6">
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <Label className="text-sm font-medium">Theme & Layout</Label>
-          <ThemeModal>
-            <Button variant={"link"}>More Themes</Button>
-          </ThemeModal>
-        </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Label className="text-base font-semibold">{t("chooseTheme")}</Label>
+
+        {/* Circular Theme Selector */}
+        <div className="flex flex-wrap items-center justify-center gap-6 py-4">
           {Object.entries(themes).map(([key, themeOption]) => {
             const modeColors = isDark
               ? themeOption.colors.dark
               : themeOption.colors.light;
-            const modeShadows = isDark
-              ? themeOption.shadows.dark
-              : themeOption.shadows.light;
 
             return (
               <button
                 key={key}
                 onClick={() => setTheme(key as Themes)}
                 className={cn(
-                  "group relative space-y-2 rounded-lg border p-4 text-left transition-all",
-                  theme === key
-                    ? "border-primary bg-primary/5"
-                    : "border-muted hover:border-primary/50 hover:bg-muted/50",
+                  "group relative flex flex-col items-center gap-3 transition-all",
                 )}
-                style={{
-                  borderRadius: themeOption.borderRadius,
-                  boxShadow: modeShadows.card,
-                  transition: themeOption.transitions.default,
-                  backgroundColor:
-                    theme === key
-                      ? `${modeColors.primary}${isDark ? "15" : "08"}`
-                      : isDark
-                        ? "rgba(0,0,0,0.3)"
-                        : "rgba(255,255,255,0.9)",
-                }}
               >
-                <div
-                  className="font-medium"
-                  style={{
-                    color: modeColors.heading,
-                    fontFamily: themeOption.fonts.heading,
-                  }}
-                >
-                  {themeOption.name}
+                {/* Circular color preview */}
+                <div className="relative">
+                  <div
+                    className={cn(
+                      "relative h-20 w-20 rounded-full p-1 transition-all",
+                      theme === key
+                        ? "ring-4 ring-primary ring-offset-4 ring-offset-background scale-110"
+                        : "ring-2 ring-border hover:ring-primary/50 hover:scale-105",
+                    )}
+                  >
+                    <div className="h-full w-full rounded-full overflow-hidden grid grid-cols-3">
+                      {[
+                        modeColors.primary,
+                        modeColors.secondary,
+                        modeColors.accent,
+                      ].map((color, i) => (
+                        <div
+                          key={i}
+                          style={{ backgroundColor: color }}
+                          className="h-full"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  {theme === key && (
+                    <div className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-primary flex items-center justify-center">
+                      <svg
+                        className="h-4 w-4 text-primary-foreground"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={3}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </div>
+                  )}
                 </div>
-                <div
-                  className="text-sm"
-                  style={{
-                    color: modeColors.text,
-                    fontFamily: themeOption.fonts.body,
-                  }}
-                >
-                  {themeOption.description}
-                </div>
-                <div className="flex gap-2">
-                  {[
-                    modeColors.primary,
-                    modeColors.secondary,
-                    modeColors.accent,
-                  ].map((color, i) => (
-                    <div
-                      key={i}
-                      className="h-4 w-4 rounded-full ring-1 ring-inset ring-white/10"
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                </div>
-                <div
-                  className="mt-2 text-xs"
-                  style={{ color: modeColors.muted }}
-                >
-                  <span className="block">
-                    Heading: {themeOption.fonts.heading}
-                  </span>
-                  <span className="block">Body: {themeOption.fonts.body}</span>
+
+                {/* Theme name */}
+                <div className="text-center">
+                  <div className="text-sm font-medium text-foreground">
+                    {themeOption.name}
+                  </div>
+                  <div className="text-xs text-muted-foreground max-w-[100px] line-clamp-1">
+                    {themeOption.description}
+                  </div>
                 </div>
               </button>
             );

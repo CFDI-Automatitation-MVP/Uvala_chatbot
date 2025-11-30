@@ -5,11 +5,13 @@ import { useEffect, useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { appStore } from "@/app/store";
 import { useShallow } from "zustand/shallow";
+import { usePathname } from "next/navigation";
 
 export function SidebarHoverZone() {
   const { open, setOpen, openMobile, setOpenMobile } = useSidebar();
   const isMobile = useIsMobile();
   const [isHovering, setIsHovering] = useState(false);
+  const pathname = usePathname();
   const [profileDropdownOpen, threadDropdownOpen, appStoreMutate] = appStore(
     useShallow((state) => [
       state.profileDropdownOpen,
@@ -73,7 +75,20 @@ export function SidebarHoverZone() {
     isMobile,
     profileDropdownOpen,
     threadDropdownOpen,
+    appStoreMutate,
   ]);
+
+  // Hide hover zone on presentation view pages (both /presentation/ and /presentations/)
+  const isPresentationView =
+    (pathname.startsWith("/presentation/") ||
+      pathname.startsWith("/presentations/")) &&
+    !pathname.includes("/generate") &&
+    pathname !== "/presentation" &&
+    pathname !== "/presentations";
+
+  if (isPresentationView) {
+    return null;
+  }
 
   // Visual indicator zone - shows when hovering over the trigger area
   return (

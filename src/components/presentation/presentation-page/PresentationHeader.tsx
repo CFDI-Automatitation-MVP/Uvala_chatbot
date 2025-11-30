@@ -1,16 +1,19 @@
 "use client";
-import SideBarDropdown from "@/components/auth/Dropdown";
-import { Brain } from "@/components/ui/icons";
 import { usePresentationState } from "@/states/presentation-state";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 // Import our new components
 import AllweoneText from "@/components/globals/allweone-logo";
-import { Button } from "@/components/ui/button";
-import * as motion from "framer-motion/client";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { ExportButton } from "./buttons/ExportButton";
 import { PresentButton } from "./buttons/PresentButton";
 import { SaveStatus } from "./buttons/SaveStatus";
@@ -21,6 +24,7 @@ interface PresentationHeaderProps {
 }
 
 export default function PresentationHeader({ title }: PresentationHeaderProps) {
+  const t = useTranslations("Presentation");
   const currentPresentationTitle = usePresentationState(
     (s) => s.currentPresentationTitle,
   );
@@ -46,51 +50,77 @@ export default function PresentationHeader({ title }: PresentationHeaderProps) {
 
   if (pathname === "/presentation/create")
     return (
-      <header className="flex h-12 max-w-[100vw]  items-center justify-between overflow-clip border-accent px-2 py-2">
-        <div className="flex items-center gap-2">
-          {/* This component is suppose to be logo but for now its is actually hamburger menu */}
-
-          <Link href={"/presentation/create"}>
-            <Button size={"icon"} className="rounded-full" variant={"ghost"}>
-              <Brain></Brain>
-            </Button>
-          </Link>
-
-          <motion.div
-            initial={false}
-            layout="position"
-            transition={{ duration: 1 }}
-          >
-            <Link href="/" className="h-max">
-              <AllweoneText className="h-10 w-[7.5rem] cursor-pointer transition-transform duration-100 active:scale-95"></AllweoneText>
-            </Link>
-          </motion.div>
+      <header className="flex h-12 max-w-[100vw] items-center justify-between overflow-clip border-b border-border bg-background px-4">
+        <div className="flex items-center gap-3">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                href="/"
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+              >
+                <Image
+                  src="/uvala-black-log.svg"
+                  alt="Uvala Logo"
+                  width={24}
+                  height={24}
+                  className="dark:hidden"
+                />
+                <Image
+                  src="/uvala-white-log.svg"
+                  alt="Uvala Logo"
+                  width={24}
+                  height={24}
+                  className="hidden dark:block"
+                />
+                <AllweoneText className="text-lg font-bold" />
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              {t("goBackToUvalaChat")}
+            </TooltipContent>
+          </Tooltip>
         </div>
-
-        <SideBarDropdown />
       </header>
     );
 
   return (
-    <header className="flex h-12 w-full items-center justify-between border-b border-accent bg-background px-4">
+    <header className="flex h-12 w-full items-center justify-between border-b border-border bg-background px-4">
       {/* Left section with breadcrumb navigation */}
       <div className="flex items-center gap-2">
-        <Link
-          href="/presentations"
-          className="text-muted-foreground hover:text-foreground"
-        >
-          <Brain className="h-5 w-5"></Brain>
-        </Link>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              href="/"
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+            >
+              <Image
+                src="/uvala-black-log.svg"
+                alt="Uvala Logo"
+                width={20}
+                height={20}
+                className="dark:hidden"
+              />
+              <Image
+                src="/uvala-white-log.svg"
+                alt="Uvala Logo"
+                width={20}
+                height={20}
+                className="hidden dark:block"
+              />
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            {t("goBackToUvalaChat")}
+          </TooltipContent>
+        </Tooltip>
         <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        <span className="font-medium">{presentationTitle}</span>
+        <span className="font-medium text-sm">{presentationTitle}</span>
       </div>
 
       {/* Right section with actions */}
       <div className="flex items-center gap-2">
         {/* Save status indicator */}
         <SaveStatus />
-
-        {/* Theme selector moved to right editor panel */}
 
         {/* Export button - Only in presentation page, not outline or present mode */}
         {isPresentationPage && !isPresenting && (
@@ -102,9 +132,6 @@ export default function PresentationHeader({ title }: PresentationHeaderProps) {
 
         {/* Present button - Only in presentation page, not outline */}
         {isPresentationPage && <PresentButton />}
-
-        {/* User profile dropdown - Keep this on all pages */}
-        {!isPresenting && <SideBarDropdown />}
       </div>
     </header>
   );

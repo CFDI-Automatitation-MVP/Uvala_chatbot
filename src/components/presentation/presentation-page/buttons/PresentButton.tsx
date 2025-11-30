@@ -23,7 +23,7 @@ export function PresentButton() {
       className={cn(
         isPresenting
           ? "bg-red-600 text-white hover:bg-red-700"
-          : "bg-purple-600 text-white hover:bg-purple-700",
+          : "bg-green-600 text-white hover:bg-green-700",
         isGenerating && "cursor-not-allowed opacity-70",
       )}
       onClick={() => !isGenerating && setIsPresenting(!isPresenting)}

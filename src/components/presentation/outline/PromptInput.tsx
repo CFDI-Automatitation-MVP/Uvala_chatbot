@@ -25,18 +25,20 @@ export function PromptInput() {
         type="text"
         value={presentationInput || ""}
         onChange={(e) => setPresentationInput(e.target.value)}
-        className="w-full rounded-md bg-muted px-4 py-3 pr-12 text-foreground outline-none focus:ring-2 focus:ring-indigo-400"
+        className="w-full rounded-md bg-muted px-4 py-3 pr-12 text-foreground outline-none focus:ring-2 focus:ring-green-400"
         placeholder="Enter your presentation topic..."
         disabled={isGeneratingOutline}
       />
       <button
         className={`absolute right-3 top-1/2 -translate-y-1/2 ${
           isGeneratingOutline
-            ? "text-indigo-400"
-            : "text-indigo-400 hover:text-indigo-500"
+            ? "text-green-400"
+            : "text-green-400 hover:text-green-500"
         }`}
         onClick={handleGenerateOutline}
-        disabled={isGeneratingOutline || !presentationInput || !presentationInput.trim()}
+        disabled={
+          isGeneratingOutline || !presentationInput || !presentationInput.trim()
+        }
       >
         <RefreshCw size={20} />
       </button>

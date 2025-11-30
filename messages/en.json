@@ -786,5 +786,33 @@
   },
   "Sidebar": {
     "closeSidebar": "Close sidebar"
+  },
+  "Presentation": {
+    "goBackToUvalaChat": "go back to uvala chat",
+    "presentations": "Presentations",
+    "createBeautifulPresentations": "Create beautiful presentations in seconds",
+    "whatWouldYouLikeToCreate": "What would you like to create a presentation about?",
+    "templates": "Templates",
+    "webSearch": "Web Search",
+    "generatePresentation": "Generate Presentation",
+    "generating": "Generating...",
+    "slides": "slides",
+    "slide": "slide",
+    "textModel": "Text Model",
+    "numberOfSlides": "Number of slides",
+    "language": "Language",
+    "pageStyle": "Page style",
+    "default": "Default",
+    "traditional": "Traditional",
+    "tall": "Tall",
+    "recentPresentations": "Recent Presentations",
+    "yourPresentations": "Your Presentations",
+    "createNewPresentation": "Create New Presentation",
+    "noPresentationsFound": "No presentations found",
+    "failedToLoad": "Failed to load presentations",
+    "customizeTheme": "Customize Theme",
+    "chooseTheme": "Choose a theme",
+    "imageSource": "Image Source",
+    "presentationStyle": "Presentation Style"
   }
 }

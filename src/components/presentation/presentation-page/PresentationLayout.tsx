@@ -14,16 +14,14 @@ interface PresentationLayoutProps {
   children: React.ReactNode;
   isLoading?: boolean;
   themeData?: ThemeProperties;
-  isShared?: boolean;
 }
 
 export function PresentationLayout({
   children,
   isLoading = false,
   themeData,
-  isShared = false,
 }: PresentationLayoutProps) {
-  const isPresenting = usePresentationState((s) => s.isPresenting);
+  const _isPresenting = usePresentationState((s) => s.isPresenting);
 
   // Sidebar interactions moved to SlidePreview
 
@@ -31,11 +29,11 @@ export function PresentationLayout({
     return <LoadingState />;
   }
 
-  // Hide sidebar in shared mode and when presenting
-  const showSidebar = !isShared && !isPresenting;
+  // Hide sidebar in shared mode and when presenting - always hide sidebar
+  const showSidebar = false;
 
   return (
-    <ThemeBackground className="h-full w-full">
+    <div className="h-full w-full bg-background">
       <DndProvider backend={HTML5Backend}>
         {themeData && <CustomThemeFontLoader themeData={themeData} />}
         <div className="flex h-full">
@@ -46,6 +44,6 @@ export function PresentationLayout({
           </div>
         </div>
       </DndProvider>
-    </ThemeBackground>
+    </div>
   );
 }

@@ -17,17 +17,21 @@ export function ModelPicker({
   return (
     <div>
       {shouldShowLabel && (
-        <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label className="mb-2 block text-sm font-medium text-muted-foreground">
           Text Model
         </label>
       )}
-      <div className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background">
+      <div className="flex h-10 w-full items-center justify-between rounded-lg border border-border/40 bg-background px-3 py-2 text-sm">
         <div className="flex items-center gap-2">
-          <Bot className="h-4 w-4 flex-shrink-0" />
+          <Bot className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
           <span className="truncate text-sm">GPT-OSS-120B</span>
         </div>
       </div>
-      <p className="mt-1 text-xs text-muted-foreground">via Amazon Bedrock</p>
+      {shouldShowLabel && (
+        <p className="mt-1 text-[11px] text-muted-foreground/60">
+          via Amazon Bedrock
+        </p>
+      )}
     </div>
   );
 }

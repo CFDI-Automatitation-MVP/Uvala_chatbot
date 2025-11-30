@@ -3,7 +3,7 @@
 import { createEmptyPresentation } from "@/app/_actions/presentation/presentationActions";
 import { Button } from "@/components/ui/button";
 import { usePresentationState } from "@/states/presentation-state";
-import { Wand2 } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
@@ -72,34 +72,34 @@ export function PresentationDashboard({
   };
 
   return (
-    <div className="notebook-section relative h-full w-full">
+    <div className="notebook-section relative h-full w-full flex">
       <PresentationsSidebar side={sidebarSide} />
-      <div className="mx-auto max-w-4xl space-y-12 px-6 py-12">
-        <PresentationHeader />
+      <div className="flex-1 overflow-y-auto flex items-start justify-center">
+        <div className="w-full max-w-3xl space-y-12 px-8 py-20">
+          <PresentationHeader />
 
-        <div className="space-y-8">
-          <PresentationInput handleGenerate={handleGenerate} />
-          <PresentationControls />
+          <div className="space-y-6">
+            <PresentationInput handleGenerate={handleGenerate} />
 
-          <div className="flex items-center justify-end">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col items-center gap-4">
+              <PresentationControls shouldShowLabel={false} />
+
               <Button
                 onClick={handleGenerate}
                 disabled={!presentationInput?.trim() || isGeneratingOutline}
-                variant="default"
-                className="gap-2"
+                size="lg"
+                className="rounded-full px-10 h-12 font-medium text-sm bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed border border-primary/20"
               >
-                <Wand2 className="h-4 w-4" />
                 {isGeneratingOutline
                   ? "Generating..."
                   : "Generate Presentation"}
               </Button>
             </div>
           </div>
-        </div>
 
-        <PresentationExamples />
-        <RecentPresentations />
+          <PresentationExamples />
+          <RecentPresentations />
+        </div>
       </div>
     </div>
   );

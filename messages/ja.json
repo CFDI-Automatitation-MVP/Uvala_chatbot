@@ -678,5 +678,36 @@
     "wh": "Wh",
     "max": "最大:",
     "donationMessage": "消費量に基づいて10倍の同等のリソースを寄付します。"
+  },
+  "Sidebar": {
+    "closeSidebar": "サイドバーを閉じる"
+  },
+  "Presentation": {
+    "goBackToUvalaChat": "uvalaチャットに戻る",
+    "presentations": "プレゼンテーション",
+    "createBeautifulPresentations": "数秒で美しいプレゼンテーションを作成",
+    "whatWouldYouLikeToCreate": "どのようなプレゼンテーションを作成しますか？",
+    "templates": "テンプレート",
+    "webSearch": "ウェブ検索",
+    "generatePresentation": "プレゼンテーションを生成",
+    "generating": "生成中...",
+    "slides": "スライド",
+    "slide": "スライド",
+    "textModel": "テキストモデル",
+    "numberOfSlides": "スライド数",
+    "language": "言語",
+    "pageStyle": "ページスタイル",
+    "default": "デフォルト",
+    "traditional": "伝統的",
+    "tall": "縦長",
+    "recentPresentations": "最近のプレゼンテーション",
+    "yourPresentations": "あなたのプレゼンテーション",
+    "createNewPresentation": "新しいプレゼンテーションを作成",
+    "noPresentationsFound": "プレゼンテーションが見つかりません",
+    "failedToLoad": "プレゼンテーションの読み込みに失敗しました",
+    "customizeTheme": "テーマをカスタマイズ",
+    "chooseTheme": "テーマを選択",
+    "imageSource": "画像ソース",
+    "presentationStyle": "プレゼンテーションスタイル"
   }
 }

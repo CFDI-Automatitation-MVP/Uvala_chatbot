@@ -684,5 +684,36 @@
     "wh": "Wh",
     "max": "Max :",
     "donationMessage": "Nous ferons don de 10 fois les ressources équivalentes en fonction de votre consommation."
+  },
+  "Sidebar": {
+    "closeSidebar": "Fermer la barre latérale"
+  },
+  "Presentation": {
+    "goBackToUvalaChat": "retour au chat uvala",
+    "presentations": "Présentations",
+    "createBeautifulPresentations": "Créez de belles présentations en quelques secondes",
+    "whatWouldYouLikeToCreate": "Sur quoi aimeriez-vous créer une présentation ?",
+    "templates": "Modèles",
+    "webSearch": "Recherche Web",
+    "generatePresentation": "Générer Présentation",
+    "generating": "Génération...",
+    "slides": "diapositives",
+    "slide": "diapositive",
+    "textModel": "Modèle de Texte",
+    "numberOfSlides": "Nombre de diapositives",
+    "language": "Langue",
+    "pageStyle": "Style de page",
+    "default": "Par défaut",
+    "traditional": "Traditionnel",
+    "tall": "Grand",
+    "recentPresentations": "Présentations Récentes",
+    "yourPresentations": "Vos Présentations",
+    "createNewPresentation": "Créer Nouvelle Présentation",
+    "noPresentationsFound": "Aucune présentation trouvée",
+    "failedToLoad": "Échec du chargement des présentations",
+    "customizeTheme": "Personnaliser le Thème",
+    "chooseTheme": "Choisir un thème",
+    "imageSource": "Source d'Image",
+    "presentationStyle": "Style de Présentation"
   }
 }

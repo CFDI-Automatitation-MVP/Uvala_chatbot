@@ -667,5 +667,36 @@
     "wh": "Wh",
     "max": "最大值：",
     "donationMessage": "我们将根据您的消费量捐赠10倍的等量资源。"
+  },
+  "Sidebar": {
+    "closeSidebar": "关闭侧边栏"
+  },
+  "Presentation": {
+    "goBackToUvalaChat": "返回uvala聊天",
+    "presentations": "演示文稿",
+    "createBeautifulPresentations": "几秒钟内创建精美演示文稿",
+    "whatWouldYouLikeToCreate": "您想创建关于什么的演示文稿？",
+    "templates": "模板",
+    "webSearch": "网页搜索",
+    "generatePresentation": "生成演示文稿",
+    "generating": "生成中...",
+    "slides": "幻灯片",
+    "slide": "幻灯片",
+    "textModel": "文本模型",
+    "numberOfSlides": "幻灯片数量",
+    "language": "语言",
+    "pageStyle": "页面样式",
+    "default": "默认",
+    "traditional": "传统",
+    "tall": "纵向",
+    "recentPresentations": "最近的演示文稿",
+    "yourPresentations": "您的演示文稿",
+    "createNewPresentation": "创建新演示文稿",
+    "noPresentationsFound": "未找到演示文稿",
+    "failedToLoad": "加载演示文稿失败",
+    "customizeTheme": "自定义主题",
+    "chooseTheme": "选择主题",
+    "imageSource": "图像来源",
+    "presentationStyle": "演示风格"
   }
 }

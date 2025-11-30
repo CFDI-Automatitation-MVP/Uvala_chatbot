@@ -7,7 +7,6 @@ import {
 } from "@/components/ui/select";
 import { usePresentationState } from "@/states/presentation-state";
 import { Layout } from "lucide-react";
-import { ModelPicker } from "./ModelPicker";
 
 export function PresentationControls({
   shouldShowLabel = true,
@@ -24,14 +23,11 @@ export function PresentationControls({
   } = usePresentationState();
 
   return (
-    <div className="grid grid-cols-4 gap-4">
-      {/* Model Selection */}
-      <ModelPicker shouldShowLabel={shouldShowLabel} />
-
+    <div className="flex items-center justify-center gap-4">
       {/* Number of Slides */}
       <div>
         {shouldShowLabel && (
-          <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label className="mb-2 block text-sm font-medium text-muted-foreground">
             Number of slides
           </label>
         )}
@@ -39,13 +35,13 @@ export function PresentationControls({
           value={String(numSlides)}
           onValueChange={(v) => setNumSlides(Number(v))}
         >
-          <SelectTrigger>
-            <SelectValue placeholder="Select number of slides" />
+          <SelectTrigger className="h-12 text-base border-border/40 rounded-lg">
+            <SelectValue placeholder="Slides" />
           </SelectTrigger>
           <SelectContent>
             {[1, 2, 3, 4, 5, 6, 7, 8, 10, 12].map((num) => (
               <SelectItem key={num} value={String(num)}>
-                {num} slides
+                {num} {num === 1 ? "slide" : "slides"}
               </SelectItem>
             ))}
           </SelectContent>
@@ -55,27 +51,21 @@ export function PresentationControls({
       {/* Language */}
       <div>
         {shouldShowLabel && (
-          <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label className="mb-2 block text-sm font-medium text-muted-foreground">
             Language
           </label>
         )}
         <Select value={language} onValueChange={setLanguage}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select language" />
+          <SelectTrigger className="h-12 text-base border-border/40 rounded-lg">
+            <SelectValue placeholder="Language" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="en-US">English (US)</SelectItem>
-            <SelectItem value="pt">Portuguese</SelectItem>
-            <SelectItem value="es">Spanish</SelectItem>
-            <SelectItem value="fr">French</SelectItem>
-            <SelectItem value="de">German</SelectItem>
-            <SelectItem value="it">Italian</SelectItem>
-            <SelectItem value="ja">Japanese</SelectItem>
-            <SelectItem value="ko">Korean</SelectItem>
-            <SelectItem value="zh">Chinese</SelectItem>
-            <SelectItem value="ru">Russian</SelectItem>
-            <SelectItem value="hi">Hindi</SelectItem>
-            <SelectItem value="ar">Arabic</SelectItem>
+            <SelectItem value="en-US">English</SelectItem>
+            <SelectItem value="es">Español</SelectItem>
+            <SelectItem value="fr">Français</SelectItem>
+            <SelectItem value="ja">日本語</SelectItem>
+            <SelectItem value="ko">한국어</SelectItem>
+            <SelectItem value="zh">中文</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -83,33 +73,21 @@ export function PresentationControls({
       {/* Page Style */}
       <div>
         {shouldShowLabel && (
-          <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label className="mb-2 block text-sm font-medium text-muted-foreground">
             Page style
           </label>
         )}
         <Select value={pageStyle} onValueChange={setPageStyle}>
-          <SelectTrigger>
+          <SelectTrigger className="h-12 text-base border-border/40 rounded-lg">
             <div className="flex items-center gap-2">
               <Layout className="h-4 w-4" />
-              <SelectValue placeholder="Select page style" />
+              <SelectValue placeholder="Style" />
             </div>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="default">
-              <div className="flex items-center gap-3">
-                <span>Default</span>
-              </div>
-            </SelectItem>
-            <SelectItem value="traditional">
-              <div className="flex items-center gap-3">
-                <span>Traditional</span>
-              </div>
-            </SelectItem>
-            <SelectItem value="tall">
-              <div className="flex items-center gap-3">
-                <span>Tall</span>
-              </div>
-            </SelectItem>
+            <SelectItem value="default">Default</SelectItem>
+            <SelectItem value="traditional">Traditional</SelectItem>
+            <SelectItem value="tall">Tall</SelectItem>
           </SelectContent>
         </Select>
       </div>

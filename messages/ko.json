@@ -674,5 +674,36 @@
     "wh": "Wh",
     "max": "최대:",
     "donationMessage": "소비량의 10배에 해당하는 자원을 기부합니다."
+  },
+  "Sidebar": {
+    "closeSidebar": "사이드바 닫기"
+  },
+  "Presentation": {
+    "goBackToUvalaChat": "uvala 채팅으로 돌아가기",
+    "presentations": "프레젠테이션",
+    "createBeautifulPresentations": "몇 초 만에 아름다운 프레젠테이션 만들기",
+    "whatWouldYouLikeToCreate": "어떤 프레젠테이션을 만들고 싶으신가요?",
+    "templates": "템플릿",
+    "webSearch": "웹 검색",
+    "generatePresentation": "프레젠테이션 생성",
+    "generating": "생성 중...",
+    "slides": "슬라이드",
+    "slide": "슬라이드",
+    "textModel": "텍스트 모델",
+    "numberOfSlides": "슬라이드 수",
+    "language": "언어",
+    "pageStyle": "페이지 스타일",
+    "default": "기본",
+    "traditional": "전통적",
+    "tall": "세로형",
+    "recentPresentations": "최근 프레젠테이션",
+    "yourPresentations": "내 프레젠테이션",
+    "createNewPresentation": "새 프레젠테이션 만들기",
+    "noPresentationsFound": "프레젠테이션을 찾을 수 없습니다",
+    "failedToLoad": "프레젠테이션 로드 실패",
+    "customizeTheme": "테마 사용자 지정",
+    "chooseTheme": "테마 선택",
+    "imageSource": "이미지 소스",
+    "presentationStyle": "프레젠테이션 스타일"
   }
 }

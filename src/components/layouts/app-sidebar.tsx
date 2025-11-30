@@ -60,7 +60,19 @@ export function AppSidebar({ session }: { session?: { user: SessionUser } }) {
     if (isMobile) {
       setOpenMobile(false);
     }
-  }, [currentPath, isMobile]);
+  }, [currentPath, isMobile, setOpenMobile]);
+
+  // Hide sidebar completely on presentation view pages (both /presentation/ and /presentations/)
+  const isPresentationView =
+    (currentPath.startsWith("/presentation/") ||
+      currentPath.startsWith("/presentations/")) &&
+    !currentPath.includes("/generate") &&
+    currentPath !== "/presentation" &&
+    currentPath !== "/presentations";
+
+  if (isPresentationView) {
+    return null;
+  }
 
   return (
     <Sidebar

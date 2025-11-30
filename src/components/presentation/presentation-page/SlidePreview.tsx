@@ -63,11 +63,16 @@ function SlidePreviewBase({
     [],
   );
 
+  // Don't render anything if sidebar is hidden
+  if (!showSidebar) {
+    return null;
+  }
+
   return (
     <div className="flex h-full items-center">
       <div className="flex h-full items-center">
         <AnimatePresence>
-          {showSidebar && !isSidebarCollapsed && (
+          {!isSidebarCollapsed && (
             <motion.div
               initial={{
                 scale: 1,
@@ -139,7 +144,7 @@ function SlidePreviewBase({
           )}
         </AnimatePresence>
 
-        {showSidebar && isSidebarCollapsed && (
+        {isSidebarCollapsed && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1, x: "0.5rem" }}

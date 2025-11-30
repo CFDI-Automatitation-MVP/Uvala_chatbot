@@ -193,7 +193,7 @@ export default function PresentationGenerateWithIdPage() {
 
   if (isLoadingPresentation) {
     return (
-      <ThemeBackground>
+      <div className="relative h-full min-h-screen w-full bg-background">
         <div className="flex h-[calc(100vh-8rem)] flex-col items-center justify-center">
           <div className="relative">
             <Spinner className="h-10 w-10 text-primary" />
@@ -203,14 +203,14 @@ export default function PresentationGenerateWithIdPage() {
             <p className="text-muted-foreground">Please wait a moment...</p>
           </div>
         </div>
-      </ThemeBackground>
+      </div>
     );
   }
   return (
-    <ThemeBackground>
+    <div className="relative h-full min-h-screen w-full bg-background">
       <Button
         variant="ghost"
-        className="absolute left-4 top-4 flex items-center gap-2 text-muted-foreground hover:text-foreground"
+        className="absolute left-4 top-4 flex items-center gap-2 text-muted-foreground hover:text-foreground z-10"
         onClick={() => router.back()}
       >
         <ArrowLeft className="h-4 w-4" />
@@ -242,17 +242,16 @@ export default function PresentationGenerateWithIdPage() {
         {/* <GoogleAdsBanner isVertical={true} /> */}
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 flex justify-center border-t bg-background/80 p-4 backdrop-blur-sm">
+      <div className="fixed bottom-0 left-0 right-0 flex justify-center border-t bg-background/95 p-4 backdrop-blur-sm z-10">
         <Button
           size="lg"
-          className="gap-2 px-8"
+          className="rounded-full px-10 h-12 font-medium text-sm bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed border border-primary/20"
           onClick={handleGenerate}
           disabled={isGeneratingPresentation}
         >
-          <Wand2 className="h-5 w-5" />
           {isGeneratingPresentation ? "Generating..." : "Generate Presentation"}
         </Button>
       </div>
-    </ThemeBackground>
+    </div>
   );
 }

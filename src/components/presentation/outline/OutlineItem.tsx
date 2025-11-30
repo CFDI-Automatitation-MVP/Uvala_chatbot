@@ -71,7 +71,7 @@ export const OutlineItem = memo(function OutlineItem({
       >
         <GripVertical size={20} />
       </div>
-      <span className="min-w-[1.5rem] text-indigo-400">{index}</span>
+      <span className="min-w-[1.5rem] text-green-400">{index}</span>
       <div className="flex-1">
         <ProseMirrorEditor
           content={editedTitle}
