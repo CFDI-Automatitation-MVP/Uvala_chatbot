@@ -155,7 +155,7 @@
     "lucide-react": "^0.486.0",
     "motion": "^12.23.12",
     "nanoid": "^5.1.5",
-    "next": "15.3.2",
+    "next": "15.3.8",
     "next-intl": "^4.3.5",
     "next-themes": "^0.4.6",
     "ogl": "^1.0.11",
@@ -242,7 +242,10 @@
     "vitest": "^3.2.4"
   },
   "lint-staged": {
-    "*.{js,json,mjs,ts,yaml,tsx,css}": ["pnpm format", "pnpm lint:fix"]
+    "*.{js,json,mjs,ts,yaml,tsx,css}": [
+      "pnpm format",
+      "pnpm lint:fix"
+    ]
   },
   "packageManager": "pnpm@10.2.1",
   "engines": {
